@@ -1,0 +1,176 @@
+"use client";
+
+import { useActionState, useEffect, useState } from "react";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import {
+  createPlannedExpenseAction,
+  updatePlannedExpenseAction,
+  type PlannedFormState,
+} from "@/lib/actions/planned-expenses";
+import { formatScheduledExpenseAmount } from "@/lib/currency/expense-display";
+import { formatCurrencyLabel } from "@/lib/currency/types";
+import { ExpenseAmount } from "./expense-amount";
+import type { MoneyDisplayContext } from "@/lib/currency/display";
+import {
+  currencies,
+  type CurrencyCode,
+  type PlannedExpenseWithTags,
+} from "@/lib/db/schema";
+import { formatTagNames } from "@/lib/expenses/tag-utils";
+import {
+  cn,
+  formatCentsAsDollarsInput,
+  formatDate,
+  parseDollarsToCents,
+} from "@/lib/utils";
+import { TagInput } from "./tag-input";
+
+const initialState: PlannedFormState = {};
+
+interface PlannedExpenseFormProps extends MoneyDisplayContext {
+  planned?: PlannedExpenseWithTags;
+  onCancel?: () => void;
+  onSuccess?: () => void;
+}
+
+export function PlannedExpenseForm({
+  planned,
+  onCancel,
+  onSuccess,
+  displayCurrency,
+  rates,
+}: PlannedExpenseFormProps) {
+  const isEditing = Boolean(planned);
+  const [name, setName] = useState(planned?.name ?? "");
+  const [tags, setTags] = useState(
+    planned ? formatTagNames(planned.tags) : "",
+  );
+  const [date, setDate] = useState(planned?.date ?? "");
+  const [currency, setCurrency] = useState<CurrencyCode>(
+    planned?.currency ?? "usd",
+  );
+  const [amount, setAmount] = useState(
+    planned ? formatCentsAsDollarsInput(planned.amount) : "",
+  );
+
+  const action = isEditing
+    ? updatePlannedExpenseAction.bind(null, planned!.id)
+    : createPlannedExpenseAction;
+
+  const [state, formAction, pending] = useActionState(action, initialState);
+
+  useEffect(() => {
+    if (state.success) {
+      onSuccess?.();
+    }
+  }, [state.success, onSuccess]);
+
+  const previewAmount = parseDollarsToCents(amount);
+
+  return (
+    <form action={formAction} className="space-y-4">
+      <div>
+        <label htmlFor="planned-name" className="mb-2 block font-mono text-xs text-muted">
+          name:
+        </label>
+        <Input
+          id="planned-name"
+          name="name"
+          value={name}
+          onChange={(e) => setName(e.target.value)}
+          placeholder="Car repair"
+          required
+        />
+      </div>
+
+      <TagInput id="planned-tags" value={tags} onChange={setTags} />
+
+      <div>
+        <label htmlFor="planned-date" className="mb-2 block font-mono text-xs text-muted">
+          date:
+        </label>
+        <Input
+          id="planned-date"
+          name="date"
+          type="date"
+          value={date}
+          onChange={(e) => setDate(e.target.value)}
+          required
+        />
+        {!isEditing && (
+          <p className="mt-1 font-mono text-xs text-muted">
+            must be a future date
+          </p>
+        )}
+      </div>
+
+      <div className="grid gap-4 sm:grid-cols-2">
+        <div>
+          <label htmlFor="planned-amount" className="mb-2 block font-mono text-xs text-muted">
+            amount:
+          </label>
+          <Input
+            id="planned-amount"
+            name="amount"
+            type="text"
+            inputMode="decimal"
+            value={amount}
+            onChange={(e) => setAmount(e.target.value)}
+            placeholder="500.00"
+            required
+          />
+        </div>
+
+        <div>
+          <label htmlFor="planned-currency" className="mb-2 block font-mono text-xs text-muted">
+            currency:
+          </label>
+          <select
+            id="planned-currency"
+            name="currency"
+            value={currency}
+            onChange={(e) => setCurrency(e.target.value as CurrencyCode)}
+            className={cn(
+              "w-full border border-border bg-surface px-3 py-2 font-mono text-sm text-text outline-none transition-colors focus:border-accent",
+            )}
+          >
+            {currencies.map((c) => (
+              <option key={c} value={c}>
+                {formatCurrencyLabel(c)}
+              </option>
+            ))}
+          </select>
+        </div>
+      </div>
+
+      {date && previewAmount !== null && (
+        <div className="rounded border border-border/60 bg-bg/50 px-3 py-2">
+          <p className="font-mono text-xs text-muted">planned charge:</p>
+          <div className="mt-2 flex items-center justify-between font-mono text-xs text-text">
+            <span>{formatDate(date)}</span>
+            <ExpenseAmount
+              amount={formatScheduledExpenseAmount(previewAmount, currency)}
+              className="text-xs text-danger"
+            />
+          </div>
+        </div>
+      )}
+
+      {state.error && (
+        <p className="font-mono text-xs text-danger">{state.error}</p>
+      )}
+
+      <div className="flex gap-2">
+        <Button type="submit" loading={pending}>
+          {pending ? "saving..." : isEditing ? "update" : "add planned"}
+        </Button>
+        {onCancel && (
+          <Button type="button" variant="ghost" onClick={onCancel}>
+            cancel
+          </Button>
+        )}
+      </div>
+    </form>
+  );
+}

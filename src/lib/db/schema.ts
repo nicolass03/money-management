@@ -84,6 +84,31 @@ export const expenseTags = pgTable(
   (table) => [primaryKey({ columns: [table.expenseId, table.tagId] })],
 );
 
+export const plannedExpenses = pgTable("planned_expenses", {
+  id: serial("id").primaryKey(),
+  name: text("name").notNull(),
+  date: text("date").notNull(),
+  amount: integer("amount").notNull(),
+  currency: text("currency", { enum: currencies }).notNull().default("usd"),
+  createdAt: text("created_at").notNull(),
+  updatedAt: text("updated_at").notNull(),
+});
+
+export const plannedExpenseTags = pgTable(
+  "planned_expense_tags",
+  {
+    plannedExpenseId: integer("planned_expense_id")
+      .notNull()
+      .references(() => plannedExpenses.id, { onDelete: "cascade" }),
+    tagId: integer("tag_id")
+      .notNull()
+      .references(() => tags.id, { onDelete: "cascade" }),
+  },
+  (table) => [
+    primaryKey({ columns: [table.plannedExpenseId, table.tagId] }),
+  ],
+);
+
 export const incomePaySchedules = pgTable("income_pay_schedules", {
   id: serial("id").primaryKey(),
   name: text("name").notNull(),
@@ -139,5 +164,7 @@ export type Income = typeof income.$inferSelect;
 export type Saving = typeof savings.$inferSelect;
 export type UserSettings = typeof userSettings.$inferSelect;
 
+export type PlannedExpense = typeof plannedExpenses.$inferSelect;
 export type ExpenseWithTags = Expense & { tags: string[] };
 export type RecurringExpenseWithTags = RecurringExpense & { tags: string[] };
+export type PlannedExpenseWithTags = PlannedExpense & { tags: string[] };

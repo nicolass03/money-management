@@ -104,7 +104,7 @@ function validateRecurringInput(data: {
 
 function revalidateExpensePaths() {
   revalidatePath("/expenses");
-  revalidatePath("/expenses/configure");
+  revalidatePath("/expenses/recurring");
   revalidatePath("/projections");
 }
 

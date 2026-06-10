@@ -30,11 +30,18 @@ export function ExpenseDashboard({
           subtitle="analytics and planned spend for the current pay period"
           className="mb-0"
         />
-        <Link href="/expenses/configure">
-          <Button size="sm" variant="ghost">
-            configure
-          </Button>
-        </Link>
+        <div className="flex shrink-0 items-center gap-2">
+          <Link href="/expenses/recurring">
+            <Button size="sm" variant="ghost">
+              recurring
+            </Button>
+          </Link>
+          <Link href="/expenses/planned">
+            <Button size="sm" variant="ghost">
+              one-time
+            </Button>
+          </Link>
+        </div>
       </div>
 
       <ExpenseCharts

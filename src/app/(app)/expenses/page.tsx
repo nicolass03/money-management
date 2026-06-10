@@ -6,16 +6,18 @@ import {
   getExpensesWithTags,
   getIncomePayScheduleById,
   getMoneyContext,
+  getPlannedExpensesWithTags,
   getRecurringExpensesWithTags,
   getUserSettings,
 } from "@/lib/db/queries";
 import { getCurrentPeriodExpenses } from "@/lib/projections/build-projection";
 
 export default async function ExpensesPage() {
-  const [allExpenses, recurringExpenses, allTags, settings, money] =
+  const [allExpenses, recurringExpenses, plannedExpenses, allTags, settings, money] =
     await Promise.all([
       getExpensesWithTags(),
       getRecurringExpensesWithTags(),
+      getPlannedExpensesWithTags(),
       getAllTagNames(),
       getUserSettings(),
       getMoneyContext(),
@@ -30,6 +32,7 @@ export default async function ExpensesPage() {
         primarySchedule,
         expenses: allExpenses,
         recurringExpenses,
+        plannedExpenses,
         displayCurrency: money.displayCurrency,
         rates: money.rates,
       })

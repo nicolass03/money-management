@@ -4,7 +4,7 @@ import Link from "next/link";
 import { RecurringExpenses } from "@/components/expenses/recurring-expenses";
 import { getMoneyContext, getRecurringExpensesWithTags } from "@/lib/db/queries";
 
-export default async function ExpensesConfigurePage() {
+export default async function RecurringExpensesPage() {
   const [recurringExpenses, money] = await Promise.all([
     getRecurringExpensesWithTags(),
     getMoneyContext(),

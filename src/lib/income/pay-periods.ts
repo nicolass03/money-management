@@ -341,10 +341,15 @@ export function getProjectionPeriods(
     });
 
   const horizonEnd = addMonths(ref, monthsForward);
-  const currentPeriod = getPeriodContaining(schedule, ref);
+  const rangeStart = projectionStartDate ?? ref;
+  const anchorDate =
+    projectionStartDate && compareIso(projectionStartDate, ref) < 0
+      ? projectionStartDate
+      : ref;
+  const anchorPeriod = getPeriodContaining(schedule, anchorDate);
   const periodMap = new Map<string, PayPeriod>();
 
-  let payDate = currentPeriod.payDate;
+  let payDate = anchorPeriod.payDate;
   while (periodMap.size < 50) {
     const period = getPeriodForPayDate(schedule, payDate);
     if (compareIso(period.startDate, horizonEnd) > 0) {
@@ -352,13 +357,10 @@ export function getProjectionPeriods(
     }
 
     const overlapsHorizon =
-      compareIso(period.endDate, ref) >= 0 &&
+      compareIso(period.endDate, rangeStart) >= 0 &&
       compareIso(period.startDate, horizonEnd) <= 0;
-    const overlapsProjectionStart =
-      !projectionStartDate ||
-      compareIso(period.endDate, projectionStartDate) >= 0;
 
-    if (overlapsHorizon && overlapsProjectionStart) {
+    if (overlapsHorizon) {
       periodMap.set(period.payDate, period);
     }
 

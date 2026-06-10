@@ -8,9 +8,11 @@ import {
 import type { ExchangeRates } from "@/lib/currency/convert";
 import {
   attachTagsToExpenses,
+  attachTagsToPlannedExpenses,
   attachTagsToRecurringExpenses,
   getAllTagNames,
   setExpenseTags,
+  setPlannedExpenseTags,
   setRecurringExpenseTags,
 } from "@/lib/expenses/tags";
 import { deleteScheduledIncome, syncScheduledIncome } from "@/lib/income/sync-scheduled-income";
@@ -19,12 +21,14 @@ import {
   expenses,
   income,
   incomePaySchedules,
+  plannedExpenses,
   recurringExpenses,
   savings,
   userSettings,
   type CurrencyCode,
   type ExpenseWithTags,
   type PayFrequency,
+  type PlannedExpenseWithTags,
   type RecurringExpenseWithTags,
 } from "./schema";
 
@@ -185,6 +189,26 @@ export async function getRecurringExpenseById(id: number) {
     .from(recurringExpenses)
     .where(eq(recurringExpenses.id, id));
   return recurring ?? null;
+}
+
+export async function getPlannedExpenses() {
+  return db
+    .select()
+    .from(plannedExpenses)
+    .orderBy(plannedExpenses.date);
+}
+
+export async function getPlannedExpensesWithTags(): Promise<PlannedExpenseWithTags[]> {
+  const rows = await getPlannedExpenses();
+  return attachTagsToPlannedExpenses(rows);
+}
+
+export async function getPlannedExpenseById(id: number) {
+  const [planned] = await db
+    .select()
+    .from(plannedExpenses)
+    .where(eq(plannedExpenses.id, id));
+  return planned ?? null;
 }
 
 async function ensureUserSettings() {
@@ -403,6 +427,63 @@ export async function updateRecurringExpense(
 export async function deleteRecurringExpense(id: number) {
   await db.delete(expenses).where(eq(expenses.recurringId, id));
   await db.delete(recurringExpenses).where(eq(recurringExpenses.id, id));
+}
+
+export async function createPlannedExpense(data: {
+  name: string;
+  date: string;
+  amount: number;
+  currency: CurrencyCode;
+  tags: string[];
+}) {
+  const now = new Date().toISOString();
+  const [planned] = await db
+    .insert(plannedExpenses)
+    .values({
+      name: data.name,
+      date: data.date,
+      amount: data.amount,
+      currency: data.currency,
+      createdAt: now,
+      updatedAt: now,
+    })
+    .returning();
+
+  await setPlannedExpenseTags(planned.id, data.tags);
+  return planned;
+}
+
+export async function updatePlannedExpense(
+  id: number,
+  data: {
+    name: string;
+    date: string;
+    amount: number;
+    currency: CurrencyCode;
+    tags: string[];
+  },
+) {
+  const [planned] = await db
+    .update(plannedExpenses)
+    .set({
+      name: data.name,
+      date: data.date,
+      amount: data.amount,
+      currency: data.currency,
+      updatedAt: new Date().toISOString(),
+    })
+    .where(eq(plannedExpenses.id, id))
+    .returning();
+
+  if (planned) {
+    await setPlannedExpenseTags(id, data.tags);
+  }
+
+  return planned ?? null;
+}
+
+export async function deletePlannedExpense(id: number) {
+  await db.delete(plannedExpenses).where(eq(plannedExpenses.id, id));
 }
 
 export async function getExpenseByRecurringAndDate(

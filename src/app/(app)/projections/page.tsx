@@ -6,19 +6,21 @@ import {
   getIncome,
   getIncomePayScheduleById,
   getMoneyContext,
+  getPlannedExpensesWithTags,
   getRecurringExpensesWithTags,
   getUserSettings,
 } from "@/lib/db/queries";
 import { buildProjectionRows } from "@/lib/projections/build-projection";
 
 export default async function ProjectionsPage() {
-  const [settings, money, incomeEntries, expenses, recurringExpenses] =
+  const [settings, money, incomeEntries, expenses, recurringExpenses, plannedExpenses] =
     await Promise.all([
       getUserSettings(),
       getMoneyContext(),
       getIncome(),
       getExpensesWithTags(),
       getRecurringExpensesWithTags(),
+      getPlannedExpensesWithTags(),
     ]);
 
   const primarySchedule = settings.primaryScheduleId
@@ -31,6 +33,7 @@ export default async function ProjectionsPage() {
         incomeEntries,
         expenses,
         recurringExpenses,
+        plannedExpenses,
         displayCurrency: money.displayCurrency,
         rates: money.rates,
         initialFreeMoney: settings.projectionInitialFreeMoney,

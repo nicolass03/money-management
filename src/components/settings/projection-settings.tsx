@@ -96,7 +96,7 @@ export function ProjectionSettings({
                 defaultValue={projectionStartDate ?? ""}
               />
               <p className="mt-2 font-mono text-xs text-muted">
-                {"> only pay periods from this date onward are included"}
+                {"> projections begin on this date; only the opening balance applies until the next pay date (no income in that window)"}
               </p>
             </div>
 
@@ -116,7 +116,7 @@ export function ProjectionSettings({
                 placeholder="0.00"
               />
               <p className="mt-2 font-mono text-xs text-muted">
-                {"> starting balance added to cumulative free money from the first pay period"}
+                {"> free cash balance on the projection start date"}
               </p>
             </div>
 

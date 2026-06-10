@@ -2,6 +2,7 @@ import { eq, inArray } from "drizzle-orm";
 import { db } from "@/lib/db/index";
 import {
   expenseTags,
+  plannedExpenseTags,
   recurringExpenseTags,
   tags,
 } from "@/lib/db/schema";
@@ -48,6 +49,27 @@ export async function setExpenseTags(expenseId: number, tagNames: string[]) {
   await db.insert(expenseTags).values(
     tagIds.map((tagId) => ({
       expenseId,
+      tagId,
+    })),
+  );
+}
+
+export async function setPlannedExpenseTags(
+  plannedExpenseId: number,
+  tagNames: string[],
+) {
+  await db
+    .delete(plannedExpenseTags)
+    .where(eq(plannedExpenseTags.plannedExpenseId, plannedExpenseId));
+
+  const tagIds = await ensureTags(tagNames);
+  if (tagIds.length === 0) {
+    return;
+  }
+
+  await db.insert(plannedExpenseTags).values(
+    tagIds.map((tagId) => ({
+      plannedExpenseId,
       tagId,
     })),
   );
@@ -127,6 +149,38 @@ async function getTagNamesByExpenseIds(
   return map;
 }
 
+async function getTagNamesByPlannedIds(
+  plannedIds: number[],
+): Promise<Map<number, string[]>> {
+  const map = new Map<number, string[]>();
+  if (plannedIds.length === 0) {
+    return map;
+  }
+
+  const rows = await db
+    .select({
+      plannedExpenseId: plannedExpenseTags.plannedExpenseId,
+      tagName: tags.name,
+    })
+    .from(plannedExpenseTags)
+    .innerJoin(tags, eq(plannedExpenseTags.tagId, tags.id))
+    .where(inArray(plannedExpenseTags.plannedExpenseId, plannedIds));
+
+  for (const row of rows) {
+    const existing = map.get(row.plannedExpenseId) ?? [];
+    existing.push(row.tagName);
+    map.set(row.plannedExpenseId, existing);
+  }
+
+  for (const id of plannedIds) {
+    if (!map.has(id)) {
+      map.set(id, []);
+    }
+  }
+
+  return map;
+}
+
 async function getTagNamesByRecurringIds(
   recurringIds: number[],
 ): Promise<Map<number, string[]>> {
@@ -173,6 +227,16 @@ export async function attachTagsToRecurringExpenses<T extends { id: number }>(
   items: T[],
 ): Promise<Array<T & { tags: string[] }>> {
   const tagMap = await getTagNamesByRecurringIds(items.map((item) => item.id));
+  return items.map((item) => ({
+    ...item,
+    tags: tagMap.get(item.id) ?? [],
+  }));
+}
+
+export async function attachTagsToPlannedExpenses<T extends { id: number }>(
+  items: T[],
+): Promise<Array<T & { tags: string[] }>> {
+  const tagMap = await getTagNamesByPlannedIds(items.map((item) => item.id));
   return items.map((item) => ({
     ...item,
     tags: tagMap.get(item.id) ?? [],
