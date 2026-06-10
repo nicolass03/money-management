@@ -22,13 +22,16 @@ import type {
   CurrentPeriodExpenses as CurrentPeriodData,
   ProjectionExpenseItem,
 } from "@/lib/projections/build-projection";
+import type { PayableFutureItem } from "@/lib/projections/upcoming-payable";
 import { cn, formatCentsAsDollarsInput, formatDate } from "@/lib/utils";
 import { ExpenseForm } from "./expense-form";
+import { MarkEarlyPaymentPanel } from "./mark-early-payment-panel";
 import { TagList } from "./tag-input";
 
 interface CurrentPeriodExpensesProps extends MoneyDisplayContext {
   primarySchedule: IncomePaySchedule | null;
   periodData: CurrentPeriodData | null;
+  upcomingPayableItems: PayableFutureItem[];
 }
 
 function formatPeriodRange(startDate: string, endDate: string): string {
@@ -123,7 +126,10 @@ function ExpenseRow({
           )}
         </div>
         <p className="font-mono text-xs text-muted">
-          {formatDate(item.date)} {"//"} <TagList tags={item.tags} />
+          {item.scheduledDate
+            ? `paid ${formatDate(item.date)} // due ${formatDate(item.scheduledDate)}`
+            : formatDate(item.date)}{" "}
+          {"//"} <TagList tags={item.tags} />
           {item.projected ? " // projected" : " // actual"}
         </p>
       </div>
@@ -233,6 +239,7 @@ function ExpenseGroup({
 export function CurrentPeriodExpenses({
   primarySchedule,
   periodData,
+  upcomingPayableItems,
   displayCurrency,
   rates,
 }: CurrentPeriodExpensesProps) {
@@ -352,6 +359,15 @@ export function CurrentPeriodExpenses({
           </div>
         )}
       </Card>
+
+      {primarySchedule && periodData && (
+        <MarkEarlyPaymentPanel
+          upcomingItems={upcomingPayableItems}
+          periodStartDate={periodData.period.startDate}
+          periodEndDate={periodData.period.endDate}
+          defaultPaidDate={today}
+        />
+      )}
     </section>
   );
 }

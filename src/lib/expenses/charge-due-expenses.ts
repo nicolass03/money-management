@@ -1,7 +1,7 @@
 import { convertAmount } from "@/lib/currency/convert";
 import {
   getExchangeRates,
-  getExpenseByRecurringAndDate,
+  getExpenseByRecurringAndDueDate,
   getRecurringExpenses,
   getUserSettings,
 } from "@/lib/db/queries";
@@ -38,7 +38,7 @@ export async function chargeDueExpensesForDate(
       continue;
     }
 
-    const existing = await getExpenseByRecurringAndDate(recurring.id, date);
+    const existing = await getExpenseByRecurringAndDueDate(recurring.id, date);
     if (existing) {
       continue;
     }

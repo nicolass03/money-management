@@ -117,6 +117,27 @@ export async function copyRecurringTagsToExpense(
   );
 }
 
+export async function copyPlannedTagsToExpense(
+  plannedExpenseId: number,
+  expenseId: number,
+) {
+  const links = await db
+    .select({ tagId: plannedExpenseTags.tagId })
+    .from(plannedExpenseTags)
+    .where(eq(plannedExpenseTags.plannedExpenseId, plannedExpenseId));
+
+  if (links.length === 0) {
+    return;
+  }
+
+  await db.insert(expenseTags).values(
+    links.map((link) => ({
+      expenseId,
+      tagId: link.tagId,
+    })),
+  );
+}
+
 async function getTagNamesByExpenseIds(
   expenseIds: number[],
 ): Promise<Map<number, string[]>> {

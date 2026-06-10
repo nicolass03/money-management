@@ -15,6 +15,13 @@ import {
   scheduleToInput,
   type PayPeriod,
 } from "@/lib/income/pay-periods";
+import {
+  buildPlannedMaterializedSet,
+  buildRecurringMaterializedSet,
+  isPlannedExpenseMaterialized,
+  isRecurringOccurrenceMaterialized,
+  recurringDueDate,
+} from "./materialization";
 
 export interface ProjectionExpenseItem {
   id?: number;
@@ -22,6 +29,7 @@ export interface ProjectionExpenseItem {
   plannedExpenseId?: number;
   name: string;
   date: string;
+  scheduledDate?: string;
   amount: number;
   currency: CurrencyCode;
   originalAmount?: number;
@@ -117,10 +125,6 @@ function sumIncomeInPeriod(
     );
 }
 
-function materializedKey(recurringId: number, date: string): string {
-  return `${recurringId}:${date}`;
-}
-
 export function getExpenseItemsInPeriod(
   expenseList: ExpenseWithTags[],
   recurringList: RecurringExpenseWithTags[],
@@ -131,15 +135,12 @@ export function getExpenseItemsInPeriod(
   today: string,
 ): ProjectionExpenseItem[] {
   const items: ProjectionExpenseItem[] = [];
-  const materialized = new Set<string>();
+  const recurringMaterialized = buildRecurringMaterializedSet(expenseList);
+  const plannedMaterialized = buildPlannedMaterializedSet(expenseList);
 
   for (const expense of expenseList) {
     if (!isDateInPeriod(expense.date, period)) {
       continue;
-    }
-
-    if (expense.recurringId != null) {
-      materialized.add(materializedKey(expense.recurringId, expense.date));
     }
 
     const recurringSource =
@@ -147,11 +148,17 @@ export function getExpenseItemsInPeriod(
         ? recurringList.find((r) => r.id === expense.recurringId)
         : undefined;
 
+    const dueDate =
+      expense.scheduledDate ??
+      (expense.recurringId != null ? recurringDueDate(expense) : undefined);
+
     items.push({
       id: expense.id,
       recurringId: expense.recurringId ?? undefined,
+      plannedExpenseId: expense.plannedExpenseId ?? undefined,
       name: expense.name,
       date: expense.date,
+      scheduledDate: dueDate !== expense.date ? dueDate : undefined,
       amount: expense.amount,
       currency: expense.currency,
       originalAmount:
@@ -186,7 +193,13 @@ export function getExpenseItemsInPeriod(
         continue;
       }
 
-      if (materialized.has(materializedKey(recurring.id, dueDate))) {
+      if (
+        isRecurringOccurrenceMaterialized(
+          recurringMaterialized,
+          recurring.id,
+          dueDate,
+        )
+      ) {
         continue;
       }
 
@@ -215,6 +228,10 @@ export function getExpenseItemsInPeriod(
     }
 
     if (planned.date <= today) {
+      continue;
+    }
+
+    if (isPlannedExpenseMaterialized(plannedMaterialized, planned.id)) {
       continue;
     }
 

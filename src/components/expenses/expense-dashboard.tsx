@@ -6,12 +6,14 @@ import { ExpenseCharts } from "./expense-charts";
 import type { MoneyDisplayContext } from "@/lib/currency/display";
 import type { ExpenseWithTags, IncomePaySchedule } from "@/lib/db/schema";
 import type { CurrentPeriodExpenses as CurrentPeriodData } from "@/lib/projections/build-projection";
+import type { PayableFutureItem } from "@/lib/projections/upcoming-payable";
 
 interface ExpenseDashboardProps extends MoneyDisplayContext {
   allExpenses: ExpenseWithTags[];
   allTags: string[];
   primarySchedule: IncomePaySchedule | null;
   periodData: CurrentPeriodData | null;
+  upcomingPayableItems: PayableFutureItem[];
 }
 
 export function ExpenseDashboard({
@@ -19,6 +21,7 @@ export function ExpenseDashboard({
   allTags,
   primarySchedule,
   periodData,
+  upcomingPayableItems,
   displayCurrency,
   rates,
 }: ExpenseDashboardProps) {
@@ -54,6 +57,7 @@ export function ExpenseDashboard({
       <CurrentPeriodExpenses
         primarySchedule={primarySchedule}
         periodData={periodData}
+        upcomingPayableItems={upcomingPayableItems}
         displayCurrency={displayCurrency}
         rates={rates}
       />

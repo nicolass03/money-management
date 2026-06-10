@@ -1,4 +1,4 @@
-import { and, desc, eq } from "drizzle-orm";
+import { and, desc, eq, isNull, or } from "drizzle-orm";
 import {
   fetchExchangeRates,
   isRatesStale,
@@ -486,17 +486,61 @@ export async function deletePlannedExpense(id: number) {
   await db.delete(plannedExpenses).where(eq(plannedExpenses.id, id));
 }
 
-export async function getExpenseByRecurringAndDate(
+export async function getExpenseByRecurringAndDueDate(
   recurringId: number,
-  date: string,
+  dueDate: string,
 ) {
   const [expense] = await db
     .select()
     .from(expenses)
     .where(
-      and(eq(expenses.recurringId, recurringId), eq(expenses.date, date)),
+      and(
+        eq(expenses.recurringId, recurringId),
+        or(
+          eq(expenses.scheduledDate, dueDate),
+          and(isNull(expenses.scheduledDate), eq(expenses.date, dueDate)),
+        ),
+      ),
     );
   return expense ?? null;
+}
+
+export async function getExpenseByPlannedId(plannedExpenseId: number) {
+  const [expense] = await db
+    .select()
+    .from(expenses)
+    .where(eq(expenses.plannedExpenseId, plannedExpenseId));
+  return expense ?? null;
+}
+
+export async function createEarlyPaidExpense(data: {
+  name: string;
+  amount: number;
+  currency: CurrencyCode;
+  date: string;
+  scheduledDate: string;
+  recurringId?: number | null;
+  plannedExpenseId?: number | null;
+  amountOverridden: boolean;
+  isSubscription: boolean;
+}) {
+  const now = new Date().toISOString();
+  const [expense] = await db
+    .insert(expenses)
+    .values({
+      name: data.name,
+      amount: data.amount,
+      currency: data.currency,
+      date: data.date,
+      scheduledDate: data.scheduledDate,
+      recurringId: data.recurringId ?? null,
+      plannedExpenseId: data.plannedExpenseId ?? null,
+      amountOverridden: data.amountOverridden,
+      isSubscription: data.isSubscription,
+      createdAt: now,
+    })
+    .returning();
+  return expense;
 }
 
 export async function getSavings() {

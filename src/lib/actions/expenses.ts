@@ -2,15 +2,25 @@
 
 import { revalidatePath } from "next/cache";
 import {
+  createEarlyPaidExpense,
   createExpense,
   deleteExpense,
   getExpenseById,
+  getExpenseByPlannedId,
+  getExpenseByRecurringAndDueDate,
   getIncomePayScheduleById,
+  getPlannedExpenseById,
+  getRecurringExpenseById,
   getUserSettings,
   updateExpenseAmount,
 } from "@/lib/db/queries";
 import { currencies, type CurrencyCode } from "@/lib/db/schema";
 import {
+  copyPlannedTagsToExpense,
+  copyRecurringTagsToExpense,
+} from "@/lib/expenses/tags";
+import {
+  getPayDatesInRange,
   getPeriodContaining,
   isDateInPeriod,
   scheduleToInput,
@@ -162,6 +172,145 @@ export async function updateExpenseAmountAction(
     return { success: true };
   } catch {
     return { error: "failed to update expense" };
+  }
+}
+
+export async function markFuturePaymentAsPaidAction(
+  _prev: ExpenseFormState,
+  formData: FormData,
+): Promise<ExpenseFormState> {
+  const sourceType = String(formData.get("sourceType") ?? "");
+  const scheduledDate = String(formData.get("scheduledDate") ?? "");
+  const paidDate = String(formData.get("paidDate") ?? "");
+  const amountRaw = String(formData.get("amount") ?? "");
+  const currency = String(formData.get("currency") ?? "");
+  const recurringIdRaw = formData.get("recurringId");
+  const plannedExpenseIdRaw = formData.get("plannedExpenseId");
+
+  if (sourceType !== "recurring" && sourceType !== "planned") {
+    return { error: "invalid payment source" };
+  }
+
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(scheduledDate)) {
+    return { error: "invalid scheduled date" };
+  }
+
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(paidDate)) {
+    return { error: "invalid paid date" };
+  }
+
+  if (!currencies.includes(currency as CurrencyCode)) {
+    return { error: "invalid currency" };
+  }
+
+  const amount = parseDollarsToCents(amountRaw);
+  if (amount === null || amount <= 0) {
+    return { error: "invalid amount" };
+  }
+
+  const period = await getCurrentPayPeriod();
+  if (!period) {
+    return { error: "set a primary pay schedule in settings first" };
+  }
+
+  if (!isDateInPeriod(paidDate, period)) {
+    return { error: "paid date must fall within the current pay period" };
+  }
+
+  const today = new Date().toISOString().slice(0, 10);
+  if (paidDate > today) {
+    return { error: "paid date cannot be in the future" };
+  }
+
+  try {
+    if (sourceType === "recurring") {
+      const recurringId = Number(recurringIdRaw);
+      if (!Number.isInteger(recurringId) || recurringId <= 0) {
+        return { error: "invalid recurring expense" };
+      }
+
+      const recurring = await getRecurringExpenseById(recurringId);
+      if (!recurring) {
+        return { error: "recurring expense not found" };
+      }
+
+      const dueDates = getPayDatesInRange(
+        scheduleToInput(recurring),
+        scheduledDate,
+        scheduledDate,
+      );
+      if (dueDates.length === 0) {
+        return { error: "scheduled date does not match recurring expense" };
+      }
+
+      if (scheduledDate <= today) {
+        return { error: "scheduled date must be in the future" };
+      }
+
+      const existing = await getExpenseByRecurringAndDueDate(
+        recurringId,
+        scheduledDate,
+      );
+      if (existing) {
+        return { error: "this payment has already been recorded" };
+      }
+
+      const expense = await createEarlyPaidExpense({
+        name: recurring.name,
+        amount,
+        currency: currency as CurrencyCode,
+        date: paidDate,
+        scheduledDate,
+        recurringId,
+        amountOverridden:
+          amount !== recurring.amount || currency !== recurring.currency,
+        isSubscription: recurring.isSubscription,
+      });
+
+      await copyRecurringTagsToExpense(recurringId, expense.id);
+    } else {
+      const plannedExpenseId = Number(plannedExpenseIdRaw);
+      if (!Number.isInteger(plannedExpenseId) || plannedExpenseId <= 0) {
+        return { error: "invalid planned expense" };
+      }
+
+      const planned = await getPlannedExpenseById(plannedExpenseId);
+      if (!planned) {
+        return { error: "planned expense not found" };
+      }
+
+      if (planned.date !== scheduledDate) {
+        return { error: "scheduled date does not match planned expense" };
+      }
+
+      if (planned.date <= today) {
+        return { error: "scheduled date must be in the future" };
+      }
+
+      const existing = await getExpenseByPlannedId(plannedExpenseId);
+      if (existing) {
+        return { error: "this payment has already been recorded" };
+      }
+
+      const expense = await createEarlyPaidExpense({
+        name: planned.name,
+        amount,
+        currency: currency as CurrencyCode,
+        date: paidDate,
+        scheduledDate,
+        plannedExpenseId,
+        amountOverridden:
+          amount !== planned.amount || currency !== planned.currency,
+        isSubscription: false,
+      });
+
+      await copyPlannedTagsToExpense(plannedExpenseId, expense.id);
+    }
+
+    revalidateExpensePaths();
+    return { success: true };
+  } catch {
+    return { error: "failed to record early payment" };
   }
 }
 

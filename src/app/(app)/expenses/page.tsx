@@ -11,6 +11,7 @@ import {
   getUserSettings,
 } from "@/lib/db/queries";
 import { getCurrentPeriodExpenses } from "@/lib/projections/build-projection";
+import { getUpcomingPayableItems } from "@/lib/projections/upcoming-payable";
 
 export default async function ExpensesPage() {
   const [allExpenses, recurringExpenses, plannedExpenses, allTags, settings, money] =
@@ -38,12 +39,19 @@ export default async function ExpensesPage() {
       })
     : null;
 
+  const upcomingPayableItems = getUpcomingPayableItems({
+    expenses: allExpenses,
+    recurringExpenses,
+    plannedExpenses,
+  });
+
   return (
     <ExpenseDashboard
       allExpenses={allExpenses}
       allTags={allTags}
       primarySchedule={primarySchedule}
       periodData={periodData}
+      upcomingPayableItems={upcomingPayableItems}
       displayCurrency={money.displayCurrency}
       rates={money.rates}
     />

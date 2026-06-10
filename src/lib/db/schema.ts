@@ -57,17 +57,25 @@ export const expenses = pgTable(
     amount: integer("amount").notNull(),
     currency: text("currency", { enum: currencies }).notNull().default("usd"),
     date: text("date").notNull(),
+    scheduledDate: text("scheduled_date"),
     recurringId: integer("recurring_id").references(() => recurringExpenses.id, {
       onDelete: "cascade",
     }),
+    plannedExpenseId: integer("planned_expense_id").references(
+      () => plannedExpenses.id,
+      { onDelete: "set null" },
+    ),
     amountOverridden: boolean("amount_overridden").notNull().default(false),
     isSubscription: boolean("is_subscription").notNull().default(false),
     createdAt: text("created_at").notNull(),
   },
   (table) => [
-    uniqueIndex("expenses_recurring_id_date_unique")
-      .on(table.recurringId, table.date)
+    uniqueIndex("expenses_recurring_due_unique")
+      .on(table.recurringId, sql`COALESCE(${table.scheduledDate}, ${table.date})`)
       .where(sql`${table.recurringId} IS NOT NULL`),
+    uniqueIndex("expenses_planned_expense_id_unique")
+      .on(table.plannedExpenseId)
+      .where(sql`${table.plannedExpenseId} IS NOT NULL`),
   ],
 );
 
