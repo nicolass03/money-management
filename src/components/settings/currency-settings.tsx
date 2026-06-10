@@ -1,0 +1,143 @@
+"use client";
+
+import { useActionState, useTransition } from "react";
+import { Button } from "@/components/ui/button";
+import { Card } from "@/components/ui/card";
+import { SectionHeader } from "@/components/ui/section-header";
+import {
+  refreshExchangeRates,
+  updateDisplayCurrency,
+  type SettingsFormState,
+} from "@/lib/actions/user-settings";
+import type { ExchangeRates } from "@/lib/currency/convert";
+import { formatMoney } from "@/lib/currency/format";
+import { CURRENCY_LABELS } from "@/lib/currency/types";
+import { currencies, type CurrencyCode } from "@/lib/db/schema";
+import { cn } from "@/lib/utils";
+
+const initialState: SettingsFormState = {};
+
+interface CurrencySettingsProps {
+  displayCurrency: CurrencyCode;
+  rates: ExchangeRates;
+}
+
+export function CurrencySettings({
+  displayCurrency,
+  rates,
+}: CurrencySettingsProps) {
+  const [currencyState, currencyAction, currencyPending] = useActionState(
+    updateDisplayCurrency,
+    initialState,
+  );
+  const [refreshPending, startRefresh] = useTransition();
+
+  function handleRefresh() {
+    startRefresh(async () => {
+      await refreshExchangeRates();
+    });
+  }
+
+  const sampleAmounts: { currency: CurrencyCode; amount: number }[] = [
+    { currency: "usd", amount: 10000 },
+    { currency: "eur", amount: 10000 },
+    { currency: "cop", amount: 50000 },
+  ];
+
+  return (
+    <div className="space-y-4">
+      <SectionHeader
+        title="currency"
+        subtitle="display amounts in your preferred currency using live exchange rates"
+      />
+
+      <Card>
+        <form action={currencyAction} className="space-y-4">
+          <div>
+            <label
+              htmlFor="display-currency"
+              className="mb-2 block font-mono text-xs text-muted"
+            >
+              display_currency:
+            </label>
+            <select
+              id="display-currency"
+              name="displayCurrency"
+              defaultValue={displayCurrency}
+              className={cn(
+                "w-full border border-border bg-surface px-3 py-2 font-mono text-sm text-text outline-none transition-colors focus:border-accent",
+              )}
+            >
+              {currencies.map((currency) => (
+                <option key={currency} value={currency}>
+                  {CURRENCY_LABELS[currency]}
+                </option>
+              ))}
+            </select>
+          </div>
+
+          {currencyState.error && (
+            <p className="font-mono text-xs text-danger">{currencyState.error}</p>
+          )}
+          {currencyState.success && (
+            <p className="font-mono text-xs text-success">
+              {"> currency updated"}
+            </p>
+          )}
+
+          <Button type="submit" disabled={currencyPending}>
+            {currencyPending ? "saving..." : "save currency"}
+          </Button>
+        </form>
+
+        <div className="mt-6 border-t border-border pt-4">
+          <div className="flex items-center justify-between">
+            <p className="font-mono text-xs text-muted">exchange rates (USD base)</p>
+            <Button
+              type="button"
+              size="sm"
+              variant="ghost"
+              disabled={refreshPending}
+              onClick={handleRefresh}
+            >
+              {refreshPending ? "refreshing..." : "refresh rates"}
+            </Button>
+          </div>
+          <p className="mt-1 font-mono text-xs text-muted">
+            last updated {new Date(rates.fetchedAt).toLocaleString()}
+          </p>
+          <ul className="mt-3 space-y-1">
+            {(["EUR", "USD", "COP"] as const).map((code) => (
+              <li
+                key={code}
+                className="flex justify-between font-mono text-xs text-text"
+              >
+                <span>1 USD =</span>
+                <span>
+                  {code === "USD"
+                    ? "1.00 USD"
+                    : `${rates.rates[code]?.toLocaleString() ?? "—"} ${code}`}
+                </span>
+              </li>
+            ))}
+          </ul>
+
+          <p className="mt-4 font-mono text-xs text-muted">preview conversions:</p>
+          <ul className="mt-2 space-y-1">
+            {sampleAmounts.map(({ currency, amount }) => (
+              <li
+                key={currency}
+                className="flex justify-between font-mono text-xs text-text"
+              >
+                <span>{formatMoney(amount, currency)}</span>
+                <span className="text-accent">
+                  → {formatMoney(amount, currency, displayCurrency, rates)}
+                </span>
+              </li>
+            ))}
+          </ul>
+        </div>
+      </Card>
+    </div>
+  );
+}
