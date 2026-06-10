@@ -8,7 +8,9 @@ import {
   updateRecurringExpenseAction,
   type RecurringFormState,
 } from "@/lib/actions/recurring-expenses";
-import { formatMoney } from "@/lib/currency/format";
+import { formatScheduledExpenseAmount } from "@/lib/currency/expense-display";
+import { formatCurrencyLabel } from "@/lib/currency/types";
+import { ExpenseAmount } from "./expense-amount";
 import type { MoneyDisplayContext } from "@/lib/currency/display";
 import {
   currencies,
@@ -153,7 +155,7 @@ export function RecurringExpenseForm({
           >
             {currencies.map((c) => (
               <option key={c} value={c}>
-                {c.toUpperCase()}
+                {formatCurrencyLabel(c)}
               </option>
             ))}
           </select>
@@ -223,11 +225,17 @@ export function RecurringExpenseForm({
                 <span>
                   {formatDate(date)} {"//"} {formatFrequency(frequency)}
                 </span>
-                <span className="text-danger">
-                  {previewAmount !== null
-                    ? `-${formatMoney(previewAmount, currency, displayCurrency, rates)}`
-                    : "—"}
-                </span>
+                {previewAmount !== null ? (
+                  <ExpenseAmount
+                    amount={formatScheduledExpenseAmount(
+                      previewAmount,
+                      currency,
+                    )}
+                    className="text-xs text-danger"
+                  />
+                ) : (
+                  <span className="font-mono text-xs text-muted">—</span>
+                )}
               </li>
             ))}
           </ul>

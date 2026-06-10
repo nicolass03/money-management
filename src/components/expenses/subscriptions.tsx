@@ -3,6 +3,8 @@ import { Card } from "@/components/ui/card";
 import { SectionHeader } from "@/components/ui/section-header";
 import { formatMoney } from "@/lib/currency/format";
 import { toDisplayAmount, type MoneyDisplayContext } from "@/lib/currency/display";
+import { formatStoredExpenseAmount } from "@/lib/currency/expense-display";
+import { ExpenseAmount } from "./expense-amount";
 import type { ExpenseWithTags } from "@/lib/db/schema";
 import { TagList } from "./tag-input";
 import { formatDate } from "@/lib/utils";
@@ -58,15 +60,15 @@ export function Subscriptions({
                     {formatDate(sub.date)} {"//"} <TagList tags={sub.tags} />
                   </p>
                 </div>
-                <span className="font-mono text-sm text-danger">
-                  -
-                  {formatMoney(
+                <ExpenseAmount
+                  amount={formatStoredExpenseAmount(
                     sub.amount,
                     sub.currency,
                     displayCurrency,
                     rates,
                   )}
-                </span>
+                  className="text-sm text-danger"
+                />
               </div>
             ))}
           </div>

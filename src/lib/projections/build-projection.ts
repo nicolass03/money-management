@@ -22,6 +22,8 @@ export interface ProjectionExpenseItem {
   date: string;
   amount: number;
   currency: CurrencyCode;
+  originalAmount?: number;
+  originalCurrency?: CurrencyCode;
   convertedAmount: number;
   tags: string[];
   isSubscription: boolean;
@@ -109,6 +111,11 @@ export function getExpenseItemsInPeriod(
       materialized.add(materializedKey(expense.recurringId, expense.date));
     }
 
+    const recurringSource =
+      expense.recurringId != null
+        ? recurringList.find((r) => r.id === expense.recurringId)
+        : undefined;
+
     items.push({
       id: expense.id,
       recurringId: expense.recurringId ?? undefined,
@@ -116,6 +123,14 @@ export function getExpenseItemsInPeriod(
       date: expense.date,
       amount: expense.amount,
       currency: expense.currency,
+      originalAmount:
+        recurringSource && !expense.amountOverridden
+          ? recurringSource.amount
+          : undefined,
+      originalCurrency:
+        recurringSource && !expense.amountOverridden
+          ? recurringSource.currency
+          : undefined,
       convertedAmount: toDisplay(
         expense.amount,
         expense.currency,

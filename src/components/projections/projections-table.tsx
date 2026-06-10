@@ -5,7 +5,8 @@ import { Badge } from "@/components/ui/badge";
 import { Card } from "@/components/ui/card";
 import { formatMoney } from "@/lib/currency/format";
 import type { MoneyDisplayContext } from "@/lib/currency/display";
-import type { CurrencyCode } from "@/lib/db/schema";
+import { formatProjectionExpenseAmount } from "@/lib/currency/expense-display";
+import { ExpenseAmount } from "@/components/expenses/expense-amount";
 import type { ProjectionRow } from "@/lib/projections/build-projection";
 import { cn, formatDate } from "@/lib/utils";
 
@@ -128,17 +129,14 @@ export function ProjectionsTable({
                             </p>
                           </div>
                           <div className="text-right">
-                            <p className="text-danger">
-                              -{formatDisplay(item.convertedAmount)}
-                            </p>
-                            {item.currency !== displayCurrency && (
-                              <p className="text-muted">
-                                {formatMoney(
-                                  item.amount,
-                                  item.currency as CurrencyCode,
-                                )}
-                              </p>
-                            )}
+                            <ExpenseAmount
+                              amount={formatProjectionExpenseAmount(
+                                item,
+                                displayCurrency,
+                                rates,
+                              )}
+                              className="text-xs text-danger"
+                            />
                           </div>
                         </div>
                       ))}

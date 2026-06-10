@@ -7,6 +7,7 @@ import {
   createExpenseAction,
   type ExpenseFormState,
 } from "@/lib/actions/expenses";
+import { formatCurrencyLabel } from "@/lib/currency/types";
 import {
   currencies,
   type CurrencyCode,
@@ -105,7 +106,7 @@ export function ExpenseForm({
           >
             {currencies.map((c) => (
               <option key={c} value={c}>
-                {c.toUpperCase()}
+                {formatCurrencyLabel(c)}
               </option>
             ))}
           </select>

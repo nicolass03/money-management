@@ -5,8 +5,10 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { deleteRecurringExpenseAction } from "@/lib/actions/recurring-expenses";
-import { formatMoney } from "@/lib/currency/format";
 import type { MoneyDisplayContext } from "@/lib/currency/display";
+import { formatScheduledExpenseAmount } from "@/lib/currency/expense-display";
+import { formatCurrencyLabel } from "@/lib/currency/types";
+import { ExpenseAmount } from "./expense-amount";
 import type { RecurringExpenseWithTags } from "@/lib/db/schema";
 import { TagList } from "./tag-input";
 import {
@@ -85,16 +87,18 @@ export function RecurringExpenseList({
                     </>
                   )}{" "}
                   {"//"} <TagList tags={recurring.tags} /> {"//"}{" "}
-                  {recurring.currency.toUpperCase()}
+                  {formatCurrencyLabel(recurring.currency)}
                 </p>
               </div>
               <Badge variant="accent">
-                {formatMoney(
-                  recurring.amount,
-                  recurring.currency,
-                  displayCurrency,
-                  rates,
-                )}
+                <ExpenseAmount
+                  amount={formatScheduledExpenseAmount(
+                    recurring.amount,
+                    recurring.currency,
+                  )}
+                  sign=""
+                  className="text-sm"
+                />
               </Badge>
             </div>
 
@@ -112,15 +116,13 @@ export function RecurringExpenseList({
                     className="flex items-center justify-between font-mono text-xs text-text"
                   >
                     <span>{formatDate(date)}</span>
-                    <span className="text-danger">
-                      -
-                      {formatMoney(
+                    <ExpenseAmount
+                      amount={formatScheduledExpenseAmount(
                         recurring.amount,
                         recurring.currency,
-                        displayCurrency,
-                        rates,
                       )}
-                    </span>
+                      className="text-xs text-danger"
+                    />
                   </li>
                 ))}
               </ul>

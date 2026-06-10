@@ -14,6 +14,16 @@ export const CURRENCY_LABELS: Record<CurrencyCode, string> = {
   cop: "COP",
 };
 
+export const CURRENCY_SYMBOLS: Record<CurrencyCode, string> = {
+  usd: "$",
+  eur: "€",
+  cop: "$",
+};
+
+export function formatCurrencyLabel(currency: CurrencyCode): string {
+  return `${CURRENCY_SYMBOLS[currency]} ${CURRENCY_LABELS[currency]}`;
+}
+
 /** Minor units per major unit (cents for USD/EUR, whole pesos for COP). */
 export function getMinorDivisor(currency: CurrencyCode): number {
   return currency === "cop" ? 1 : 100;

@@ -11,7 +11,7 @@ import {
 } from "@/lib/actions/user-settings";
 import type { ExchangeRates } from "@/lib/currency/convert";
 import { formatMoney } from "@/lib/currency/format";
-import { CURRENCY_LABELS } from "@/lib/currency/types";
+import { formatCurrencyLabel } from "@/lib/currency/types";
 import { currencies, type CurrencyCode } from "@/lib/db/schema";
 import { cn } from "@/lib/utils";
 
@@ -70,7 +70,7 @@ export function CurrencySettings({
             >
               {currencies.map((currency) => (
                 <option key={currency} value={currency}>
-                  {CURRENCY_LABELS[currency]}
+                  {formatCurrencyLabel(currency)}
                 </option>
               ))}
             </select>

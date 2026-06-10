@@ -13,6 +13,8 @@ import {
 } from "@/lib/actions/expenses";
 import { formatMoney } from "@/lib/currency/format";
 import type { MoneyDisplayContext } from "@/lib/currency/display";
+import { formatProjectionExpenseAmount } from "@/lib/currency/expense-display";
+import { ExpenseAmount } from "./expense-amount";
 import type { CurrencyCode, IncomePaySchedule } from "@/lib/db/schema";
 import type {
   CurrentPeriodExpenses as CurrentPeriodData,
@@ -135,9 +137,14 @@ function ExpenseRow({
         ) : (
           <>
             <div className="flex items-center justify-end gap-2">
-              <span className="font-mono text-sm text-danger">
-                -{formatDisplay(item.convertedAmount)}
-              </span>
+              <ExpenseAmount
+                amount={formatProjectionExpenseAmount(
+                  item,
+                  displayCurrency,
+                  rates,
+                )}
+                className="text-sm text-danger"
+              />
               {canEdit && (
                 <>
                   <Button
@@ -160,11 +167,6 @@ function ExpenseRow({
                 </>
               )}
             </div>
-            {item.currency !== displayCurrency && (
-              <p className="font-mono text-xs text-muted">
-                {formatMoney(item.amount, item.currency as CurrencyCode)}
-              </p>
-            )}
           </>
         )}
       </div>

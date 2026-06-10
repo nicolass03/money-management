@@ -22,9 +22,18 @@ export function formatMoney(
   return new Intl.NumberFormat(CURRENCY_LOCALES[target], {
     style: "currency",
     currency: toIsoCurrency(target),
+    currencyDisplay: "narrowSymbol",
     minimumFractionDigits: target === "cop" ? 0 : 2,
     maximumFractionDigits: target === "cop" ? 0 : 2,
   }).format(converted / divisor);
+}
+
+/** Format in the expense's own currency without conversion. */
+export function formatNativeMoney(
+  amountMinor: number,
+  currency: CurrencyCode,
+): string {
+  return formatMoney(amountMinor, currency);
 }
 
 export function formatMoneySigned(
