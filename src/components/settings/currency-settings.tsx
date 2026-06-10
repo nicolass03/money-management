@@ -10,7 +10,9 @@ import {
   type SettingsFormState,
 } from "@/lib/actions/user-settings";
 import type { ExchangeRates } from "@/lib/currency/convert";
+import { MoneyText, usePrivacyMode } from "@/components/layout/privacy-mode";
 import { formatMoney } from "@/lib/currency/format";
+import { maskNumericValue } from "@/lib/privacy/mask";
 import { formatCurrencyLabel } from "@/lib/currency/types";
 import { currencies, type CurrencyCode } from "@/lib/db/schema";
 import { cn } from "@/lib/utils";
@@ -26,6 +28,7 @@ export function CurrencySettings({
   displayCurrency,
   rates,
 }: CurrencySettingsProps) {
+  const { privacyMode } = usePrivacyMode();
   const [currencyState, currencyAction, currencyPending] = useActionState(
     updateDisplayCurrency,
     initialState,
@@ -115,8 +118,14 @@ export function CurrencySettings({
                 <span>1 USD =</span>
                 <span>
                   {code === "USD"
-                    ? "1.00 USD"
-                    : `${rates.rates[code]?.toLocaleString() ?? "—"} ${code}`}
+                    ? privacyMode
+                      ? "•.•• USD"
+                      : "1.00 USD"
+                    : privacyMode
+                      ? `${maskNumericValue(
+                          rates.rates[code]?.toLocaleString() ?? "—",
+                        )} ${code}`
+                      : `${rates.rates[code]?.toLocaleString() ?? "—"} ${code}`}
                 </span>
               </li>
             ))}
@@ -129,9 +138,17 @@ export function CurrencySettings({
                 key={currency}
                 className="flex justify-between font-mono text-xs text-text"
               >
-                <span>{formatMoney(amount, currency)}</span>
+                <MoneyText value={formatMoney(amount, currency)} />
                 <span className="text-accent">
-                  → {formatMoney(amount, currency, displayCurrency, rates)}
+                  →{" "}
+                  <MoneyText
+                    value={formatMoney(
+                      amount,
+                      currency,
+                      displayCurrency,
+                      rates,
+                    )}
+                  />
                 </span>
               </li>
             ))}

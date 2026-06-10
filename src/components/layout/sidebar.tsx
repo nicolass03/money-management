@@ -3,7 +3,9 @@
 import { useRouter } from "next/navigation";
 import { motion } from "framer-motion";
 import { NavItem } from "./nav-item";
+import { usePrivacyMode } from "./privacy-mode";
 import { Button } from "@/components/ui/button";
+import { cn } from "@/lib/utils";
 
 const navItems = [
   { href: "/expenses", label: "~/expenses" },
@@ -15,6 +17,7 @@ const navItems = [
 
 export function Sidebar() {
   const router = useRouter();
+  const { privacyMode, togglePrivacyMode } = usePrivacyMode();
 
   async function handleLogout() {
     await fetch("/api/auth/logout", { method: "POST" });
@@ -42,7 +45,19 @@ export function Sidebar() {
         ))}
       </nav>
 
-      <div className="border-t border-border p-4">
+      <div className="space-y-2 border-t border-border p-4">
+        <Button
+          variant="ghost"
+          size="sm"
+          className={cn(
+            "w-full",
+            privacyMode && "border-accent/50 text-accent-glow",
+          )}
+          onClick={togglePrivacyMode}
+          aria-pressed={privacyMode}
+        >
+          {privacyMode ? "privacy: on" : "privacy: off"}
+        </Button>
         <Button
           variant="ghost"
           size="sm"

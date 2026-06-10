@@ -1,3 +1,4 @@
+import { MoneyText } from "@/components/layout/privacy-mode";
 import { Badge } from "@/components/ui/badge";
 import { SectionHeader } from "@/components/ui/section-header";
 import { formatMoney } from "@/lib/currency/format";
@@ -31,10 +32,6 @@ export function IncomeDashboard({
   const ctx = { displayCurrency, rates };
   const total = sumEntries(entries, ctx);
 
-  function formatDisplay(amount: number) {
-    return formatMoney(amount, displayCurrency, displayCurrency, rates);
-  }
-
   return (
     <div>
       <div className="mb-6 flex items-center justify-between">
@@ -44,7 +41,11 @@ export function IncomeDashboard({
           className="mb-0"
         />
         {entries.length > 0 && (
-          <Badge variant="success">{formatDisplay(total)}</Badge>
+          <Badge variant="success">
+            <MoneyText
+              value={formatMoney(total, displayCurrency, displayCurrency, rates)}
+            />
+          </Badge>
         )}
       </div>
 

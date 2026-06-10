@@ -16,7 +16,9 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { Card } from "@/components/ui/card";
 import { SectionHeader } from "@/components/ui/section-header";
+import { usePrivacyMode } from "@/components/layout/privacy-mode";
 import { formatMoney } from "@/lib/currency/format";
+import { maskNumericValue } from "@/lib/privacy/mask";
 import { toDisplayAmount, type MoneyDisplayContext } from "@/lib/currency/display";
 import type { ExpenseWithTags } from "@/lib/db/schema";
 import { cn } from "@/lib/utils";
@@ -85,6 +87,7 @@ export function ExpenseCharts({
   displayCurrency,
   rates,
 }: ExpenseChartsProps) {
+  const { privacyMode } = usePrivacyMode();
   const [selectedTags, setSelectedTags] = useState<string[]>([]);
   const ctx = { displayCurrency, rates };
 
@@ -110,12 +113,13 @@ export function ExpenseCharts({
   const minorDivisor = displayCurrency === "cop" ? 1 : 100;
 
   function formatChartValue(value: number) {
-    return formatMoney(
+    const formatted = formatMoney(
       Math.round(value * minorDivisor),
       displayCurrency,
       displayCurrency,
       rates,
     );
+    return privacyMode ? maskNumericValue(formatted) : formatted;
   }
 
   function toggleTag(tag: string) {
@@ -134,7 +138,7 @@ export function ExpenseCharts({
     >
       <SectionHeader
         title="expense_analytics"
-        subtitle={`total: ${formatMoney(total, displayCurrency, displayCurrency, rates)} // ${selectedTags.length > 0 ? `filtered by ${selectedTags.length} tag(s)` : "all expenses"}`}
+        subtitle={`total: ${formatChartValue(total / minorDivisor)} // ${selectedTags.length > 0 ? `filtered by ${selectedTags.length} tag(s)` : "all expenses"}`}
       />
 
       {allTags.length > 0 && (
@@ -216,6 +220,9 @@ export function ExpenseCharts({
                 tick={{ fill: "#6b6b6b", fontSize: 11, fontFamily: "monospace" }}
                 axisLine={{ stroke: "#2a2a2a" }}
                 tickLine={false}
+                tickFormatter={(value) =>
+                  privacyMode ? maskNumericValue(String(value)) : String(value)
+                }
               />
               <Tooltip
                 contentStyle={{

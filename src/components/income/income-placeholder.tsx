@@ -1,3 +1,4 @@
+import { MoneyText } from "@/components/layout/privacy-mode";
 import { Badge } from "@/components/ui/badge";
 import { Card } from "@/components/ui/card";
 import { SectionHeader } from "@/components/ui/section-header";
@@ -20,7 +21,9 @@ export function IncomePlaceholder({ entries }: IncomePlaceholderProps) {
           className="mb-0"
         />
         {entries.length > 0 && (
-          <Badge variant="success">{formatCurrency(total)}</Badge>
+          <Badge variant="success">
+            <MoneyText value={formatCurrency(total)} />
+          </Badge>
         )}
       </div>
 
@@ -43,7 +46,7 @@ export function IncomePlaceholder({ entries }: IncomePlaceholderProps) {
                   </p>
                 </div>
                 <span className="font-mono text-sm text-success">
-                  +{formatCurrency(entry.amount)}
+                  +<MoneyText value={formatCurrency(entry.amount)} />
                 </span>
               </div>
             ))}

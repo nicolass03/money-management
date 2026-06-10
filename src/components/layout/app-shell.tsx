@@ -1,6 +1,7 @@
 "use client";
 
 import { motion } from "framer-motion";
+import { PrivacyModeProvider } from "./privacy-mode";
 import { Sidebar } from "./sidebar";
 
 interface AppShellProps {
@@ -9,6 +10,7 @@ interface AppShellProps {
 
 export function AppShell({ children }: AppShellProps) {
   return (
+    <PrivacyModeProvider>
     <div className="flex h-screen overflow-hidden bg-bg">
       <Sidebar />
       <motion.main
@@ -20,5 +22,6 @@ export function AppShell({ children }: AppShellProps) {
         {children}
       </motion.main>
     </div>
+    </PrivacyModeProvider>
   );
 }

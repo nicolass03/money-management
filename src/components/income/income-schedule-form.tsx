@@ -9,6 +9,7 @@ import {
   updateSchedule,
   type ScheduleFormState,
 } from "@/lib/actions/income-schedules";
+import { MoneyText } from "@/components/layout/privacy-mode";
 import { formatMoney } from "@/lib/currency/format";
 import type { MoneyDisplayContext } from "@/lib/currency/display";
 import {
@@ -186,14 +187,18 @@ export function IncomeScheduleForm({
                   {formatDate(date)} {"//"} {formatFrequency(frequency)}
                 </span>
                 <span className="text-success">
-                  {previewAmount !== null
-                    ? formatMoney(
+                  {previewAmount !== null ? (
+                    <MoneyText
+                      value={formatMoney(
                         previewAmount,
                         currency,
                         displayCurrency,
                         rates,
-                      )
-                    : "—"}
+                      )}
+                    />
+                  ) : (
+                    "—"
+                  )}
                 </span>
               </li>
             ))}

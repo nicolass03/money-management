@@ -11,7 +11,9 @@ import {
   deleteExpenseAction,
   updateExpenseAmountAction,
 } from "@/lib/actions/expenses";
+import { usePrivacyMode } from "@/components/layout/privacy-mode";
 import { formatMoney } from "@/lib/currency/format";
+import { maskNumericValue } from "@/lib/privacy/mask";
 import type { MoneyDisplayContext } from "@/lib/currency/display";
 import { formatProjectionExpenseAmount } from "@/lib/currency/expense-display";
 import { ExpenseAmount } from "./expense-amount";
@@ -234,6 +236,7 @@ export function CurrentPeriodExpenses({
   displayCurrency,
   rates,
 }: CurrentPeriodExpensesProps) {
+  const { privacyMode } = usePrivacyMode();
   const [showAdd, setShowAdd] = useState(false);
   const [editingId, setEditingId] = useState<number | null>(null);
   const [deletePending, startDeleteTransition] = useTransition();
@@ -249,7 +252,13 @@ export function CurrentPeriodExpenses({
   }
 
   function formatDisplay(amount: number) {
-    return formatMoney(amount, displayCurrency, displayCurrency, rates);
+    const formatted = formatMoney(
+      amount,
+      displayCurrency,
+      displayCurrency,
+      rates,
+    );
+    return privacyMode ? maskNumericValue(formatted) : formatted;
   }
 
   const total =

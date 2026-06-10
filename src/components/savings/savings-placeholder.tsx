@@ -1,3 +1,4 @@
+import { MoneyText } from "@/components/layout/privacy-mode";
 import { Badge } from "@/components/ui/badge";
 import { Card } from "@/components/ui/card";
 import { SectionHeader } from "@/components/ui/section-header";
@@ -27,7 +28,9 @@ export function SavingsPlaceholder({
         />
         {entries.length > 0 && (
           <Badge variant="accent">
-            {formatMoney(total, displayCurrency, displayCurrency, rates)}
+            <MoneyText
+              value={formatMoney(total, displayCurrency, displayCurrency, rates)}
+            />
           </Badge>
         )}
       </div>
@@ -51,14 +54,15 @@ export function SavingsPlaceholder({
                     {entry.note ? ` // ${entry.note}` : ""}
                   </p>
                 </div>
-                <span className="font-mono text-sm text-accent-glow">
-                  {formatMoney(
+                <MoneyText
+                  className="font-mono text-sm text-accent-glow"
+                  value={formatMoney(
                     entry.amount,
                     displayCurrency,
                     displayCurrency,
                     rates,
                   )}
-                </span>
+                />
               </div>
             ))}
           </div>

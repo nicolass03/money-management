@@ -5,6 +5,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { SectionHeader } from "@/components/ui/section-header";
+import { MoneyText } from "@/components/layout/privacy-mode";
 import { formatMoney } from "@/lib/currency/format";
 import { toDisplayAmount, type MoneyDisplayContext } from "@/lib/currency/display";
 import type { IncomePaySchedule } from "@/lib/db/schema";
@@ -40,12 +41,14 @@ export function PaySchedules({
         <div className="flex shrink-0 items-center gap-3">
           {schedules.length > 0 && (
             <Badge variant="accent">
-              {formatMoney(
-                perCycleTotal,
-                displayCurrency,
-                displayCurrency,
-                rates,
-              )}
+              <MoneyText
+                value={formatMoney(
+                  perCycleTotal,
+                  displayCurrency,
+                  displayCurrency,
+                  rates,
+                )}
+              />
               /cycle
             </Badge>
           )}

@@ -5,6 +5,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { SectionHeader } from "@/components/ui/section-header";
+import { MoneyText } from "@/components/layout/privacy-mode";
 import { formatMoney } from "@/lib/currency/format";
 import { toDisplayAmount, type MoneyDisplayContext } from "@/lib/currency/display";
 import type { Income, IncomePaySchedule } from "@/lib/db/schema";
@@ -44,7 +45,9 @@ export function IncomeEntries({
         <div className="flex shrink-0 items-center gap-3">
           {visibleEntries.length > 0 && (
             <Badge variant="success">
-              {formatMoney(total, displayCurrency, displayCurrency, rates)}
+              <MoneyText
+                value={formatMoney(total, displayCurrency, displayCurrency, rates)}
+              />
             </Badge>
           )}
           <Button

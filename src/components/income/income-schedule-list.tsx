@@ -4,6 +4,7 @@ import { useState, useTransition } from "react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
+import { MoneyText } from "@/components/layout/privacy-mode";
 import { deleteSchedule } from "@/lib/actions/income-schedules";
 import { formatMoney } from "@/lib/currency/format";
 import type { MoneyDisplayContext } from "@/lib/currency/display";
@@ -76,12 +77,14 @@ export function IncomeScheduleList({
                 </p>
               </div>
               <Badge variant="accent">
-                {formatMoney(
-                  schedule.amount,
-                  schedule.currency,
-                  displayCurrency,
-                  rates,
-                )}
+                <MoneyText
+                  value={formatMoney(
+                    schedule.amount,
+                    schedule.currency,
+                    displayCurrency,
+                    rates,
+                  )}
+                />
               </Badge>
             </div>
 
@@ -94,14 +97,15 @@ export function IncomeScheduleList({
                     className="flex items-center justify-between font-mono text-xs text-text"
                   >
                     <span>{formatDate(date)}</span>
-                    <span className="text-success">
-                      {formatMoney(
+                    <MoneyText
+                      className="text-success"
+                      value={formatMoney(
                         schedule.amount,
                         schedule.currency,
                         displayCurrency,
                         rates,
                       )}
-                    </span>
+                    />
                   </li>
                 ))}
               </ul>

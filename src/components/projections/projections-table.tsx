@@ -3,7 +3,9 @@
 import { useState } from "react";
 import { Badge } from "@/components/ui/badge";
 import { Card } from "@/components/ui/card";
+import { usePrivacyMode } from "@/components/layout/privacy-mode";
 import { formatMoney } from "@/lib/currency/format";
+import { maskNumericValue } from "@/lib/privacy/mask";
 import type { MoneyDisplayContext } from "@/lib/currency/display";
 import { formatProjectionExpenseAmount } from "@/lib/currency/expense-display";
 import { ExpenseAmount } from "@/components/expenses/expense-amount";
@@ -23,6 +25,7 @@ export function ProjectionsTable({
   displayCurrency,
   rates,
 }: ProjectionsTableProps) {
+  const { privacyMode } = usePrivacyMode();
   const [expandedPayDate, setExpandedPayDate] = useState<string | null>(null);
 
   function toggleRow(payDate: string) {
@@ -30,7 +33,13 @@ export function ProjectionsTable({
   }
 
   function formatDisplay(amount: number) {
-    return formatMoney(amount, displayCurrency, displayCurrency, rates);
+    const formatted = formatMoney(
+      amount,
+      displayCurrency,
+      displayCurrency,
+      rates,
+    );
+    return privacyMode ? maskNumericValue(formatted) : formatted;
   }
 
   return (

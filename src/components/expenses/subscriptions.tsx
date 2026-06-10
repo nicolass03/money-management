@@ -1,3 +1,4 @@
+import { MoneyText } from "@/components/layout/privacy-mode";
 import { Badge } from "@/components/ui/badge";
 import { Card } from "@/components/ui/card";
 import { SectionHeader } from "@/components/ui/section-header";
@@ -33,7 +34,10 @@ export function Subscriptions({
           className="mb-0"
         />
         <Badge variant="accent">
-          {formatMoney(total, displayCurrency, displayCurrency, rates)}/mo
+          <MoneyText
+            value={formatMoney(total, displayCurrency, displayCurrency, rates)}
+          />
+          /mo
         </Badge>
       </div>
 
