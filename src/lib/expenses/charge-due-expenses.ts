@@ -24,6 +24,10 @@ export async function chargeDueExpensesForDate(
   let created = 0;
 
   for (const recurring of recurringList) {
+    if (recurring.lastPaymentDate && date > recurring.lastPaymentDate) {
+      continue;
+    }
+
     const dueDates = getPayDatesInRange(
       scheduleToInput(recurring),
       date,

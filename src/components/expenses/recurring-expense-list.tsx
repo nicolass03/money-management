@@ -49,7 +49,7 @@ export function RecurringExpenseList({
   return (
     <div className="space-y-4">
       {recurringExpenses.map((recurring) => {
-        const upcoming = getUpcomingPayDates(scheduleToInput(recurring), 4);
+        const upcoming = getUpcomingPayDates(scheduleToInput(recurring), 2);
 
         if (editingId === recurring.id) {
           return (
@@ -77,8 +77,14 @@ export function RecurringExpenseList({
                 </div>
                 <p className="mt-1 font-mono text-xs text-muted">
                   anchor {formatDate(recurring.anchorDate)} {"//"}{" "}
-                  {formatFrequency(recurring.frequency)} {"//"}{" "}
-                  <TagList tags={recurring.tags} /> {"//"}{" "}
+                  {formatFrequency(recurring.frequency)}
+                  {recurring.lastPaymentDate && (
+                    <>
+                      {" "}
+                      {"//"} ends {formatDate(recurring.lastPaymentDate)}
+                    </>
+                  )}{" "}
+                  {"//"} <TagList tags={recurring.tags} /> {"//"}{" "}
                   {recurring.currency.toUpperCase()}
                 </p>
               </div>
@@ -94,6 +100,11 @@ export function RecurringExpenseList({
 
             <div className="mt-4 border-t border-border pt-3">
               <p className="font-mono text-xs text-muted">next due dates:</p>
+              {upcoming.length === 0 && (
+                <p className="mt-2 font-mono text-xs text-muted">
+                  {"> no upcoming charges"}
+                </p>
+              )}
               <ul className="mt-2 space-y-1">
                 {upcoming.map((date) => (
                   <li

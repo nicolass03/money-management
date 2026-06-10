@@ -343,6 +343,7 @@ export async function createRecurringExpense(data: {
   currency: CurrencyCode;
   tags: string[];
   isSubscription: boolean;
+  lastPaymentDate: string | null;
 }) {
   const now = new Date().toISOString();
   const [recurring] = await db
@@ -354,6 +355,7 @@ export async function createRecurringExpense(data: {
       amount: data.amount,
       currency: data.currency,
       isSubscription: data.isSubscription,
+      lastPaymentDate: data.lastPaymentDate,
       createdAt: now,
       updatedAt: now,
     })
@@ -373,6 +375,7 @@ export async function updateRecurringExpense(
     currency: CurrencyCode;
     tags: string[];
     isSubscription: boolean;
+    lastPaymentDate: string | null;
   },
 ) {
   const [recurring] = await db
@@ -384,6 +387,7 @@ export async function updateRecurringExpense(
       amount: data.amount,
       currency: data.currency,
       isSubscription: data.isSubscription,
+      lastPaymentDate: data.lastPaymentDate,
       updatedAt: new Date().toISOString(),
     })
     .where(eq(recurringExpenses.id, id))

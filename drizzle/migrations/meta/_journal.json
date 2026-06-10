@@ -64,6 +64,13 @@
       "when": 1781700000000,
       "tag": "0008_expense_tags",
       "breakpoints": true
+    },
+    {
+      "idx": 9,
+      "version": "7",
+      "when": 1781800000000,
+      "tag": "0009_recurring_last_payment_date",
+      "breakpoints": true
     }
   ]
 }

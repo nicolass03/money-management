@@ -13,6 +13,7 @@ export interface PayPeriod {
 export interface PayScheduleInput {
   anchorDate: string;
   frequency: PayFrequency;
+  lastPaymentDate?: string | null;
 }
 
 function parseDate(iso: string): { y: number; m: number; d: number } {
@@ -70,6 +71,19 @@ function compareIso(a: string, b: string): number {
   if (a < b) return -1;
   if (a > b) return 1;
   return 0;
+}
+
+function getEffectiveEndDate(
+  schedule: PayScheduleInput,
+  endDate: string,
+): string {
+  if (
+    schedule.lastPaymentDate &&
+    compareIso(schedule.lastPaymentDate, endDate) < 0
+  ) {
+    return schedule.lastPaymentDate;
+  }
+  return endDate;
 }
 
 function getIntervalDays(frequency: PayFrequency): number | null {
@@ -199,10 +213,15 @@ export function getPayDatesInRange(
   startDate: string,
   endDate: string,
 ): string[] {
+  const effectiveEnd = getEffectiveEndDate(schedule, endDate);
+  if (compareIso(startDate, effectiveEnd) > 0) {
+    return [];
+  }
+
   const dates: string[] = [];
   let current = getNextPayDate(schedule, startDate);
 
-  while (compareIso(current, endDate) <= 0) {
+  while (compareIso(current, effectiveEnd) <= 0) {
     if (compareIso(current, startDate) >= 0) {
       dates.push(current);
     }
@@ -228,6 +247,13 @@ export function getUpcomingPayDates(
   let current = getNextPayDate(schedule, start);
 
   while (dates.length < count) {
+    if (
+      schedule.lastPaymentDate &&
+      compareIso(current, schedule.lastPaymentDate) > 0
+    ) {
+      break;
+    }
+
     dates.push(current);
     current = advancePayDate(schedule, current);
   }
@@ -278,6 +304,9 @@ export function scheduleToInput(
   return {
     anchorDate: schedule.anchorDate,
     frequency: schedule.frequency,
+    ...("lastPaymentDate" in schedule
+      ? { lastPaymentDate: schedule.lastPaymentDate }
+      : {}),
   };
 }
 

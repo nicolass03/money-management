@@ -29,6 +29,7 @@ export const recurringExpenses = pgTable("recurring_expenses", {
   amount: integer("amount").notNull(),
   currency: text("currency", { enum: currencies }).notNull().default("usd"),
   isSubscription: boolean("is_subscription").notNull().default(false),
+  lastPaymentDate: text("last_payment_date"),
   createdAt: text("created_at").notNull(),
   updatedAt: text("updated_at").notNull(),
 });

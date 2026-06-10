@@ -60,6 +60,9 @@ export function RecurringExpenseForm({
   const [isSubscription, setIsSubscription] = useState(
     recurring?.isSubscription ?? false,
   );
+  const [lastPaymentDate, setLastPaymentDate] = useState(
+    recurring?.lastPaymentDate ?? "",
+  );
 
   const action = isEditing
     ? updateRecurringExpenseAction.bind(null, recurring!.id)
@@ -75,7 +78,14 @@ export function RecurringExpenseForm({
 
   const previewDates =
     anchorDate && payFrequencies.includes(frequency)
-      ? getUpcomingPayDates({ anchorDate, frequency }, 4)
+      ? getUpcomingPayDates(
+          {
+            anchorDate,
+            frequency,
+            lastPaymentDate: lastPaymentDate || null,
+          },
+          4,
+        )
       : [];
   const previewAmount = parseDollarsToCents(amount);
 
@@ -148,6 +158,25 @@ export function RecurringExpenseForm({
             ))}
           </select>
         </div>
+      </div>
+
+      <div>
+        <label
+          htmlFor="expense-last-payment"
+          className="mb-2 block font-mono text-xs text-muted"
+        >
+          last_payment_date:
+        </label>
+        <Input
+          id="expense-last-payment"
+          name="lastPaymentDate"
+          type="date"
+          value={lastPaymentDate}
+          onChange={(e) => setLastPaymentDate(e.target.value)}
+        />
+        <p className="mt-1 font-mono text-xs text-muted">
+          optional — no charges after this date
+        </p>
       </div>
 
       <div>

@@ -24,6 +24,11 @@ function parseIsSubscription(value: FormDataEntryValue | null): boolean {
   return value === "on" || value === "true";
 }
 
+function parseLastPaymentDate(value: string): string | null {
+  const trimmed = value.trim();
+  return trimmed.length > 0 ? trimmed : null;
+}
+
 function validateRecurringInput(data: {
   name: string;
   anchorDate: string;
@@ -32,6 +37,7 @@ function validateRecurringInput(data: {
   currency: string;
   tags: string;
   isSubscription: boolean;
+  lastPaymentDate: string;
 }):
   | { error: string }
   | {
@@ -43,6 +49,7 @@ function validateRecurringInput(data: {
         currency: CurrencyCode;
         tags: string[];
         isSubscription: boolean;
+        lastPaymentDate: string | null;
       };
     } {
   const name = data.name.trim();
@@ -72,6 +79,15 @@ function validateRecurringInput(data: {
     return { error: "invalid amount" };
   }
 
+  const lastPaymentDate = parseLastPaymentDate(data.lastPaymentDate);
+  if (lastPaymentDate && !/^\d{4}-\d{2}-\d{2}$/.test(lastPaymentDate)) {
+    return { error: "invalid last payment date" };
+  }
+
+  if (lastPaymentDate && lastPaymentDate < data.anchorDate) {
+    return { error: "last payment date must be on or after anchor date" };
+  }
+
   return {
     data: {
       name,
@@ -81,6 +97,7 @@ function validateRecurringInput(data: {
       currency: data.currency as CurrencyCode,
       tags,
       isSubscription: data.isSubscription,
+      lastPaymentDate,
     },
   };
 }
@@ -103,6 +120,7 @@ export async function createRecurringExpenseAction(
     currency: String(formData.get("currency") ?? ""),
     tags: String(formData.get("tags") ?? ""),
     isSubscription: parseIsSubscription(formData.get("isSubscription")),
+    lastPaymentDate: String(formData.get("lastPaymentDate") ?? ""),
   });
 
   if ("error" in result) {
@@ -131,6 +149,7 @@ export async function updateRecurringExpenseAction(
     currency: String(formData.get("currency") ?? ""),
     tags: String(formData.get("tags") ?? ""),
     isSubscription: parseIsSubscription(formData.get("isSubscription")),
+    lastPaymentDate: String(formData.get("lastPaymentDate") ?? ""),
   });
 
   if ("error" in result) {
