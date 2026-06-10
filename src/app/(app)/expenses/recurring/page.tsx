@@ -2,11 +2,16 @@ export const dynamic = "force-dynamic";
 
 import Link from "next/link";
 import { RecurringExpenses } from "@/components/expenses/recurring-expenses";
-import { getMoneyContext, getRecurringExpensesWithTags } from "@/lib/db/queries";
+import {
+  getAllTagNames,
+  getMoneyContext,
+  getRecurringExpensesWithTags,
+} from "@/lib/db/queries";
 
 export default async function RecurringExpensesPage() {
-  const [recurringExpenses, money] = await Promise.all([
+  const [recurringExpenses, allTags, money] = await Promise.all([
     getRecurringExpensesWithTags(),
+    getAllTagNames(),
     getMoneyContext(),
   ]);
 
@@ -21,6 +26,7 @@ export default async function RecurringExpensesPage() {
 
       <RecurringExpenses
         recurringExpenses={recurringExpenses}
+        allTags={allTags}
         displayCurrency={money.displayCurrency}
         rates={money.rates}
       />

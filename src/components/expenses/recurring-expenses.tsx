@@ -11,13 +11,16 @@ import { toDisplayAmount, type MoneyDisplayContext } from "@/lib/currency/displa
 import type { RecurringExpenseWithTags } from "@/lib/db/schema";
 import { RecurringExpenseForm } from "./recurring-expense-form";
 import { RecurringExpenseList } from "./recurring-expense-list";
+import { RecurringPaymentCharts } from "./recurring-payment-charts";
 
 interface RecurringExpensesProps extends MoneyDisplayContext {
   recurringExpenses: RecurringExpenseWithTags[];
+  allTags: string[];
 }
 
 export function RecurringExpenses({
   recurringExpenses,
+  allTags,
   displayCurrency,
   rates,
 }: RecurringExpensesProps) {
@@ -61,6 +64,13 @@ export function RecurringExpenses({
           </Button>
         </div>
       </div>
+
+      <RecurringPaymentCharts
+        recurringExpenses={recurringExpenses}
+        allTags={allTags}
+        displayCurrency={displayCurrency}
+        rates={rates}
+      />
 
       {showAdd && (
         <Card className="mb-4">
