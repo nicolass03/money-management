@@ -9,7 +9,7 @@ import {
 } from "drizzle-orm/pg-core";
 import { sql } from "drizzle-orm";
 
-export const payFrequencies = ["biweekly", "monthly"] as const;
+export const payFrequencies = ["weekly", "biweekly", "monthly", "yearly"] as const;
 export type PayFrequency = (typeof payFrequencies)[number];
 
 export const currencies = ["eur", "usd", "cop"] as const;

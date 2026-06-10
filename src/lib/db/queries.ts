@@ -88,8 +88,68 @@ export async function updateExpenseAmount(id: number, amount: number) {
   return expense ?? null;
 }
 
+export async function deleteExpense(id: number) {
+  await db.delete(expenses).where(eq(expenses.id, id));
+}
+
 export async function getIncome() {
   return db.select().from(income).orderBy(desc(income.date));
+}
+
+export async function getIncomeById(id: number) {
+  const [entry] = await db.select().from(income).where(eq(income.id, id));
+  return entry ?? null;
+}
+
+export async function createIncome(data: {
+  name: string;
+  amount: number;
+  currency: CurrencyCode;
+  source: string;
+  date: string;
+}) {
+  const now = new Date().toISOString();
+  const [entry] = await db
+    .insert(income)
+    .values({
+      name: data.name,
+      amount: data.amount,
+      currency: data.currency,
+      source: data.source,
+      date: data.date,
+      scheduleId: null,
+      createdAt: now,
+    })
+    .returning();
+  return entry;
+}
+
+export async function updateIncome(
+  id: number,
+  data: {
+    name: string;
+    amount: number;
+    currency: CurrencyCode;
+    source: string;
+    date: string;
+  },
+) {
+  const [entry] = await db
+    .update(income)
+    .set({
+      name: data.name,
+      amount: data.amount,
+      currency: data.currency,
+      source: data.source,
+      date: data.date,
+    })
+    .where(eq(income.id, id))
+    .returning();
+  return entry ?? null;
+}
+
+export async function deleteIncome(id: number) {
+  await db.delete(income).where(eq(income.id, id));
 }
 
 export async function getIncomePaySchedules() {

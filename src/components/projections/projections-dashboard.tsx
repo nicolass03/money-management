@@ -21,7 +21,7 @@ export function ProjectionsDashboard({
     <div>
       <SectionHeader
         title="projections"
-        subtitle="cash flow by pay period — planned spend and running free money"
+        subtitle="cash flow by pay period for the next 7 months — planned spend and running free money"
         className="mb-6"
       />
 

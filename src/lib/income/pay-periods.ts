@@ -35,6 +35,16 @@ function addDays(iso: string, days: number): string {
   });
 }
 
+function addMonths(iso: string, months: number): string {
+  const { y, m, d } = parseDate(iso);
+  const totalMonths = y * 12 + (m - 1) + months;
+  const newY = Math.floor(totalMonths / 12);
+  const newM = (totalMonths % 12) + 1;
+  return toIso({ y: newY, m: newM, d: clampDayOfMonth(newY, newM, d) });
+}
+
+export const PROJECTION_MONTHS_FORWARD = 7;
+
 function daysBetween(startIso: string, endIso: string): number {
   const start = parseDate(startIso);
   const end = parseDate(endIso);
@@ -62,24 +72,34 @@ function compareIso(a: string, b: string): number {
   return 0;
 }
 
-export function getNextPayDate(
-  schedule: PayScheduleInput,
-  fromDate: string,
-): string {
-  if (schedule.frequency === "biweekly") {
-    const anchor = schedule.anchorDate;
-    if (compareIso(fromDate, anchor) <= 0) {
-      return anchor;
-    }
-    const diff = daysBetween(anchor, fromDate);
-    const remainder = diff % 14;
-    if (remainder === 0) {
-      return fromDate;
-    }
-    return addDays(fromDate, 14 - remainder);
+function getIntervalDays(frequency: PayFrequency): number | null {
+  if (frequency === "weekly") {
+    return 7;
   }
+  if (frequency === "biweekly") {
+    return 14;
+  }
+  return null;
+}
 
-  const anchorDay = parseDate(schedule.anchorDate).d;
+function getNextIntervalPayDate(
+  anchor: string,
+  fromDate: string,
+  intervalDays: number,
+): string {
+  if (compareIso(fromDate, anchor) <= 0) {
+    return anchor;
+  }
+  const diff = daysBetween(anchor, fromDate);
+  const remainder = diff % intervalDays;
+  if (remainder === 0) {
+    return fromDate;
+  }
+  return addDays(fromDate, intervalDays - remainder);
+}
+
+function getNextMonthlyPayDate(anchorDate: string, fromDate: string): string {
+  const anchorDay = parseDate(anchorDate).d;
   const { y, m } = parseDate(fromDate);
   const thisMonthPay = monthlyPayDate(y, m, anchorDay);
   if (compareIso(thisMonthPay, fromDate) >= 0) {
@@ -90,12 +110,69 @@ export function getNextPayDate(
   return monthlyPayDate(nextMonth.y, nextMonth.m, anchorDay);
 }
 
+function getNextYearlyPayDate(anchorDate: string, fromDate: string): string {
+  const { m: anchorMonth, d: anchorDay } = parseDate(anchorDate);
+  const { y } = parseDate(fromDate);
+  const thisYearPay = toIso({
+    y,
+    m: anchorMonth,
+    d: clampDayOfMonth(y, anchorMonth, anchorDay),
+  });
+  if (compareIso(thisYearPay, fromDate) >= 0) {
+    return thisYearPay;
+  }
+
+  return toIso({
+    y: y + 1,
+    m: anchorMonth,
+    d: clampDayOfMonth(y + 1, anchorMonth, anchorDay),
+  });
+}
+
+function advancePayDate(schedule: PayScheduleInput, current: string): string {
+  const intervalDays = getIntervalDays(schedule.frequency);
+  if (intervalDays !== null) {
+    return addDays(current, intervalDays);
+  }
+
+  if (schedule.frequency === "yearly") {
+    return addMonths(current, 12);
+  }
+
+  const anchorDay = parseDate(schedule.anchorDate).d;
+  const { y, m } = parseDate(current);
+  const nextMonth = m === 12 ? { y: y + 1, m: 1 } : { y, m: m + 1 };
+  return monthlyPayDate(nextMonth.y, nextMonth.m, anchorDay);
+}
+
+export function getNextPayDate(
+  schedule: PayScheduleInput,
+  fromDate: string,
+): string {
+  const intervalDays = getIntervalDays(schedule.frequency);
+  if (intervalDays !== null) {
+    return getNextIntervalPayDate(schedule.anchorDate, fromDate, intervalDays);
+  }
+
+  if (schedule.frequency === "yearly") {
+    return getNextYearlyPayDate(schedule.anchorDate, fromDate);
+  }
+
+  return getNextMonthlyPayDate(schedule.anchorDate, fromDate);
+}
+
 export function getPreviousPayDate(
   schedule: PayScheduleInput,
   payDate: string,
 ): string {
-  if (schedule.frequency === "biweekly") {
-    return addDays(payDate, -14);
+  const intervalDays = getIntervalDays(schedule.frequency);
+  if (intervalDays !== null) {
+    return addDays(payDate, -intervalDays);
+  }
+
+  if (schedule.frequency === "yearly") {
+    const { y, m, d } = parseDate(payDate);
+    return toIso({ y: y - 1, m, d: clampDayOfMonth(y - 1, m, d) });
   }
 
   const anchorDay = parseDate(schedule.anchorDate).d;
@@ -130,14 +207,7 @@ export function getPayDatesInRange(
       dates.push(current);
     }
 
-    if (schedule.frequency === "biweekly") {
-      current = addDays(current, 14);
-    } else {
-      const anchorDay = parseDate(schedule.anchorDate).d;
-      const { y, m } = parseDate(current);
-      const nextMonth = m === 12 ? { y: y + 1, m: 1 } : { y, m: m + 1 };
-      current = monthlyPayDate(nextMonth.y, nextMonth.m, anchorDay);
-    }
+    current = advancePayDate(schedule, current);
   }
 
   return dates;
@@ -159,14 +229,7 @@ export function getUpcomingPayDates(
 
   while (dates.length < count) {
     dates.push(current);
-    if (schedule.frequency === "biweekly") {
-      current = addDays(current, 14);
-    } else {
-      const anchorDay = parseDate(schedule.anchorDate).d;
-      const { y, m } = parseDate(current);
-      const nextMonth = m === 12 ? { y: y + 1, m: 1 } : { y, m: m + 1 };
-      current = monthlyPayDate(nextMonth.y, nextMonth.m, anchorDay);
-    }
+    current = advancePayDate(schedule, current);
   }
 
   return dates;
@@ -238,6 +301,7 @@ export function getProjectionPeriods(
   schedule: PayScheduleInput,
   referenceDate?: string,
   projectionStartDate?: string | null,
+  monthsForward: number = PROJECTION_MONTHS_FORWARD,
 ): PayPeriod[] {
   const ref =
     referenceDate ??
@@ -247,32 +311,29 @@ export function getProjectionPeriods(
       d: new Date().getDate(),
     });
 
+  const horizonEnd = addMonths(ref, monthsForward);
+  const currentPeriod = getPeriodContaining(schedule, ref);
   const periodMap = new Map<string, PayPeriod>();
 
-  if (projectionStartDate) {
-    const startPeriod = getPeriodContaining(schedule, projectionStartDate);
-    const lastUpcomingPayDate =
-      getUpcomingPayDates(schedule, 12, ref).at(-1) ?? startPeriod.payDate;
-
-    let payDate = startPeriod.payDate;
-    while (compareIso(payDate, lastUpcomingPayDate) <= 0) {
-      const period = getPeriodForPayDate(schedule, payDate);
-      if (compareIso(period.endDate, projectionStartDate) >= 0) {
-        periodMap.set(period.payDate, period);
-      }
-      payDate = getNextPayDate(schedule, addDays(payDate, 1));
-      if (periodMap.size > 30) break;
+  let payDate = currentPeriod.payDate;
+  while (periodMap.size < 50) {
+    const period = getPeriodForPayDate(schedule, payDate);
+    if (compareIso(period.startDate, horizonEnd) > 0) {
+      break;
     }
-  } else {
-    for (const period of getRecentPeriods(schedule, 6, ref)) {
+
+    const overlapsHorizon =
+      compareIso(period.endDate, ref) >= 0 &&
+      compareIso(period.startDate, horizonEnd) <= 0;
+    const overlapsProjectionStart =
+      !projectionStartDate ||
+      compareIso(period.endDate, projectionStartDate) >= 0;
+
+    if (overlapsHorizon && overlapsProjectionStart) {
       periodMap.set(period.payDate, period);
     }
 
-    for (const payDate of getUpcomingPayDates(schedule, 12, ref)) {
-      if (!periodMap.has(payDate)) {
-        periodMap.set(payDate, getPeriodForPayDate(schedule, payDate));
-      }
-    }
+    payDate = getNextPayDate(schedule, addDays(payDate, 1));
   }
 
   return Array.from(periodMap.values()).sort((a, b) =>
@@ -280,6 +341,13 @@ export function getProjectionPeriods(
   );
 }
 
+const frequencyLabels: Record<PayFrequency, string> = {
+  weekly: "weekly",
+  biweekly: "every 2 weeks",
+  monthly: "monthly",
+  yearly: "yearly",
+};
+
 export function formatFrequency(frequency: PayFrequency): string {
-  return frequency === "biweekly" ? "every 2 weeks" : "monthly";
+  return frequencyLabels[frequency];
 }

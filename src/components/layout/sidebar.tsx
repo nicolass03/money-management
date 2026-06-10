@@ -27,7 +27,7 @@ export function Sidebar() {
       initial={{ x: -20, opacity: 0 }}
       animate={{ x: 0, opacity: 1 }}
       transition={{ duration: 0.3 }}
-      className="flex h-screen w-56 shrink-0 flex-col border-r border-border bg-surface"
+      className="sticky top-0 flex h-screen w-56 shrink-0 flex-col border-r border-border bg-surface"
     >
       <div className="border-b border-border px-4 py-5">
         <p className="font-mono text-xs text-muted">money-mgmt v0.1</p>

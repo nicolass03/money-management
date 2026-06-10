@@ -3,6 +3,7 @@
 import { revalidatePath } from "next/cache";
 import {
   createExpense,
+  deleteExpense,
   getExpenseById,
   getIncomePayScheduleById,
   getUserSettings,
@@ -161,5 +162,22 @@ export async function updateExpenseAmountAction(
     return { success: true };
   } catch {
     return { error: "failed to update expense" };
+  }
+}
+
+export async function deleteExpenseAction(
+  id: number,
+): Promise<ExpenseFormState> {
+  const existing = await getExpenseById(id);
+  if (!existing) {
+    return { error: "expense not found" };
+  }
+
+  try {
+    await deleteExpense(id);
+    revalidateExpensePaths();
+    return { success: true };
+  } catch {
+    return { error: "failed to delete expense" };
   }
 }

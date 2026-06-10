@@ -7,7 +7,10 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { SectionHeader } from "@/components/ui/section-header";
-import { updateExpenseAmountAction } from "@/lib/actions/expenses";
+import {
+  deleteExpenseAction,
+  updateExpenseAmountAction,
+} from "@/lib/actions/expenses";
 import { formatMoney } from "@/lib/currency/format";
 import type { MoneyDisplayContext } from "@/lib/currency/display";
 import type { CurrencyCode, IncomePaySchedule } from "@/lib/db/schema";
@@ -88,6 +91,8 @@ function ExpenseRow({
   formatDisplay,
   displayCurrency,
   rates,
+  onDelete,
+  deletePending,
 }: {
   item: ProjectionExpenseItem;
   editingId: number | null;
@@ -95,6 +100,8 @@ function ExpenseRow({
   formatDisplay: (amount: number) => string;
   displayCurrency: CurrencyCode;
   rates: MoneyDisplayContext["rates"];
+  onDelete: (id: number) => void;
+  deletePending: boolean;
 }) {
   const key = item.id ?? `proj-${item.recurringId}-${item.date}`;
   const canEdit = item.id != null && !item.projected;
@@ -132,14 +139,25 @@ function ExpenseRow({
                 -{formatDisplay(item.convertedAmount)}
               </span>
               {canEdit && (
-                <Button
-                  size="sm"
-                  variant="ghost"
-                  className={cn("h-7 px-2 text-xs")}
-                  onClick={() => setEditingId(item.id!)}
-                >
-                  edit
-                </Button>
+                <>
+                  <Button
+                    size="sm"
+                    variant="ghost"
+                    className={cn("h-7 px-2 text-xs")}
+                    onClick={() => setEditingId(item.id!)}
+                  >
+                    edit
+                  </Button>
+                  <Button
+                    size="sm"
+                    variant="danger"
+                    className={cn("h-7 px-2 text-xs")}
+                    loading={deletePending}
+                    onClick={() => onDelete(item.id!)}
+                  >
+                    {deletePending ? "deleting..." : "delete"}
+                  </Button>
+                </>
               )}
             </div>
             {item.currency !== displayCurrency && (
@@ -162,6 +180,8 @@ function ExpenseGroup({
   formatDisplay,
   displayCurrency,
   rates,
+  onDelete,
+  deletePending,
 }: {
   title: string;
   items: ProjectionExpenseItem[];
@@ -170,6 +190,8 @@ function ExpenseGroup({
   formatDisplay: (amount: number) => string;
   displayCurrency: CurrencyCode;
   rates: MoneyDisplayContext["rates"];
+  onDelete: (id: number) => void;
+  deletePending: boolean;
 }) {
   if (items.length === 0) {
     return null;
@@ -195,6 +217,8 @@ function ExpenseGroup({
             formatDisplay={formatDisplay}
             displayCurrency={displayCurrency}
             rates={rates}
+            onDelete={onDelete}
+            deletePending={deletePending}
           />
         ))}
       </div>
@@ -210,7 +234,17 @@ export function CurrentPeriodExpenses({
 }: CurrentPeriodExpensesProps) {
   const [showAdd, setShowAdd] = useState(false);
   const [editingId, setEditingId] = useState<number | null>(null);
+  const [deletePending, startDeleteTransition] = useTransition();
   const today = new Date().toISOString().slice(0, 10);
+
+  function handleDelete(id: number) {
+    startDeleteTransition(async () => {
+      await deleteExpenseAction(id);
+      if (editingId === id) {
+        setEditingId(null);
+      }
+    });
+  }
 
   function formatDisplay(amount: number) {
     return formatMoney(amount, displayCurrency, displayCurrency, rates);
@@ -290,6 +324,8 @@ export function CurrentPeriodExpenses({
               formatDisplay={formatDisplay}
               displayCurrency={displayCurrency}
               rates={rates}
+              onDelete={handleDelete}
+              deletePending={deletePending}
             />
             <ExpenseGroup
               title="other_expenses"
@@ -299,6 +335,8 @@ export function CurrentPeriodExpenses({
               formatDisplay={formatDisplay}
               displayCurrency={displayCurrency}
               rates={rates}
+              onDelete={handleDelete}
+              deletePending={deletePending}
             />
           </div>
         )}
