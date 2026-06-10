@@ -315,7 +315,6 @@ export function buildProjectionRows({
   );
 
   let runningBalance = initialFreeMoney;
-  let pendingPayDateIncome = 0;
 
   return periods.map((period) => {
     const isPast = period.payDate < today;
@@ -325,29 +324,15 @@ export function buildProjectionRows({
       ? projectionStartDate!
       : periodStartDate;
 
-    runningBalance += pendingPayDateIncome;
-    pendingPayDateIncome = 0;
-
-    let incomeTotal: number;
-    if (openingPartial) {
-      pendingPayDateIncome = sumIncomeInPeriod(
-        incomeEntries,
-        period,
-        displayCurrency,
-        rates,
-        period.endDate,
-        period.endDate,
-      );
-      incomeTotal = 0;
-    } else {
-      incomeTotal = sumIncomeInPeriod(
-        incomeEntries,
-        period,
-        displayCurrency,
-        rates,
-        period.startDate,
-      );
-    }
+    const incomeTotal = openingPartial
+      ? 0
+      : sumIncomeInPeriod(
+          incomeEntries,
+          period,
+          displayCurrency,
+          rates,
+          period.startDate,
+        );
 
     const expenseItems = getExpenseItemsInPeriod(
       expenses,
