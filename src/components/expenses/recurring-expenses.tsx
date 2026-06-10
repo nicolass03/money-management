@@ -35,6 +35,13 @@ export function RecurringExpenses({
 
   return (
     <section>
+      <RecurringPaymentCharts
+        recurringExpenses={recurringExpenses}
+        allTags={allTags}
+        displayCurrency={displayCurrency}
+        rates={rates}
+      />
+
       <div className="mb-4 flex flex-wrap items-center justify-between gap-4">
         <SectionHeader
           title="recurring_expenses"
@@ -64,13 +71,6 @@ export function RecurringExpenses({
           </Button>
         </div>
       </div>
-
-      <RecurringPaymentCharts
-        recurringExpenses={recurringExpenses}
-        allTags={allTags}
-        displayCurrency={displayCurrency}
-        rates={rates}
-      />
 
       {showAdd && (
         <Card className="mb-4">

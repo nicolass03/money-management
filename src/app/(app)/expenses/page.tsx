@@ -10,7 +10,6 @@ import {
   getRecurringExpensesWithTags,
   getUserSettings,
 } from "@/lib/db/queries";
-import { getCurrentPeriodExpenses } from "@/lib/projections/build-projection";
 import { getUpcomingPayableItems } from "@/lib/projections/upcoming-payable";
 
 export default async function ExpensesPage() {
@@ -28,17 +27,6 @@ export default async function ExpensesPage() {
     ? await getIncomePayScheduleById(settings.primaryScheduleId)
     : null;
 
-  const periodData = primarySchedule
-    ? getCurrentPeriodExpenses({
-        primarySchedule,
-        expenses: allExpenses,
-        recurringExpenses,
-        plannedExpenses,
-        displayCurrency: money.displayCurrency,
-        rates: money.rates,
-      })
-    : null;
-
   const upcomingPayableItems = getUpcomingPayableItems({
     expenses: allExpenses,
     recurringExpenses,
@@ -50,7 +38,8 @@ export default async function ExpensesPage() {
       allExpenses={allExpenses}
       allTags={allTags}
       primarySchedule={primarySchedule}
-      periodData={periodData}
+      recurringExpenses={recurringExpenses}
+      plannedExpenses={plannedExpenses}
       upcomingPayableItems={upcomingPayableItems}
       displayCurrency={money.displayCurrency}
       rates={money.rates}

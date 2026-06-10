@@ -160,6 +160,7 @@ export async function seedDatabase(): Promise<boolean> {
       {
         name: "Emergency fund",
         amount: 50000,
+        currency: "usd",
         note: "Monthly contribution",
         date: "2026-06-01",
         createdAt: now,

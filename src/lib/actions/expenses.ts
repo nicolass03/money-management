@@ -16,10 +16,6 @@ import {
 } from "@/lib/db/queries";
 import { currencies, type CurrencyCode } from "@/lib/db/schema";
 import {
-  copyPlannedTagsToExpense,
-  copyRecurringTagsToExpense,
-} from "@/lib/expenses/tags";
-import {
   getPayDatesInRange,
   getPeriodContaining,
   isDateInPeriod,
@@ -255,7 +251,7 @@ export async function markFuturePaymentAsPaidAction(
         return { error: "this payment has already been recorded" };
       }
 
-      const expense = await createEarlyPaidExpense({
+      await createEarlyPaidExpense({
         name: recurring.name,
         amount,
         currency: currency as CurrencyCode,
@@ -266,8 +262,6 @@ export async function markFuturePaymentAsPaidAction(
           amount !== recurring.amount || currency !== recurring.currency,
         isSubscription: recurring.isSubscription,
       });
-
-      await copyRecurringTagsToExpense(recurringId, expense.id);
     } else {
       const plannedExpenseId = Number(plannedExpenseIdRaw);
       if (!Number.isInteger(plannedExpenseId) || plannedExpenseId <= 0) {
@@ -292,7 +286,7 @@ export async function markFuturePaymentAsPaidAction(
         return { error: "this payment has already been recorded" };
       }
 
-      const expense = await createEarlyPaidExpense({
+      await createEarlyPaidExpense({
         name: planned.name,
         amount,
         currency: currency as CurrencyCode,
@@ -303,8 +297,6 @@ export async function markFuturePaymentAsPaidAction(
           amount !== planned.amount || currency !== planned.currency,
         isSubscription: false,
       });
-
-      await copyPlannedTagsToExpense(plannedExpenseId, expense.id);
     }
 
     revalidateExpensePaths();

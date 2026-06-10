@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useTransition } from "react";
+import { useEffect, useState, useTransition } from "react";
 import Link from "next/link";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -18,10 +18,11 @@ import type { MoneyDisplayContext } from "@/lib/currency/display";
 import { formatProjectionExpenseAmount } from "@/lib/currency/expense-display";
 import { ExpenseAmount } from "./expense-amount";
 import type { CurrencyCode, IncomePaySchedule } from "@/lib/db/schema";
+import type { ProjectionExpenseItem } from "@/lib/projections/build-projection";
 import type {
-  CurrentPeriodExpenses as CurrentPeriodData,
-  ProjectionExpenseItem,
-} from "@/lib/projections/build-projection";
+  ExpensePeriodKey,
+  ExpensePeriodView,
+} from "@/lib/expenses/expense-period-range";
 import type { PayableFutureItem } from "@/lib/projections/upcoming-payable";
 import { cn, formatCentsAsDollarsInput, formatDate } from "@/lib/utils";
 import { ExpenseForm } from "./expense-form";
@@ -30,8 +31,41 @@ import { TagList } from "./tag-input";
 
 interface CurrentPeriodExpensesProps extends MoneyDisplayContext {
   primarySchedule: IncomePaySchedule | null;
-  periodData: CurrentPeriodData | null;
+  periodView: ExpensePeriodView | null;
+  periodKey: ExpensePeriodKey;
   upcomingPayableItems: PayableFutureItem[];
+}
+
+function periodSectionTitle(periodKey: ExpensePeriodKey): string {
+  if (periodKey === "last-period") {
+    return "current_period";
+  }
+  if (periodKey === "last-month") {
+    return "last_month";
+  }
+  return "last_3_months";
+}
+
+function periodSectionSubtitle(
+  periodView: ExpensePeriodView | null,
+  periodKey: ExpensePeriodKey,
+): string {
+  if (!periodView) {
+    return periodKey === "last-period"
+      ? "planned spend for the active pay period"
+      : "actual expenses in the selected range";
+  }
+
+  const range = formatPeriodRange(
+    periodView.period.startDate,
+    periodView.period.endDate,
+  );
+
+  if (periodView.isPayPeriod) {
+    return `${range} // payday ${formatDate(periodView.period.payDate)}`;
+  }
+
+  return `${range} // actual expenses`;
 }
 
 function formatPeriodRange(startDate: string, endDate: string): string {
@@ -238,7 +272,8 @@ function ExpenseGroup({
 
 export function CurrentPeriodExpenses({
   primarySchedule,
-  periodData,
+  periodView,
+  periodKey,
   upcomingPayableItems,
   displayCurrency,
   rates,
@@ -248,6 +283,10 @@ export function CurrentPeriodExpenses({
   const [editingId, setEditingId] = useState<number | null>(null);
   const [deletePending, startDeleteTransition] = useTransition();
   const today = new Date().toISOString().slice(0, 10);
+
+  useEffect(() => {
+    setShowAdd(false);
+  }, [periodKey]);
 
   function handleDelete(id: number) {
     startDeleteTransition(async () => {
@@ -269,30 +308,28 @@ export function CurrentPeriodExpenses({
   }
 
   const total =
-    periodData?.items.reduce((sum, item) => sum + item.convertedAmount, 0) ?? 0;
+    periodView?.items.reduce((sum, item) => sum + item.convertedAmount, 0) ?? 0;
 
   const subscriptions =
-    periodData?.items.filter((item) => item.isSubscription) ?? [];
+    periodView?.items.filter((item) => item.isSubscription) ?? [];
   const otherExpenses =
-    periodData?.items.filter((item) => !item.isSubscription) ?? [];
+    periodView?.items.filter((item) => !item.isSubscription) ?? [];
+
+  const canAddExpense = periodKey === "last-period" && periodView?.isPayPeriod;
 
   return (
     <section className="mt-8">
       <div className="mb-4 flex flex-wrap items-center justify-between gap-4">
         <SectionHeader
-          title="current_period"
-          subtitle={
-            periodData
-              ? `${formatPeriodRange(periodData.period.startDate, periodData.period.endDate)} // payday ${formatDate(periodData.period.payDate)}`
-              : "planned spend for the active pay period"
-          }
+          title={periodSectionTitle(periodKey)}
+          subtitle={periodSectionSubtitle(periodView, periodKey)}
           className="mb-0"
         />
         <div className="flex items-center gap-3">
-          {periodData && periodData.items.length > 0 && (
+          {periodView && periodView.items.length > 0 && (
             <Badge variant="accent">{formatDisplay(total)}</Badge>
           )}
-          {primarySchedule && periodData && (
+          {canAddExpense && primarySchedule && periodView && (
             <Button
               size="sm"
               variant={showAdd ? "ghost" : "primary"}
@@ -304,11 +341,11 @@ export function CurrentPeriodExpenses({
         </div>
       </div>
 
-      {showAdd && periodData && (
+      {showAdd && canAddExpense && periodView && (
         <Card className="mb-4">
           <ExpenseForm
-            periodStartDate={periodData.period.startDate}
-            periodEndDate={periodData.period.endDate}
+            periodStartDate={periodView.period.startDate}
+            periodEndDate={periodView.period.endDate}
             defaultDate={today}
             onCancel={() => setShowAdd(false)}
             onSuccess={() => setShowAdd(false)}
@@ -317,7 +354,7 @@ export function CurrentPeriodExpenses({
       )}
 
       <Card>
-        {!primarySchedule ? (
+        {periodKey === "last-period" && !primarySchedule ? (
           <p className="font-mono text-sm text-muted">
             {"> set a primary pay schedule in "}
             <Link
@@ -328,7 +365,7 @@ export function CurrentPeriodExpenses({
             </Link>
             {" to define the current period."}
           </p>
-        ) : periodData?.items.length === 0 ? (
+        ) : periodView?.items.length === 0 ? (
           <p className="font-mono text-sm text-muted">
             {"> no expenses in this period."}
           </p>
@@ -360,11 +397,11 @@ export function CurrentPeriodExpenses({
         )}
       </Card>
 
-      {primarySchedule && periodData && (
+      {canAddExpense && primarySchedule && periodView && (
         <MarkEarlyPaymentPanel
           upcomingItems={upcomingPayableItems}
-          periodStartDate={periodData.period.startDate}
-          periodEndDate={periodData.period.endDate}
+          periodStartDate={periodView.period.startDate}
+          periodEndDate={periodView.period.endDate}
           defaultPaidDate={today}
         />
       )}

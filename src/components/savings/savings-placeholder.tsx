@@ -2,6 +2,7 @@ import { MoneyText } from "@/components/layout/privacy-mode";
 import { Badge } from "@/components/ui/badge";
 import { Card } from "@/components/ui/card";
 import { SectionHeader } from "@/components/ui/section-header";
+import { convertAmount } from "@/lib/currency/convert";
 import { formatMoney } from "@/lib/currency/format";
 import type { MoneyDisplayContext } from "@/lib/currency/display";
 import type { Saving } from "@/lib/db/schema";
@@ -16,7 +17,11 @@ export function SavingsPlaceholder({
   displayCurrency,
   rates,
 }: SavingsPlaceholderProps) {
-  const total = entries.reduce((sum, e) => sum + e.amount, 0);
+  const total = entries.reduce(
+    (sum, entry) =>
+      sum + convertAmount(entry.amount, entry.currency, displayCurrency, rates),
+    0,
+  );
 
   return (
     <div>
@@ -58,7 +63,7 @@ export function SavingsPlaceholder({
                   className="font-mono text-sm text-accent-glow"
                   value={formatMoney(
                     entry.amount,
-                    displayCurrency,
+                    entry.currency,
                     displayCurrency,
                     rates,
                   )}

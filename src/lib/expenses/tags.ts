@@ -1,5 +1,6 @@
-import { eq, inArray } from "drizzle-orm";
+import { eq, inArray, sql } from "drizzle-orm";
 import { db } from "@/lib/db/index";
+import type { DbClient } from "@/lib/db/client";
 import {
   expenseTags,
   plannedExpenseTags,
@@ -9,44 +10,41 @@ import {
 
 export { formatTagNames, parseTagNames } from "./tag-utils";
 
-async function ensureTags(names: string[]): Promise<number[]> {
+async function ensureTags(names: string[], dbClient: DbClient = db): Promise<number[]> {
   if (names.length === 0) {
     return [];
   }
 
   const now = new Date().toISOString();
-  const tagIds: number[] = [];
 
-  for (const name of names) {
-    const [existing] = await db
-      .select()
-      .from(tags)
-      .where(eq(tags.name, name));
+  await dbClient.execute(sql`
+    INSERT INTO tags (name, created_at)
+    SELECT unnest(${names}::text[]), ${now}::timestamptz
+    ON CONFLICT (name) DO NOTHING
+  `);
 
-    if (existing) {
-      tagIds.push(existing.id);
-      continue;
-    }
+  const rows = await dbClient
+    .select({ id: tags.id, name: tags.name })
+    .from(tags)
+    .where(inArray(tags.name, names));
 
-    const [created] = await db
-      .insert(tags)
-      .values({ name, createdAt: now })
-      .returning();
-    tagIds.push(created.id);
-  }
-
-  return tagIds;
+  const nameToId = new Map(rows.map((row) => [row.name, row.id]));
+  return names.map((name) => nameToId.get(name)!);
 }
 
-export async function setExpenseTags(expenseId: number, tagNames: string[]) {
-  await db.delete(expenseTags).where(eq(expenseTags.expenseId, expenseId));
+export async function setExpenseTags(
+  expenseId: number,
+  tagNames: string[],
+  dbClient: DbClient = db,
+) {
+  await dbClient.delete(expenseTags).where(eq(expenseTags.expenseId, expenseId));
 
-  const tagIds = await ensureTags(tagNames);
+  const tagIds = await ensureTags(tagNames, dbClient);
   if (tagIds.length === 0) {
     return;
   }
 
-  await db.insert(expenseTags).values(
+  await dbClient.insert(expenseTags).values(
     tagIds.map((tagId) => ({
       expenseId,
       tagId,
@@ -57,17 +55,18 @@ export async function setExpenseTags(expenseId: number, tagNames: string[]) {
 export async function setPlannedExpenseTags(
   plannedExpenseId: number,
   tagNames: string[],
+  dbClient: DbClient = db,
 ) {
-  await db
+  await dbClient
     .delete(plannedExpenseTags)
     .where(eq(plannedExpenseTags.plannedExpenseId, plannedExpenseId));
 
-  const tagIds = await ensureTags(tagNames);
+  const tagIds = await ensureTags(tagNames, dbClient);
   if (tagIds.length === 0) {
     return;
   }
 
-  await db.insert(plannedExpenseTags).values(
+  await dbClient.insert(plannedExpenseTags).values(
     tagIds.map((tagId) => ({
       plannedExpenseId,
       tagId,
@@ -78,17 +77,18 @@ export async function setPlannedExpenseTags(
 export async function setRecurringExpenseTags(
   recurringExpenseId: number,
   tagNames: string[],
+  dbClient: DbClient = db,
 ) {
-  await db
+  await dbClient
     .delete(recurringExpenseTags)
     .where(eq(recurringExpenseTags.recurringExpenseId, recurringExpenseId));
 
-  const tagIds = await ensureTags(tagNames);
+  const tagIds = await ensureTags(tagNames, dbClient);
   if (tagIds.length === 0) {
     return;
   }
 
-  await db.insert(recurringExpenseTags).values(
+  await dbClient.insert(recurringExpenseTags).values(
     tagIds.map((tagId) => ({
       recurringExpenseId,
       tagId,
@@ -99,8 +99,9 @@ export async function setRecurringExpenseTags(
 export async function copyRecurringTagsToExpense(
   recurringExpenseId: number,
   expenseId: number,
+  dbClient: DbClient = db,
 ) {
-  const links = await db
+  const links = await dbClient
     .select({ tagId: recurringExpenseTags.tagId })
     .from(recurringExpenseTags)
     .where(eq(recurringExpenseTags.recurringExpenseId, recurringExpenseId));
@@ -109,7 +110,7 @@ export async function copyRecurringTagsToExpense(
     return;
   }
 
-  await db.insert(expenseTags).values(
+  await dbClient.insert(expenseTags).values(
     links.map((link) => ({
       expenseId,
       tagId: link.tagId,
@@ -120,8 +121,9 @@ export async function copyRecurringTagsToExpense(
 export async function copyPlannedTagsToExpense(
   plannedExpenseId: number,
   expenseId: number,
+  dbClient: DbClient = db,
 ) {
-  const links = await db
+  const links = await dbClient
     .select({ tagId: plannedExpenseTags.tagId })
     .from(plannedExpenseTags)
     .where(eq(plannedExpenseTags.plannedExpenseId, plannedExpenseId));
@@ -130,7 +132,7 @@ export async function copyPlannedTagsToExpense(
     return;
   }
 
-  await db.insert(expenseTags).values(
+  await dbClient.insert(expenseTags).values(
     links.map((link) => ({
       expenseId,
       tagId: link.tagId,
@@ -140,13 +142,14 @@ export async function copyPlannedTagsToExpense(
 
 async function getTagNamesByExpenseIds(
   expenseIds: number[],
+  dbClient: DbClient = db,
 ): Promise<Map<number, string[]>> {
   const map = new Map<number, string[]>();
   if (expenseIds.length === 0) {
     return map;
   }
 
-  const rows = await db
+  const rows = await dbClient
     .select({
       expenseId: expenseTags.expenseId,
       tagName: tags.name,
@@ -172,13 +175,14 @@ async function getTagNamesByExpenseIds(
 
 async function getTagNamesByPlannedIds(
   plannedIds: number[],
+  dbClient: DbClient = db,
 ): Promise<Map<number, string[]>> {
   const map = new Map<number, string[]>();
   if (plannedIds.length === 0) {
     return map;
   }
 
-  const rows = await db
+  const rows = await dbClient
     .select({
       plannedExpenseId: plannedExpenseTags.plannedExpenseId,
       tagName: tags.name,
@@ -204,13 +208,14 @@ async function getTagNamesByPlannedIds(
 
 async function getTagNamesByRecurringIds(
   recurringIds: number[],
+  dbClient: DbClient = db,
 ): Promise<Map<number, string[]>> {
   const map = new Map<number, string[]>();
   if (recurringIds.length === 0) {
     return map;
   }
 
-  const rows = await db
+  const rows = await dbClient
     .select({
       recurringExpenseId: recurringExpenseTags.recurringExpenseId,
       tagName: tags.name,

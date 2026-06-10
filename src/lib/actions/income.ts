@@ -7,7 +7,7 @@ import {
   getIncomeById,
   updateIncome,
 } from "@/lib/db/queries";
-import { currencies, type CurrencyCode } from "@/lib/db/schema";
+import { currencies, type CurrencyCode, type IncomeSource } from "@/lib/db/schema";
 import { parseDollarsToCents } from "@/lib/utils";
 
 export interface IncomeFormState {
@@ -35,7 +35,7 @@ function validateIncomeInput(data: {
         amount: number;
         currency: CurrencyCode;
         date: string;
-        source: string;
+        source: IncomeSource;
       };
     } {
   const name = data.name.trim();

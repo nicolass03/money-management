@@ -1,18 +1,32 @@
+"use client";
+
+import { useMemo, useState } from "react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { SectionHeader } from "@/components/ui/section-header";
 import { CurrentPeriodExpenses } from "./current-period-expenses";
 import { ExpenseCharts } from "./expense-charts";
+import { ExpensePeriodSelector } from "./expense-period-selector";
 import type { MoneyDisplayContext } from "@/lib/currency/display";
-import type { ExpenseWithTags, IncomePaySchedule } from "@/lib/db/schema";
-import type { CurrentPeriodExpenses as CurrentPeriodData } from "@/lib/projections/build-projection";
+import type {
+  ExpenseWithTags,
+  IncomePaySchedule,
+  PlannedExpenseWithTags,
+  RecurringExpenseWithTags,
+} from "@/lib/db/schema";
+import {
+  filterExpensesByPeriod,
+  getExpensePeriodView,
+  type ExpensePeriodKey,
+} from "@/lib/expenses/expense-period-range";
 import type { PayableFutureItem } from "@/lib/projections/upcoming-payable";
 
 interface ExpenseDashboardProps extends MoneyDisplayContext {
   allExpenses: ExpenseWithTags[];
   allTags: string[];
   primarySchedule: IncomePaySchedule | null;
-  periodData: CurrentPeriodData | null;
+  recurringExpenses: RecurringExpenseWithTags[];
+  plannedExpenses: PlannedExpenseWithTags[];
   upcomingPayableItems: PayableFutureItem[];
 }
 
@@ -20,17 +34,56 @@ export function ExpenseDashboard({
   allExpenses,
   allTags,
   primarySchedule,
-  periodData,
+  recurringExpenses,
+  plannedExpenses,
   upcomingPayableItems,
   displayCurrency,
   rates,
 }: ExpenseDashboardProps) {
+  const [periodKey, setPeriodKey] = useState<ExpensePeriodKey>("last-period");
+  const today = new Date().toISOString().slice(0, 10);
+
+  const periodExpenses = useMemo(
+    () =>
+      filterExpensesByPeriod(
+        allExpenses,
+        periodKey,
+        primarySchedule,
+        today,
+      ),
+    [allExpenses, periodKey, primarySchedule, today],
+  );
+
+  const periodView = useMemo(
+    () =>
+      getExpensePeriodView({
+        periodKey,
+        primarySchedule,
+        expenses: allExpenses,
+        recurringExpenses,
+        plannedExpenses,
+        displayCurrency,
+        rates,
+        today,
+      }),
+    [
+      periodKey,
+      primarySchedule,
+      allExpenses,
+      recurringExpenses,
+      plannedExpenses,
+      displayCurrency,
+      rates,
+      today,
+    ],
+  );
+
   return (
     <div>
       <div className="mb-6 flex items-center justify-between gap-4">
         <SectionHeader
           title="expenses"
-          subtitle="analytics and planned spend for the current pay period"
+          subtitle="analytics and spend by selected period"
           className="mb-0"
         />
         <div className="flex shrink-0 items-center gap-2">
@@ -47,8 +100,14 @@ export function ExpenseDashboard({
         </div>
       </div>
 
+      <ExpensePeriodSelector
+        value={periodKey}
+        onChange={setPeriodKey}
+        className="mb-4"
+      />
+
       <ExpenseCharts
-        expenses={allExpenses}
+        expenses={periodExpenses}
         allTags={allTags}
         displayCurrency={displayCurrency}
         rates={rates}
@@ -56,7 +115,8 @@ export function ExpenseDashboard({
 
       <CurrentPeriodExpenses
         primarySchedule={primarySchedule}
-        periodData={periodData}
+        periodView={periodView}
+        periodKey={periodKey}
         upcomingPayableItems={upcomingPayableItems}
         displayCurrency={displayCurrency}
         rates={rates}

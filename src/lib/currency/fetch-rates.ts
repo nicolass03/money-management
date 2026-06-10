@@ -39,19 +39,18 @@ export async function fetchExchangeRates(): Promise<ExchangeRates> {
   };
 }
 
-export function parseCachedRates(json: string | null): ExchangeRates | null {
-  if (!json) return null;
-  try {
-    const parsed = JSON.parse(json) as ExchangeRates;
-    if (parsed.base && parsed.rates && parsed.fetchedAt) {
-      return parsed;
-    }
-    return null;
-  } catch {
+export function parseSnapshotRow(data: {
+  baseCurrency: string;
+  ratesJson: unknown;
+  fetchedAt: string;
+}): ExchangeRates | null {
+  if (!data.ratesJson || typeof data.ratesJson !== "object") {
     return null;
   }
-}
 
-export function serializeRates(rates: ExchangeRates): string {
-  return JSON.stringify(rates);
+  return {
+    base: data.baseCurrency.toUpperCase(),
+    rates: data.ratesJson as Record<string, number>,
+    fetchedAt: data.fetchedAt,
+  };
 }

@@ -1,7 +1,7 @@
 import { convertAmount } from "@/lib/currency/convert";
 import {
   getExchangeRates,
-  getExpenseByRecurringAndDueDate,
+  getMaterializedRecurringIdsForDueDate,
   getRecurringExpenses,
   getUserSettings,
 } from "@/lib/db/queries";
@@ -13,10 +13,11 @@ import { getPayDatesInRange, scheduleToInput } from "@/lib/income/pay-periods";
 export async function chargeDueExpensesForDate(
   date: string,
 ): Promise<{ created: number }> {
-  const [rates, settings, recurringList] = await Promise.all([
+  const [rates, settings, recurringList, materializedIds] = await Promise.all([
     getExchangeRates(),
     getUserSettings(),
     getRecurringExpenses(),
+    getMaterializedRecurringIdsForDueDate(date),
   ]);
 
   const displayCurrency = settings.displayCurrency;
@@ -34,12 +35,7 @@ export async function chargeDueExpensesForDate(
       date,
     );
 
-    if (dueDates.length === 0) {
-      continue;
-    }
-
-    const existing = await getExpenseByRecurringAndDueDate(recurring.id, date);
-    if (existing) {
+    if (dueDates.length === 0 || materializedIds.has(recurring.id)) {
       continue;
     }
 
@@ -56,22 +52,25 @@ export async function chargeDueExpensesForDate(
       currency = displayCurrency;
     }
 
-    const [expense] = await db
-      .insert(expenses)
-      .values({
-        name: recurring.name,
-        amount,
-        currency,
-        date,
-        recurringId: recurring.id,
-        amountOverridden: false,
-        isSubscription: recurring.isSubscription,
-        createdAt: now,
-      })
-      .returning();
+    await db.transaction(async (tx) => {
+      const [expense] = await tx
+        .insert(expenses)
+        .values({
+          name: recurring.name,
+          amount,
+          currency,
+          date,
+          recurringId: recurring.id,
+          amountOverridden: false,
+          isSubscription: recurring.isSubscription,
+          createdAt: now,
+        })
+        .returning();
 
-    await copyRecurringTagsToExpense(recurring.id, expense.id);
+      await copyRecurringTagsToExpense(recurring.id, expense.id, tx);
+    });
 
+    materializedIds.add(recurring.id);
     created += 1;
   }
 

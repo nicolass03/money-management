@@ -1,9 +1,8 @@
-import { and, desc, eq, isNull, or } from "drizzle-orm";
+import { and, desc, eq, isNotNull, isNull, or } from "drizzle-orm";
 import {
   fetchExchangeRates,
   isRatesStale,
-  parseCachedRates,
-  serializeRates,
+  parseSnapshotRow,
 } from "@/lib/currency/fetch-rates";
 import type { ExchangeRates } from "@/lib/currency/convert";
 import {
@@ -11,6 +10,8 @@ import {
   attachTagsToPlannedExpenses,
   attachTagsToRecurringExpenses,
   getAllTagNames,
+  copyPlannedTagsToExpense,
+  copyRecurringTagsToExpense,
   setExpenseTags,
   setPlannedExpenseTags,
   setRecurringExpenseTags,
@@ -18,6 +19,7 @@ import {
 import { deleteScheduledIncome, syncScheduledIncome } from "@/lib/income/sync-scheduled-income";
 import { db } from "./index";
 import {
+  exchangeRateSnapshots,
   expenses,
   income,
   incomePaySchedules,
@@ -27,6 +29,7 @@ import {
   userSettings,
   type CurrencyCode,
   type ExpenseWithTags,
+  type IncomeSource,
   type PayFrequency,
   type PlannedExpenseWithTags,
   type RecurringExpenseWithTags,
@@ -62,22 +65,24 @@ export async function createExpense(data: {
   isSubscription: boolean;
 }) {
   const now = new Date().toISOString();
-  const [expense] = await db
-    .insert(expenses)
-    .values({
-      name: data.name,
-      amount: data.amount,
-      currency: data.currency,
-      date: data.date,
-      recurringId: null,
-      amountOverridden: false,
-      isSubscription: data.isSubscription,
-      createdAt: now,
-    })
-    .returning();
+  return db.transaction(async (tx) => {
+    const [expense] = await tx
+      .insert(expenses)
+      .values({
+        name: data.name,
+        amount: data.amount,
+        currency: data.currency,
+        date: data.date,
+        recurringId: null,
+        amountOverridden: false,
+        isSubscription: data.isSubscription,
+        createdAt: now,
+      })
+      .returning();
 
-  await setExpenseTags(expense.id, data.tags);
-  return expense;
+    await setExpenseTags(expense.id, data.tags, tx);
+    return expense;
+  });
 }
 
 export async function updateExpenseAmount(id: number, amount: number) {
@@ -109,7 +114,7 @@ export async function createIncome(data: {
   name: string;
   amount: number;
   currency: CurrencyCode;
-  source: string;
+  source: IncomeSource;
   date: string;
 }) {
   const now = new Date().toISOString();
@@ -134,7 +139,7 @@ export async function updateIncome(
     name: string;
     amount: number;
     currency: CurrencyCode;
-    source: string;
+    source: IncomeSource;
     date: string;
   },
 ) {
@@ -255,25 +260,36 @@ export async function updateUserSettings(data: {
   return updated;
 }
 
+async function getLatestExchangeRatesSnapshot(): Promise<ExchangeRates | null> {
+  const [snapshot] = await db
+    .select()
+    .from(exchangeRateSnapshots)
+    .orderBy(desc(exchangeRateSnapshots.fetchedAt))
+    .limit(1);
+
+  if (!snapshot) {
+    return null;
+  }
+
+  return parseSnapshotRow(snapshot);
+}
+
 export async function saveExchangeRates(rates: ExchangeRates) {
-  const now = new Date().toISOString();
-  await ensureUserSettings();
-  const [updated] = await db
-    .update(userSettings)
-    .set({
-      exchangeRatesJson: serializeRates(rates),
-      updatedAt: now,
+  const [snapshot] = await db
+    .insert(exchangeRateSnapshots)
+    .values({
+      baseCurrency: rates.base.toLowerCase() as CurrencyCode,
+      ratesJson: rates.rates,
+      fetchedAt: rates.fetchedAt,
     })
-    .where(eq(userSettings.id, SETTINGS_ID))
     .returning();
-  return updated;
+  return snapshot;
 }
 
 export async function getExchangeRates(
   options: { forceRefresh?: boolean } = {},
 ): Promise<ExchangeRates> {
-  const settings = await ensureUserSettings();
-  const cached = parseCachedRates(settings.exchangeRatesJson);
+  const cached = await getLatestExchangeRatesSnapshot();
 
   if (
     cached &&
@@ -350,13 +366,15 @@ export async function updateIncomePaySchedule(
 }
 
 export async function deleteIncomePaySchedule(id: number) {
-  await deleteScheduledIncome(id);
-  await db.update(income).set({ scheduleId: null }).where(eq(income.scheduleId, id));
-  await db
-    .update(userSettings)
-    .set({ primaryScheduleId: null })
-    .where(eq(userSettings.primaryScheduleId, id));
-  await db.delete(incomePaySchedules).where(eq(incomePaySchedules.id, id));
+  await db.transaction(async (tx) => {
+    await deleteScheduledIncome(id, tx);
+    await tx.update(income).set({ scheduleId: null }).where(eq(income.scheduleId, id));
+    await tx
+      .update(userSettings)
+      .set({ primaryScheduleId: null })
+      .where(eq(userSettings.primaryScheduleId, id));
+    await tx.delete(incomePaySchedules).where(eq(incomePaySchedules.id, id));
+  });
 }
 
 export async function createRecurringExpense(data: {
@@ -370,23 +388,25 @@ export async function createRecurringExpense(data: {
   lastPaymentDate: string | null;
 }) {
   const now = new Date().toISOString();
-  const [recurring] = await db
-    .insert(recurringExpenses)
-    .values({
-      name: data.name,
-      anchorDate: data.anchorDate,
-      frequency: data.frequency,
-      amount: data.amount,
-      currency: data.currency,
-      isSubscription: data.isSubscription,
-      lastPaymentDate: data.lastPaymentDate,
-      createdAt: now,
-      updatedAt: now,
-    })
-    .returning();
+  return db.transaction(async (tx) => {
+    const [recurring] = await tx
+      .insert(recurringExpenses)
+      .values({
+        name: data.name,
+        anchorDate: data.anchorDate,
+        frequency: data.frequency,
+        amount: data.amount,
+        currency: data.currency,
+        isSubscription: data.isSubscription,
+        lastPaymentDate: data.lastPaymentDate,
+        createdAt: now,
+        updatedAt: now,
+      })
+      .returning();
 
-  await setRecurringExpenseTags(recurring.id, data.tags);
-  return recurring;
+    await setRecurringExpenseTags(recurring.id, data.tags, tx);
+    return recurring;
+  });
 }
 
 export async function updateRecurringExpense(
@@ -402,31 +422,35 @@ export async function updateRecurringExpense(
     lastPaymentDate: string | null;
   },
 ) {
-  const [recurring] = await db
-    .update(recurringExpenses)
-    .set({
-      name: data.name,
-      anchorDate: data.anchorDate,
-      frequency: data.frequency,
-      amount: data.amount,
-      currency: data.currency,
-      isSubscription: data.isSubscription,
-      lastPaymentDate: data.lastPaymentDate,
-      updatedAt: new Date().toISOString(),
-    })
-    .where(eq(recurringExpenses.id, id))
-    .returning();
+  return db.transaction(async (tx) => {
+    const [recurring] = await tx
+      .update(recurringExpenses)
+      .set({
+        name: data.name,
+        anchorDate: data.anchorDate,
+        frequency: data.frequency,
+        amount: data.amount,
+        currency: data.currency,
+        isSubscription: data.isSubscription,
+        lastPaymentDate: data.lastPaymentDate,
+        updatedAt: new Date().toISOString(),
+      })
+      .where(eq(recurringExpenses.id, id))
+      .returning();
 
-  if (recurring) {
-    await setRecurringExpenseTags(id, data.tags);
-  }
+    if (recurring) {
+      await setRecurringExpenseTags(id, data.tags, tx);
+    }
 
-  return recurring ?? null;
+    return recurring ?? null;
+  });
 }
 
 export async function deleteRecurringExpense(id: number) {
-  await db.delete(expenses).where(eq(expenses.recurringId, id));
-  await db.delete(recurringExpenses).where(eq(recurringExpenses.id, id));
+  await db.transaction(async (tx) => {
+    await tx.delete(expenses).where(eq(expenses.recurringId, id));
+    await tx.delete(recurringExpenses).where(eq(recurringExpenses.id, id));
+  });
 }
 
 export async function createPlannedExpense(data: {
@@ -437,20 +461,22 @@ export async function createPlannedExpense(data: {
   tags: string[];
 }) {
   const now = new Date().toISOString();
-  const [planned] = await db
-    .insert(plannedExpenses)
-    .values({
-      name: data.name,
-      date: data.date,
-      amount: data.amount,
-      currency: data.currency,
-      createdAt: now,
-      updatedAt: now,
-    })
-    .returning();
+  return db.transaction(async (tx) => {
+    const [planned] = await tx
+      .insert(plannedExpenses)
+      .values({
+        name: data.name,
+        date: data.date,
+        amount: data.amount,
+        currency: data.currency,
+        createdAt: now,
+        updatedAt: now,
+      })
+      .returning();
 
-  await setPlannedExpenseTags(planned.id, data.tags);
-  return planned;
+    await setPlannedExpenseTags(planned.id, data.tags, tx);
+    return planned;
+  });
 }
 
 export async function updatePlannedExpense(
@@ -463,23 +489,25 @@ export async function updatePlannedExpense(
     tags: string[];
   },
 ) {
-  const [planned] = await db
-    .update(plannedExpenses)
-    .set({
-      name: data.name,
-      date: data.date,
-      amount: data.amount,
-      currency: data.currency,
-      updatedAt: new Date().toISOString(),
-    })
-    .where(eq(plannedExpenses.id, id))
-    .returning();
+  return db.transaction(async (tx) => {
+    const [planned] = await tx
+      .update(plannedExpenses)
+      .set({
+        name: data.name,
+        date: data.date,
+        amount: data.amount,
+        currency: data.currency,
+        updatedAt: new Date().toISOString(),
+      })
+      .where(eq(plannedExpenses.id, id))
+      .returning();
 
-  if (planned) {
-    await setPlannedExpenseTags(id, data.tags);
-  }
+    if (planned) {
+      await setPlannedExpenseTags(id, data.tags, tx);
+    }
 
-  return planned ?? null;
+    return planned ?? null;
+  });
 }
 
 export async function deletePlannedExpense(id: number) {
@@ -505,6 +533,29 @@ export async function getExpenseByRecurringAndDueDate(
   return expense ?? null;
 }
 
+export async function getMaterializedRecurringIdsForDueDate(
+  dueDate: string,
+): Promise<Set<number>> {
+  const rows = await db
+    .select({ recurringId: expenses.recurringId })
+    .from(expenses)
+    .where(
+      and(
+        isNotNull(expenses.recurringId),
+        or(
+          eq(expenses.scheduledDate, dueDate),
+          and(isNull(expenses.scheduledDate), eq(expenses.date, dueDate)),
+        ),
+      ),
+    );
+
+  return new Set(
+    rows
+      .map((row) => row.recurringId)
+      .filter((id): id is number => id != null),
+  );
+}
+
 export async function getExpenseByPlannedId(plannedExpenseId: number) {
   const [expense] = await db
     .select()
@@ -525,22 +576,31 @@ export async function createEarlyPaidExpense(data: {
   isSubscription: boolean;
 }) {
   const now = new Date().toISOString();
-  const [expense] = await db
-    .insert(expenses)
-    .values({
-      name: data.name,
-      amount: data.amount,
-      currency: data.currency,
-      date: data.date,
-      scheduledDate: data.scheduledDate,
-      recurringId: data.recurringId ?? null,
-      plannedExpenseId: data.plannedExpenseId ?? null,
-      amountOverridden: data.amountOverridden,
-      isSubscription: data.isSubscription,
-      createdAt: now,
-    })
-    .returning();
-  return expense;
+  return db.transaction(async (tx) => {
+    const [expense] = await tx
+      .insert(expenses)
+      .values({
+        name: data.name,
+        amount: data.amount,
+        currency: data.currency,
+        date: data.date,
+        scheduledDate: data.scheduledDate,
+        recurringId: data.recurringId ?? null,
+        plannedExpenseId: data.plannedExpenseId ?? null,
+        amountOverridden: data.amountOverridden,
+        isSubscription: data.isSubscription,
+        createdAt: now,
+      })
+      .returning();
+
+    if (data.recurringId != null) {
+      await copyRecurringTagsToExpense(data.recurringId, expense.id, tx);
+    } else if (data.plannedExpenseId != null) {
+      await copyPlannedTagsToExpense(data.plannedExpenseId, expense.id, tx);
+    }
+
+    return expense;
+  });
 }
 
 export async function getSavings() {
