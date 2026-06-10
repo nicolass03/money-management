@@ -129,7 +129,7 @@ export function ProjectionSettings({
               </p>
             )}
 
-            <Button type="submit" disabled={pending}>
+            <Button type="submit" loading={pending}>
               {pending ? "saving..." : "save projection settings"}
             </Button>
           </form>

@@ -118,10 +118,10 @@ export function IncomeScheduleList({
               <Button
                 size="sm"
                 variant="danger"
-                disabled={pending}
+                loading={pending}
                 onClick={() => handleDelete(schedule.id)}
               >
-                delete
+                {pending ? "deleting..." : "delete"}
               </Button>
             </div>
           </Card>

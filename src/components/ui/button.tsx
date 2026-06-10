@@ -1,19 +1,24 @@
+import { TerminalSpinner } from "@/components/ui/loading-indicator";
 import { cn } from "@/lib/utils";
 
 interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
   variant?: "primary" | "ghost" | "danger";
   size?: "sm" | "md";
+  loading?: boolean;
 }
 
 export function Button({
   className,
   variant = "primary",
   size = "md",
+  loading = false,
   children,
+  disabled,
   ...props
 }: ButtonProps) {
   return (
     <button
+      disabled={disabled || loading}
       className={cn(
         "inline-flex items-center justify-center font-mono transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed",
         size === "sm" && "px-3 py-1.5 text-xs",
@@ -28,6 +33,7 @@ export function Button({
       )}
       {...props}
     >
+      {loading && <TerminalSpinner className="mr-2" />}
       {children}
     </button>
   );

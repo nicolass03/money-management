@@ -126,10 +126,10 @@ export function RecurringExpenseList({
               <Button
                 size="sm"
                 variant="danger"
-                disabled={pending}
+                loading={pending}
                 onClick={() => handleDelete(recurring.id)}
               >
-                delete
+                {pending ? "deleting..." : "delete"}
               </Button>
             </div>
           </Card>

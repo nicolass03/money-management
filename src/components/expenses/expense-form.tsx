@@ -144,7 +144,7 @@ export function ExpenseForm({
       )}
 
       <div className="flex gap-2">
-        <Button type="submit" disabled={pending}>
+        <Button type="submit" loading={pending}>
           {pending ? "saving..." : "add expense"}
         </Button>
         {onCancel && (

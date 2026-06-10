@@ -85,7 +85,7 @@ export function CurrencySettings({
             </p>
           )}
 
-          <Button type="submit" disabled={currencyPending}>
+          <Button type="submit" loading={currencyPending}>
             {currencyPending ? "saving..." : "save currency"}
           </Button>
         </form>
@@ -97,7 +97,7 @@ export function CurrencySettings({
               type="button"
               size="sm"
               variant="ghost"
-              disabled={refreshPending}
+              loading={refreshPending}
               onClick={handleRefresh}
             >
               {refreshPending ? "refreshing..." : "refresh rates"}

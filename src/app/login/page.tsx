@@ -6,6 +6,7 @@ import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card } from "@/components/ui/card";
+import { LoadingIndicator } from "@/components/ui/loading-indicator";
 
 export default function LoginPage() {
   const router = useRouter();
@@ -27,6 +28,7 @@ export default function LoginPage() {
 
       if (!res.ok) {
         setError("$ auth failed: invalid credentials");
+        setLoading(false);
         return;
       }
 
@@ -34,7 +36,6 @@ export default function LoginPage() {
       router.refresh();
     } catch {
       setError("$ auth failed: connection error");
-    } finally {
       setLoading(false);
     }
   }
@@ -58,7 +59,17 @@ export default function LoginPage() {
           </p>
         </div>
 
-        <Card className="animate-glow-pulse">
+        <Card className="relative animate-glow-pulse">
+          {loading && (
+            <div className="absolute inset-0 z-10 flex items-center justify-center border border-accent/20 bg-surface/90">
+              <LoadingIndicator
+                variant="inline"
+                label="authenticating"
+                className="text-sm text-text"
+              />
+            </div>
+          )}
+
           <form onSubmit={handleSubmit} className="space-y-4">
             <div>
               <label
@@ -88,7 +99,7 @@ export default function LoginPage() {
               </motion.p>
             )}
 
-            <Button type="submit" className="w-full" disabled={loading}>
+            <Button type="submit" className="w-full" loading={loading}>
               {loading ? "authenticating..." : "authenticate"}
             </Button>
           </form>

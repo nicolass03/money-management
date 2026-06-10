@@ -68,8 +68,8 @@ function ExpenseAmountEditor({
         onChange={(e) => setAmount(e.target.value)}
         className="h-8 w-24 px-2 text-right"
       />
-      <Button size="sm" disabled={pending} onClick={handleSave}>
-        {pending ? "..." : "save"}
+      <Button size="sm" loading={pending} onClick={handleSave}>
+        {pending ? "saving..." : "save"}
       </Button>
       <Button size="sm" variant="ghost" onClick={onDone}>
         cancel

@@ -206,7 +206,7 @@ export function IncomeScheduleForm({
       )}
 
       <div className="flex gap-2">
-        <Button type="submit" disabled={pending}>
+        <Button type="submit" loading={pending}>
           {pending ? "saving..." : isEditing ? "update" : "add schedule"}
         </Button>
         {onCancel && (
