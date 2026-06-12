@@ -7,7 +7,7 @@ import {
   addBudgetExpenseAction,
   type BudgetFormState,
 } from "@/lib/actions/budgets";
-import type { BudgetWithTags } from "@/lib/db/schema";
+import type { BudgetWithTags } from "@/lib/types/domain";
 import { isDatedBudget } from "@/lib/budgets/budget-status";
 import { formatCentsAsDollarsInput } from "@/lib/utils";
 

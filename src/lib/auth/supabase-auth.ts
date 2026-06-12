@@ -1,19 +1,19 @@
-import { emailsMatch, getAuthUserEmail } from "@/lib/supabase/env";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 
 export async function signInWithSupabasePassword(
+  email: string,
   password: string,
 ): Promise<boolean> {
-  const email = getAuthUserEmail();
-  if (!email || !password) {
+  const normalizedEmail = email.trim().toLowerCase();
+  if (!normalizedEmail || !password) {
     return false;
   }
 
   const supabase = await createSupabaseServerClient();
-  const { data, error } = await supabase.auth.signInWithPassword({
-    email,
+  const { error } = await supabase.auth.signInWithPassword({
+    email: normalizedEmail,
     password,
   });
 
-  return !error && emailsMatch(data.user?.email, email);
+  return !error;
 }

@@ -6,10 +6,12 @@ import {
   createBudgetExpense,
   deleteBudget,
   deleteBudgetExpense,
-  getBudgetByIdWithTags,
+  getBudgetById,
   updateBudget,
-} from "@/lib/db/queries";
-import { currencies, type CurrencyCode } from "@/lib/db/schema";
+} from "@/lib/api/budgets";
+import { getIncomeScheduleById } from "@/lib/api/income-schedules";
+import { getUserSettingsFromApi } from "@/lib/api/settings";
+import { ApiError } from "@/lib/api/client";
 import { isDatedBudget } from "@/lib/budgets/budget-status";
 import { parseTagNames } from "@/lib/expenses/tag-utils";
 import {
@@ -17,7 +19,7 @@ import {
   isDateInPeriod,
   scheduleToInput,
 } from "@/lib/income/pay-periods";
-import { getIncomePayScheduleById, getUserSettings } from "@/lib/db/queries";
+import { currencies, type CurrencyCode } from "@/lib/types/constants";
 import { parseDollarsToCents } from "@/lib/utils";
 
 export interface BudgetFormState {
@@ -36,12 +38,12 @@ function revalidateBudgetPaths() {
 }
 
 async function getCurrentPayPeriod() {
-  const settings = await getUserSettings();
+  const settings = await getUserSettingsFromApi();
   if (!settings.primaryScheduleId) {
     return null;
   }
 
-  const primarySchedule = await getIncomePayScheduleById(
+  const primarySchedule = await getIncomeScheduleById(
     settings.primaryScheduleId,
   );
   if (!primarySchedule) {
@@ -151,7 +153,7 @@ export async function createBudgetAction(
 }
 
 export async function updateBudgetAction(
-  id: number,
+  id: string,
   _prev: BudgetFormState,
   formData: FormData,
 ): Promise<BudgetFormState> {
@@ -181,14 +183,14 @@ export async function updateBudgetAction(
 }
 
 export async function deleteBudgetAction(
-  id: number,
+  id: string,
 ): Promise<BudgetFormState> {
   try {
     await deleteBudget(id);
     revalidateBudgetPaths();
     return { success: true };
   } catch (error) {
-    if (error instanceof Error && error.message.includes("expenses")) {
+    if (error instanceof ApiError && error.message.includes("expenses")) {
       return { error: "cannot delete budget with recorded expenses" };
     }
     return { error: "failed to delete budget" };
@@ -196,11 +198,11 @@ export async function deleteBudgetAction(
 }
 
 export async function addBudgetExpenseAction(
-  budgetId: number,
+  budgetId: string,
   _prev: BudgetFormState,
   formData: FormData,
 ): Promise<BudgetFormState> {
-  const budget = await getBudgetByIdWithTags(budgetId);
+  const budget = await getBudgetById(budgetId);
   if (!budget) {
     return { error: "budget not found" };
   }
@@ -242,22 +244,14 @@ export async function addBudgetExpenseAction(
   }
 
   const nameField = String(formData.get("name") ?? "").trim();
-  const name = dated
-    ? nameField || budget.name
-    : nameField || budget.name;
+  const name = nameField || budget.name;
 
   if (!name) {
     return { error: "name is required" };
   }
 
   try {
-    await createBudgetExpense(budgetId, {
-      name,
-      amount,
-      currency: budget.currency,
-      date,
-      isDatedBudget: dated,
-    });
+    await createBudgetExpense(budgetId, { name, amount, date });
     revalidateBudgetPaths();
     return { success: true };
   } catch {
@@ -266,13 +260,11 @@ export async function addBudgetExpenseAction(
 }
 
 export async function deleteBudgetExpenseAction(
-  id: number,
+  budgetId: string,
+  expenseId: string,
 ): Promise<BudgetFormState> {
   try {
-    const deleted = await deleteBudgetExpense(id);
-    if (!deleted) {
-      return { error: "expense not found" };
-    }
+    await deleteBudgetExpense(budgetId, expenseId);
     revalidateBudgetPaths();
     return { success: true };
   } catch {

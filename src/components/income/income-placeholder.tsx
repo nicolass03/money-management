@@ -3,7 +3,7 @@ import { Badge } from "@/components/ui/badge";
 import { Card } from "@/components/ui/card";
 import { SectionHeader } from "@/components/ui/section-header";
 import { formatCurrency, formatDate } from "@/lib/utils";
-import type { Income } from "@/lib/db/schema";
+import type { Income } from "@/lib/types/domain";
 
 interface IncomePlaceholderProps {
   entries: Income[];

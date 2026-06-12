@@ -1,5 +1,4 @@
 import { convertAmount, type ExchangeRates } from "@/lib/currency/convert";
-import type { CurrencyCode } from "@/lib/db/schema";
 import {
   budgetOverlapsPeriod,
   getBudgetProjectionAmount,
@@ -9,12 +8,17 @@ import {
 } from "@/lib/budgets/budget-status";
 import type {
   BudgetWithTags,
+  CurrencyCode,
   ExpenseWithTags,
   Income,
   IncomePaySchedule,
   PlannedExpenseWithTags,
+  ProjectionExpenseItem,
+  ProjectionRow,
   RecurringExpenseWithTags,
-} from "@/lib/db/schema";
+} from "@/lib/types/domain";
+
+export type { ProjectionExpenseItem, ProjectionRow };
 import {
   getPayDatesInRange,
   getPeriodContaining,
@@ -30,39 +34,6 @@ import {
   isRecurringOccurrenceMaterialized,
   recurringDueDate,
 } from "./materialization";
-
-export interface ProjectionExpenseItem {
-  id?: number;
-  recurringId?: number;
-  plannedExpenseId?: number;
-  budgetId?: number;
-  budgetTotal?: number;
-  budgetSpent?: number;
-  isBudgetSummary?: boolean;
-  name: string;
-  date: string;
-  scheduledDate?: string;
-  amount: number;
-  currency: CurrencyCode;
-  originalAmount?: number;
-  originalCurrency?: CurrencyCode;
-  convertedAmount: number;
-  tags: string[];
-  isSubscription: boolean;
-  projected: boolean;
-}
-
-export interface ProjectionRow {
-  payDate: string;
-  startDate: string;
-  endDate: string;
-  incomeTotal: number;
-  expenseTotal: number;
-  periodFree: number;
-  cumulativeFree: number;
-  expenseItems: ProjectionExpenseItem[];
-  isPast: boolean;
-}
 
 interface BuildProjectionInput {
   primarySchedule: IncomePaySchedule;
@@ -83,7 +54,7 @@ interface GetExpenseItemsOptions {
 }
 
 function sumBudgetSpent(
-  budgetId: number,
+  budgetId: string,
   expenseList: ExpenseWithTags[],
 ): number {
   return expenseList
@@ -91,7 +62,7 @@ function sumBudgetSpent(
     .reduce((sum, expense) => sum + expense.amount, 0);
 }
 
-function buildDatedBudgetIdSet(budgets: BudgetWithTags[]): Set<number> {
+function buildDatedBudgetIdSet(budgets: BudgetWithTags[]): Set<string> {
   return new Set(
     budgets.filter((budget) => isDatedBudget(budget)).map((budget) => budget.id),
   );

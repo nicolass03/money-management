@@ -1,32 +1,30 @@
 export const dynamic = "force-dynamic";
 
 import { ExpenseDashboard } from "@/components/expenses/expense-dashboard";
-import {
-  getAllTagNames,
-  getBudgetsWithTags,
-  getExpensesWithTags,
-  getIncomePayScheduleById,
-  getMoneyContext,
-  getPlannedExpensesWithTags,
-  getRecurringExpensesWithTags,
-  getUserSettings,
-} from "@/lib/db/queries";
+import { getBudgets } from "@/lib/api/budgets";
+import { getExpenses } from "@/lib/api/expenses";
+import { getIncomeScheduleById } from "@/lib/api/income-schedules";
+import { getMoneyContext } from "@/lib/api/money-context";
+import { getPlannedExpenses } from "@/lib/api/planned-expenses";
+import { getRecurringExpenses } from "@/lib/api/recurring-expenses";
+import { getUserSettingsFromApi } from "@/lib/api/settings";
+import { getAllTagNames } from "@/lib/api/tags";
 import { getUpcomingPayableItems } from "@/lib/projections/upcoming-payable";
 
 export default async function ExpensesPage() {
   const [allExpenses, recurringExpenses, plannedExpenses, budgets, allTags, settings, money] =
     await Promise.all([
-      getExpensesWithTags(),
-      getRecurringExpensesWithTags(),
-      getPlannedExpensesWithTags(),
-      getBudgetsWithTags(),
+      getExpenses(),
+      getRecurringExpenses(),
+      getPlannedExpenses(),
+      getBudgets(),
       getAllTagNames(),
-      getUserSettings(),
+      getUserSettingsFromApi(),
       getMoneyContext(),
     ]);
 
   const primarySchedule = settings.primaryScheduleId
-    ? await getIncomePayScheduleById(settings.primaryScheduleId)
+    ? await getIncomeScheduleById(settings.primaryScheduleId)
     : null;
 
   const upcomingPayableItems = getUpcomingPayableItems({

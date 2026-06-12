@@ -8,7 +8,7 @@ import { SectionHeader } from "@/components/ui/section-header";
 import { MoneyText } from "@/components/layout/privacy-mode";
 import { formatMoney } from "@/lib/currency/format";
 import { toDisplayAmount, type MoneyDisplayContext } from "@/lib/currency/display";
-import type { RecurringExpenseWithTags } from "@/lib/db/schema";
+import type { RecurringExpenseWithTags } from "@/lib/types/domain";
 import { RecurringExpenseForm } from "./recurring-expense-form";
 import { RecurringExpenseList } from "./recurring-expense-list";
 import { RecurringPaymentCharts } from "./recurring-payment-charts";

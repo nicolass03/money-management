@@ -8,10 +8,7 @@ import {
   type ExpenseFormState,
 } from "@/lib/actions/expenses";
 import { formatCurrencyLabel } from "@/lib/currency/types";
-import {
-  currencies,
-  type CurrencyCode,
-} from "@/lib/db/schema";
+import { currencies, type CurrencyCode } from "@/lib/types/constants";
 import { cn } from "@/lib/utils";
 import { TagInput } from "./tag-input";
 

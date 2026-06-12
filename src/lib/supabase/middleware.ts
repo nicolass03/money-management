@@ -1,11 +1,6 @@
 import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
-import {
-  emailsMatch,
-  getAuthUserEmail,
-  getSupabasePublishableKey,
-  getSupabaseUrl,
-} from "./env";
+import { getSupabasePublishableKey, getSupabaseUrl } from "./env";
 
 export async function updateSession(request: NextRequest) {
   let response = NextResponse.next({ request });
@@ -35,9 +30,7 @@ export async function updateSession(request: NextRequest) {
     data: { user },
   } = await supabase.auth.getUser();
 
-  const authUserEmail = getAuthUserEmail();
-  const isAuthenticated =
-    !!user && !!authUserEmail && emailsMatch(user.email, authUserEmail);
+  const isAuthenticated = !!user;
 
   const { pathname } = request.nextUrl;
   const isLoginPage = pathname === "/login";

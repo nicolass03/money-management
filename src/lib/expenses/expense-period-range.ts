@@ -5,18 +5,16 @@ import type {
   ExpenseWithTags,
   IncomePaySchedule,
   PlannedExpenseWithTags,
+  ProjectionExpenseItem,
   RecurringExpenseWithTags,
-} from "@/lib/db/schema";
+} from "@/lib/types/domain";
 import {
   getPeriodContaining,
   scheduleToInput,
   type PayPeriod,
 } from "@/lib/income/pay-periods";
 import { recurringDueDate } from "@/lib/projections/materialization";
-import {
-  getExpenseItemsInPeriod,
-  type ProjectionExpenseItem,
-} from "@/lib/projections/build-projection";
+import { getExpenseItemsInPeriod } from "@/lib/projections/build-projection";
 
 export type ExpensePeriodKey = "last-period" | "last-month" | "last-3-months";
 

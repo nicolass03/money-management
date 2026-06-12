@@ -1,4 +1,4 @@
-import type { Income, IncomePaySchedule } from "@/lib/db/schema";
+import type { Income, IncomePaySchedule } from "@/lib/types/domain";
 import { getUpcomingPayDates, scheduleToInput } from "@/lib/income/pay-periods";
 
 export function isManualIncome(entry: Income): boolean {
@@ -36,6 +36,6 @@ export function filterIncomeEntriesForDisplay(
     if (a.date !== b.date) {
       return b.date.localeCompare(a.date);
     }
-    return b.id - a.id;
+    return b.createdAt.localeCompare(a.createdAt);
   });
 }

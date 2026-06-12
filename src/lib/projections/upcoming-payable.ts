@@ -1,9 +1,9 @@
-import type { CurrencyCode } from "@/lib/db/schema";
 import type {
+  CurrencyCode,
   ExpenseWithTags,
   PlannedExpenseWithTags,
   RecurringExpenseWithTags,
-} from "@/lib/db/schema";
+} from "@/lib/types/domain";
 import { getPayDatesInRange, scheduleToInput } from "@/lib/income/pay-periods";
 import {
   addDays,
@@ -16,8 +16,8 @@ import {
 export interface PayableFutureItem {
   key: string;
   sourceType: "recurring" | "planned";
-  recurringId?: number;
-  plannedExpenseId?: number;
+  recurringId?: string;
+  plannedExpenseId?: string;
   scheduledDate: string;
   name: string;
   amount: number;

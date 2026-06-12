@@ -1,7 +1,7 @@
 import { convertAmount, type ExchangeRates } from "./convert";
 import { formatNativeMoney } from "./format";
 import type { CurrencyCode } from "./types";
-import type { ProjectionExpenseItem } from "@/lib/projections/build-projection";
+import type { ProjectionExpenseItem } from "@/lib/types/domain";
 
 export interface FormattedExpenseAmount {
   primary: string;

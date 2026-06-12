@@ -11,7 +11,7 @@ import {
   type SettingsFormState,
 } from "@/lib/actions/user-settings";
 import { CURRENCY_LABELS } from "@/lib/currency/types";
-import type { CurrencyCode, IncomePaySchedule } from "@/lib/db/schema";
+import type { CurrencyCode, IncomePaySchedule } from "@/lib/types/domain";
 import { formatFrequency } from "@/lib/income/pay-periods";
 import { cn, formatCentsAsDollarsInput } from "@/lib/utils";
 
@@ -19,7 +19,7 @@ const initialState: SettingsFormState = {};
 
 interface ProjectionSettingsProps {
   schedules: IncomePaySchedule[];
-  primaryScheduleId: number | null;
+  primaryScheduleId: string | null;
   projectionInitialFreeMoney: number;
   projectionStartDate: string | null;
   displayCurrency: CurrencyCode;

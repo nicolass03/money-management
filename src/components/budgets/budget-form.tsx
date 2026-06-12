@@ -10,11 +10,8 @@ import {
 } from "@/lib/actions/budgets";
 import { formatCurrencyLabel } from "@/lib/currency/types";
 import type { MoneyDisplayContext } from "@/lib/currency/display";
-import {
-  currencies,
-  type CurrencyCode,
-  type BudgetWithTags,
-} from "@/lib/db/schema";
+import { currencies, type CurrencyCode } from "@/lib/types/constants";
+import type { BudgetWithTags } from "@/lib/types/domain";
 import { formatTagNames } from "@/lib/expenses/tag-utils";
 import { cn, formatCentsAsDollarsInput } from "@/lib/utils";
 import { TagInput } from "@/components/expenses/tag-input";

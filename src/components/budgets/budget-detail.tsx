@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { deleteBudgetExpenseAction } from "@/lib/actions/budgets";
 import { formatChargedExpenseAmount } from "@/lib/currency/expense-display";
 import type { MoneyDisplayContext } from "@/lib/currency/display";
-import type { BudgetWithTags, ExpenseWithTags } from "@/lib/db/schema";
+import type { BudgetWithTags, ExpenseWithTags } from "@/lib/types/domain";
 import { ExpenseAmount } from "@/components/expenses/expense-amount";
 import { TagList } from "@/components/expenses/tag-input";
 import { formatDate } from "@/lib/utils";
@@ -24,9 +24,9 @@ export function BudgetDetail({
 }: BudgetDetailProps) {
   const [pending, startTransition] = useTransition();
 
-  function handleDelete(expenseId: number) {
+  function handleDelete(expenseId: string) {
     startTransition(async () => {
-      await deleteBudgetExpenseAction(expenseId);
+      await deleteBudgetExpenseAction(budget.id, expenseId);
     });
   }
 

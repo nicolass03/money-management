@@ -5,7 +5,7 @@ import { SectionHeader } from "@/components/ui/section-header";
 import { convertAmount } from "@/lib/currency/convert";
 import { formatMoney } from "@/lib/currency/format";
 import type { MoneyDisplayContext } from "@/lib/currency/display";
-import type { Saving } from "@/lib/db/schema";
+import type { Saving } from "@/lib/types/domain";
 import { formatDate } from "@/lib/utils";
 
 interface SavingsPlaceholderProps extends MoneyDisplayContext {

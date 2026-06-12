@@ -3,16 +3,14 @@ export const dynamic = "force-dynamic";
 import { CurrencySettings } from "@/components/settings/currency-settings";
 import { ProjectionSettings } from "@/components/settings/projection-settings";
 import { SectionHeader } from "@/components/ui/section-header";
-import {
-  getIncomePaySchedules,
-  getMoneyContext,
-  getUserSettings,
-} from "@/lib/db/queries";
+import { getIncomeSchedules } from "@/lib/api/income-schedules";
+import { getMoneyContext } from "@/lib/api/money-context";
+import { getUserSettingsFromApi } from "@/lib/api/settings";
 
 export default async function SettingsPage() {
   const [schedules, settings, money] = await Promise.all([
-    getIncomePaySchedules(),
-    getUserSettings(),
+    getIncomeSchedules(),
+    getUserSettingsFromApi(),
     getMoneyContext(),
   ]);
 

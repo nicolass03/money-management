@@ -2,7 +2,7 @@ import Link from "next/link";
 import { Card } from "@/components/ui/card";
 import { SectionHeader } from "@/components/ui/section-header";
 import type { MoneyDisplayContext } from "@/lib/currency/display";
-import type { IncomePaySchedule } from "@/lib/db/schema";
+import type { IncomePaySchedule } from "@/lib/types/domain";
 import type { ProjectionRow } from "@/lib/projections/build-projection";
 import { ProjectionsTable } from "./projections-table";
 

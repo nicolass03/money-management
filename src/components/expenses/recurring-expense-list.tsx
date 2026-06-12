@@ -9,7 +9,7 @@ import type { MoneyDisplayContext } from "@/lib/currency/display";
 import { formatScheduledExpenseAmount } from "@/lib/currency/expense-display";
 import { formatCurrencyLabel } from "@/lib/currency/types";
 import { ExpenseAmount } from "./expense-amount";
-import type { RecurringExpenseWithTags } from "@/lib/db/schema";
+import type { RecurringExpenseWithTags } from "@/lib/types/domain";
 import { TagList } from "./tag-input";
 import {
   formatFrequency,
@@ -28,10 +28,10 @@ export function RecurringExpenseList({
   displayCurrency,
   rates,
 }: RecurringExpenseListProps) {
-  const [editingId, setEditingId] = useState<number | null>(null);
+  const [editingId, setEditingId] = useState<string | null>(null);
   const [pending, startTransition] = useTransition();
 
-  function handleDelete(id: number) {
+  function handleDelete(id: string) {
     startTransition(async () => {
       await deleteRecurringExpenseAction(id);
       if (editingId === id) {

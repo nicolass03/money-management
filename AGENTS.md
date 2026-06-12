@@ -1,5 +1,33 @@
-<!-- BEGIN:nextjs-agent-rules -->
-# This is NOT the Next.js you know
+# money-management — agent notes
 
-This version has breaking changes — APIs, conventions, and file structure may all differ from your training data. Read the relevant guide in `node_modules/next/dist/docs/` before writing any code. Heed deprecation notices.
-<!-- END:nextjs-agent-rules -->
+## Database & API
+
+- All entity IDs are **UUID strings** (JSON and TypeScript `string`). Amount fields remain integer cents.
+- The Rust API (`money-management-api`) owns the Postgres schema. Migrations live in `money-management-api/migrations/`.
+- `users.id` equals Supabase Auth `sub` (JWT). All user-owned tables have `user_id` FK; repos filter by authenticated user.
+- `exchange_rate_snapshots` is **global** (no `user_id`) — shared FX cache.
+- `user_settings` is keyed by `user_id` (one row per user), not a singleton `id = 1`.
+
+## Migrations (Diesel)
+
+- Unused `Queryable` row fields (e.g. `user_id` not exposed in API responses) can be prefixed with `_` to silence dead-code warnings, but **must** keep `#[diesel(column_name = user_id)]` so Diesel still maps the DB column.
+- Helpers called inside `conn.transaction` closures should return `diesel::result::Error`, not `ApiError` (the transaction `?` operator cannot convert `ApiError`).
+
+Supabase **transaction pooler** (port `6543`) breaks Diesel prepared statements. For `diesel migration run` and `diesel print-schema`, use **session mode** (port `5432` on the pooler host):
+
+```bash
+export DATABASE_URL="${DATABASE_URL//:6543/:5432}"
+diesel migration run
+diesel print-schema > src/schema.rs
+```
+
+## Auth
+
+- Users sign in with email and password on `/login`. Any valid Supabase Auth JWT is accepted by the API.
+- Default seeded user: `9886a71c-56d5-4cbe-a566-d762f24d0c9e` / `nickph116@gmail.com`.
+- Supabase **JWT signing keys** issue **ES256** access tokens. The Rust API validates them by fetching public keys from `{SUPABASE_URL}/auth/v1/.well-known/jwks.json` — do not use the legacy `SUPABASE_JWT_SECRET`. A 401 with API log `InvalidAlgorithm` or `unsupported jwt algorithm` means JWKS validation is missing or stale — restart the API after key rotation.
+
+## Next.js
+
+- This app has **no local Drizzle DB** — all data goes through `src/lib/api/*` → Rust API.
+- Do not use `number` for entity/FK IDs in domain types or API clients.

@@ -1,10 +1,10 @@
-import type { Expense } from "@/lib/db/schema";
+import type { Expense } from "@/lib/types/domain";
 
 export function recurringDueDate(expense: Pick<Expense, "date" | "scheduledDate">): string {
   return expense.scheduledDate ?? expense.date;
 }
 
-export function materializedRecurringKey(recurringId: number, dueDate: string): string {
+export function materializedRecurringKey(recurringId: string, dueDate: string): string {
   return `${recurringId}:${dueDate}`;
 }
 
@@ -26,8 +26,8 @@ export function buildRecurringMaterializedSet(
 
 export function buildPlannedMaterializedSet(
   expenseList: Pick<Expense, "plannedExpenseId">[],
-): Set<number> {
-  const materialized = new Set<number>();
+): Set<string> {
+  const materialized = new Set<string>();
 
   for (const expense of expenseList) {
     if (expense.plannedExpenseId != null) {
@@ -40,15 +40,15 @@ export function buildPlannedMaterializedSet(
 
 export function isRecurringOccurrenceMaterialized(
   materialized: Set<string>,
-  recurringId: number,
+  recurringId: string,
   dueDate: string,
 ): boolean {
   return materialized.has(materializedRecurringKey(recurringId, dueDate));
 }
 
 export function isPlannedExpenseMaterialized(
-  materialized: Set<number>,
-  plannedExpenseId: number,
+  materialized: Set<string>,
+  plannedExpenseId: string,
 ): boolean {
   return materialized.has(plannedExpenseId);
 }

@@ -8,7 +8,7 @@ import { SectionHeader } from "@/components/ui/section-header";
 import { MoneyText } from "@/components/layout/privacy-mode";
 import { formatMoney } from "@/lib/currency/format";
 import { toDisplayAmount, type MoneyDisplayContext } from "@/lib/currency/display";
-import type { PlannedExpenseWithTags } from "@/lib/db/schema";
+import type { PlannedExpenseWithTags } from "@/lib/types/domain";
 import { PlannedExpenseForm } from "./planned-expense-form";
 import { PlannedExpenseList } from "./planned-expense-list";
 

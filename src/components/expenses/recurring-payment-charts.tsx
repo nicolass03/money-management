@@ -16,7 +16,7 @@ import { SectionHeader } from "@/components/ui/section-header";
 import { MoneyText, usePrivacyMode } from "@/components/layout/privacy-mode";
 import { formatMoney } from "@/lib/currency/format";
 import type { MoneyDisplayContext } from "@/lib/currency/display";
-import type { RecurringExpenseWithTags } from "@/lib/db/schema";
+import type { RecurringExpenseWithTags } from "@/lib/types/domain";
 import {
   isActiveRecurring,
   toMonthlyDisplayAmount,

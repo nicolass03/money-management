@@ -6,16 +6,14 @@ import {
   deleteIncome,
   getIncomeById,
   updateIncome,
-} from "@/lib/db/queries";
-import { currencies, type CurrencyCode, type IncomeSource } from "@/lib/db/schema";
+} from "@/lib/api/income";
+import { currencies, type CurrencyCode } from "@/lib/types/constants";
 import { parseDollarsToCents } from "@/lib/utils";
 
 export interface IncomeFormState {
   error?: string;
   success?: boolean;
 }
-
-const MANUAL_SOURCE = "manual";
 
 function revalidateIncomePaths() {
   revalidatePath("/income");
@@ -35,7 +33,6 @@ function validateIncomeInput(data: {
         amount: number;
         currency: CurrencyCode;
         date: string;
-        source: IncomeSource;
       };
     } {
   const name = data.name.trim();
@@ -62,12 +59,11 @@ function validateIncomeInput(data: {
       amount,
       currency: data.currency as CurrencyCode,
       date: data.date,
-      source: MANUAL_SOURCE,
     },
   };
 }
 
-function isManualIncome(entry: { source: string; scheduleId: number | null }) {
+function isManualIncome(entry: { source: string; scheduleId: string | null }) {
   return entry.source !== "scheduled" && entry.scheduleId == null;
 }
 
@@ -96,7 +92,7 @@ export async function createIncomeAction(
 }
 
 export async function updateIncomeAction(
-  id: number,
+  id: string,
   _prev: IncomeFormState,
   formData: FormData,
 ): Promise<IncomeFormState> {
@@ -133,7 +129,7 @@ export async function updateIncomeAction(
 }
 
 export async function deleteIncomeAction(
-  id: number,
+  id: string,
 ): Promise<IncomeFormState> {
   const existing = await getIncomeById(id);
   if (!existing) {

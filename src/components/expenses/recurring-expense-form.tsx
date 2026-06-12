@@ -17,8 +17,8 @@ import {
   payFrequencies,
   type CurrencyCode,
   type PayFrequency,
-  type RecurringExpenseWithTags,
-} from "@/lib/db/schema";
+} from "@/lib/types/constants";
+import type { RecurringExpenseWithTags } from "@/lib/types/domain";
 import { formatFrequency, getUpcomingPayDates } from "@/lib/income/pay-periods";
 import { formatTagNames } from "@/lib/expenses/tag-utils";
 import {

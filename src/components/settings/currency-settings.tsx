@@ -14,7 +14,7 @@ import { MoneyText, usePrivacyMode } from "@/components/layout/privacy-mode";
 import { formatMoney } from "@/lib/currency/format";
 import { maskNumericValue } from "@/lib/privacy/mask";
 import { formatCurrencyLabel } from "@/lib/currency/types";
-import { currencies, type CurrencyCode } from "@/lib/db/schema";
+import { currencies, type CurrencyCode } from "@/lib/types/constants";
 import { cn } from "@/lib/utils";
 
 const initialState: SettingsFormState = {};

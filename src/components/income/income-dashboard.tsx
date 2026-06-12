@@ -3,7 +3,7 @@ import { Badge } from "@/components/ui/badge";
 import { SectionHeader } from "@/components/ui/section-header";
 import { formatMoney } from "@/lib/currency/format";
 import { toDisplayAmount, type MoneyDisplayContext } from "@/lib/currency/display";
-import type { Income, IncomePaySchedule } from "@/lib/db/schema";
+import type { Income, IncomePaySchedule } from "@/lib/types/domain";
 import { IncomeEntries } from "./income-entries";
 import { PaySchedules } from "./pay-schedules";
 

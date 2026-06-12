@@ -8,7 +8,7 @@ import { MoneyText } from "@/components/layout/privacy-mode";
 import { deleteBudgetAction } from "@/lib/actions/budgets";
 import { formatMoney } from "@/lib/currency/format";
 import { toDisplayAmount, type MoneyDisplayContext } from "@/lib/currency/display";
-import type { BudgetWithTags, ExpenseWithTags } from "@/lib/db/schema";
+import type { BudgetWithTags, ExpenseWithTags } from "@/lib/types/domain";
 import {
   getBudgetStatus,
   isDatedBudget,

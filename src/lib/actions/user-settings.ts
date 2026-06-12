@@ -1,11 +1,9 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
-import {
-  getExchangeRates,
-  updateUserSettings,
-} from "@/lib/db/queries";
-import { currencies, type CurrencyCode } from "@/lib/db/schema";
+import { getMoneyContext } from "@/lib/api/money-context";
+import { patchSettings } from "@/lib/api/settings";
+import { currencies, type CurrencyCode } from "@/lib/types/constants";
 import { parseSignedDollarsToCents } from "@/lib/utils";
 
 export interface SettingsFormState {
@@ -32,7 +30,7 @@ export async function updateDisplayCurrency(
   }
 
   try {
-    await updateUserSettings({
+    await patchSettings({
       displayCurrency: currency as CurrencyCode,
     });
     revalidateSettingsPaths();
@@ -63,17 +61,17 @@ export async function updateProjectionSettings(
 
   try {
     if (!raw) {
-      await updateUserSettings({
+      await patchSettings({
         primaryScheduleId: null,
         projectionInitialFreeMoney: initialFreeMoney,
         projectionStartDate,
       });
     } else {
-      const id = Number(raw);
-      if (!Number.isFinite(id) || id <= 0) {
+      const id = raw.trim();
+      if (!id) {
         return { error: "invalid schedule" };
       }
-      await updateUserSettings({
+      await patchSettings({
         primaryScheduleId: id,
         projectionInitialFreeMoney: initialFreeMoney,
         projectionStartDate,
@@ -88,7 +86,7 @@ export async function updateProjectionSettings(
 
 export async function refreshExchangeRates(): Promise<SettingsFormState> {
   try {
-    await getExchangeRates({ forceRefresh: true });
+    await getMoneyContext({ forceRefresh: true });
     revalidateSettingsPaths();
     return { success: true };
   } catch {

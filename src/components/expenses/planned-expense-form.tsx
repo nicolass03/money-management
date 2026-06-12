@@ -12,11 +12,8 @@ import { formatScheduledExpenseAmount } from "@/lib/currency/expense-display";
 import { formatCurrencyLabel } from "@/lib/currency/types";
 import { ExpenseAmount } from "./expense-amount";
 import type { MoneyDisplayContext } from "@/lib/currency/display";
-import {
-  currencies,
-  type CurrencyCode,
-  type PlannedExpenseWithTags,
-} from "@/lib/db/schema";
+import { currencies, type CurrencyCode } from "@/lib/types/constants";
+import type { PlannedExpenseWithTags } from "@/lib/types/domain";
 import { formatTagNames } from "@/lib/expenses/tag-utils";
 import {
   cn,

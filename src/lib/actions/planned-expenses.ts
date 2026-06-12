@@ -5,8 +5,8 @@ import {
   createPlannedExpense,
   deletePlannedExpense,
   updatePlannedExpense,
-} from "@/lib/db/queries";
-import { currencies, type CurrencyCode } from "@/lib/db/schema";
+} from "@/lib/api/planned-expenses";
+import { currencies, type CurrencyCode } from "@/lib/types/constants";
 import { parseTagNames } from "@/lib/expenses/tag-utils";
 import { parseDollarsToCents } from "@/lib/utils";
 
@@ -112,7 +112,7 @@ export async function createPlannedExpenseAction(
 }
 
 export async function updatePlannedExpenseAction(
-  id: number,
+  id: string,
   _prev: PlannedFormState,
   formData: FormData,
 ): Promise<PlannedFormState> {
@@ -144,7 +144,7 @@ export async function updatePlannedExpenseAction(
 }
 
 export async function deletePlannedExpenseAction(
-  id: number,
+  id: string,
 ): Promise<PlannedFormState> {
   try {
     await deletePlannedExpense(id);

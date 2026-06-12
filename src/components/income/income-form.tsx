@@ -8,7 +8,8 @@ import {
   updateIncomeAction,
   type IncomeFormState,
 } from "@/lib/actions/income";
-import { currencies, type CurrencyCode, type Income } from "@/lib/db/schema";
+import { currencies, type CurrencyCode } from "@/lib/types/constants";
+import type { Income } from "@/lib/types/domain";
 import { cn, formatCentsAsDollarsInput } from "@/lib/utils";
 
 const initialState: IncomeFormState = {};

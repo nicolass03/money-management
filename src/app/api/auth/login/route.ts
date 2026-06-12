@@ -2,16 +2,16 @@ import { NextResponse } from "next/server";
 import { signInWithSupabasePassword } from "@/lib/auth/supabase-auth";
 
 export async function POST(request: Request) {
-  const { password } = await request.json();
+  const { email, password } = await request.json();
 
-  if (!password) {
+  if (!email || !password) {
     return NextResponse.json(
       { error: "Invalid credentials" },
       { status: 401 },
     );
   }
 
-  const isValid = await signInWithSupabasePassword(password);
+  const isValid = await signInWithSupabasePassword(email, password);
   if (!isValid) {
     return NextResponse.json(
       { error: "Invalid credentials" },

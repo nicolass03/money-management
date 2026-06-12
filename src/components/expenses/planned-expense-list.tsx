@@ -9,7 +9,7 @@ import type { MoneyDisplayContext } from "@/lib/currency/display";
 import { formatScheduledExpenseAmount } from "@/lib/currency/expense-display";
 import { formatCurrencyLabel } from "@/lib/currency/types";
 import { ExpenseAmount } from "./expense-amount";
-import type { PlannedExpenseWithTags } from "@/lib/db/schema";
+import type { PlannedExpenseWithTags } from "@/lib/types/domain";
 import { TagList } from "./tag-input";
 import { formatDate } from "@/lib/utils";
 import { PlannedExpenseForm } from "./planned-expense-form";
@@ -23,10 +23,10 @@ export function PlannedExpenseList({
   displayCurrency,
   rates,
 }: PlannedExpenseListProps) {
-  const [editingId, setEditingId] = useState<number | null>(null);
+  const [editingId, setEditingId] = useState<string | null>(null);
   const [pending, startTransition] = useTransition();
 
-  function handleDelete(id: number) {
+  function handleDelete(id: string) {
     startTransition(async () => {
       await deletePlannedExpenseAction(id);
       if (editingId === id) {

@@ -5,13 +5,13 @@ import {
   createRecurringExpense,
   deleteRecurringExpense,
   updateRecurringExpense,
-} from "@/lib/db/queries";
+} from "@/lib/api/recurring-expenses";
 import {
   currencies,
   payFrequencies,
   type CurrencyCode,
   type PayFrequency,
-} from "@/lib/db/schema";
+} from "@/lib/types/constants";
 import { parseTagNames } from "@/lib/expenses/tag-utils";
 import { parseDollarsToCents } from "@/lib/utils";
 
@@ -137,7 +137,7 @@ export async function createRecurringExpenseAction(
 }
 
 export async function updateRecurringExpenseAction(
-  id: number,
+  id: string,
   _prev: RecurringFormState,
   formData: FormData,
 ): Promise<RecurringFormState> {
@@ -169,7 +169,7 @@ export async function updateRecurringExpenseAction(
 }
 
 export async function deleteRecurringExpenseAction(
-  id: number,
+  id: string,
 ): Promise<RecurringFormState> {
   try {
     await deleteRecurringExpense(id);

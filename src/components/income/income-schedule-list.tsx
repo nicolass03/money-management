@@ -8,7 +8,7 @@ import { MoneyText } from "@/components/layout/privacy-mode";
 import { deleteSchedule } from "@/lib/actions/income-schedules";
 import { formatMoney } from "@/lib/currency/format";
 import type { MoneyDisplayContext } from "@/lib/currency/display";
-import type { IncomePaySchedule } from "@/lib/db/schema";
+import type { IncomePaySchedule } from "@/lib/types/domain";
 import {
   formatFrequency,
   getUpcomingPayDates,
@@ -26,10 +26,10 @@ export function IncomeScheduleList({
   displayCurrency,
   rates,
 }: IncomeScheduleListProps) {
-  const [editingId, setEditingId] = useState<number | null>(null);
+  const [editingId, setEditingId] = useState<string | null>(null);
   const [pending, startTransition] = useTransition();
 
-  function handleDelete(id: number) {
+  function handleDelete(id: string) {
     startTransition(async () => {
       await deleteSchedule(id);
       if (editingId === id) {

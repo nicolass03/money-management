@@ -8,7 +8,7 @@ import { SectionHeader } from "@/components/ui/section-header";
 import { MoneyText } from "@/components/layout/privacy-mode";
 import { formatMoney } from "@/lib/currency/format";
 import { toDisplayAmount, type MoneyDisplayContext } from "@/lib/currency/display";
-import type { IncomePaySchedule } from "@/lib/db/schema";
+import type { IncomePaySchedule } from "@/lib/types/domain";
 import { IncomeScheduleForm } from "./income-schedule-form";
 import { IncomeScheduleList } from "./income-schedule-list";
 

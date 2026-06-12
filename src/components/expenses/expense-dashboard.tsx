@@ -14,7 +14,7 @@ import type {
   IncomePaySchedule,
   PlannedExpenseWithTags,
   RecurringExpenseWithTags,
-} from "@/lib/db/schema";
+} from "@/lib/types/domain";
 import {
   filterExpensesByPeriod,
   getExpensePeriodView,

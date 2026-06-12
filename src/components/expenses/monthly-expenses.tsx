@@ -6,7 +6,7 @@ import { formatMoney } from "@/lib/currency/format";
 import { toDisplayAmount, type MoneyDisplayContext } from "@/lib/currency/display";
 import { formatStoredExpenseAmount } from "@/lib/currency/expense-display";
 import { ExpenseAmount } from "./expense-amount";
-import type { ExpenseWithTags } from "@/lib/db/schema";
+import type { ExpenseWithTags } from "@/lib/types/domain";
 import { TagList } from "./tag-input";
 import { formatDate } from "@/lib/utils";
 

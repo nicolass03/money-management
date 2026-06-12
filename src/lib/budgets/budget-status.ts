@@ -1,4 +1,4 @@
-import type { BudgetWithTags } from "@/lib/db/schema";
+import type { BudgetWithTags } from "@/lib/types/domain";
 
 export type BudgetStatus =
   | "upcoming"

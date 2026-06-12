@@ -23,15 +23,3 @@ export function getSupabasePublishableKey(): string {
   return key;
 }
 
-export function getAuthUserEmail(): string | undefined {
-  const email = process.env.AUTH_USER_EMAIL?.trim().toLowerCase();
-  return email || undefined;
-}
-
-export function emailsMatch(
-  a: string | null | undefined,
-  b: string | null | undefined,
-): boolean {
-  if (!a || !b) return false;
-  return a.trim().toLowerCase() === b.trim().toLowerCase();
-}

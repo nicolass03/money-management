@@ -1,4 +1,4 @@
-import type { CurrencyCode } from "@/lib/db/schema";
+import type { CurrencyCode } from "@/lib/types/constants";
 
 export type { CurrencyCode };
 

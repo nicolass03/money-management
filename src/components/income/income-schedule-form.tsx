@@ -16,9 +16,9 @@ import {
   currencies,
   payFrequencies,
   type CurrencyCode,
-  type IncomePaySchedule,
   type PayFrequency,
-} from "@/lib/db/schema";
+} from "@/lib/types/constants";
+import type { IncomePaySchedule } from "@/lib/types/domain";
 import { formatFrequency, getUpcomingPayDates } from "@/lib/income/pay-periods";
 import {
   formatCentsAsDollarsInput,

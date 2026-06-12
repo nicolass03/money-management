@@ -2,16 +2,16 @@
 
 import { revalidatePath } from "next/cache";
 import {
-  createIncomePaySchedule,
-  deleteIncomePaySchedule,
-  updateIncomePaySchedule,
-} from "@/lib/db/queries";
+  createIncomeSchedule,
+  deleteIncomeSchedule,
+  updateIncomeSchedule,
+} from "@/lib/api/income-schedules";
 import {
   currencies,
   payFrequencies,
   type CurrencyCode,
   type PayFrequency,
-} from "@/lib/db/schema";
+} from "@/lib/types/constants";
 import { parseDollarsToCents } from "@/lib/utils";
 
 export interface ScheduleFormState {
@@ -92,7 +92,7 @@ export async function createSchedule(
   }
 
   try {
-    await createIncomePaySchedule(result.data);
+    await createIncomeSchedule(result.data);
     revalidateSchedulePaths();
     return { success: true };
   } catch {
@@ -101,7 +101,7 @@ export async function createSchedule(
 }
 
 export async function updateSchedule(
-  id: number,
+  id: string,
   _prev: ScheduleFormState,
   formData: FormData,
 ): Promise<ScheduleFormState> {
@@ -118,7 +118,7 @@ export async function updateSchedule(
   }
 
   try {
-    const updated = await updateIncomePaySchedule(id, result.data);
+    const updated = await updateIncomeSchedule(id, result.data);
     if (!updated) {
       return { error: "schedule not found" };
     }
@@ -129,9 +129,9 @@ export async function updateSchedule(
   }
 }
 
-export async function deleteSchedule(id: number): Promise<ScheduleFormState> {
+export async function deleteSchedule(id: string): Promise<ScheduleFormState> {
   try {
-    await deleteIncomePaySchedule(id);
+    await deleteIncomeSchedule(id);
     revalidateSchedulePaths();
     return { success: true };
   } catch {

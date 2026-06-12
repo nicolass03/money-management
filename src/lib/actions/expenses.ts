@@ -2,19 +2,18 @@
 
 import { revalidatePath } from "next/cache";
 import {
-  createEarlyPaidExpense,
   createExpense,
   deleteExpense,
+  earlyPayExpense,
   getExpenseById,
-  getExpenseByPlannedId,
-  getExpenseByRecurringAndDueDate,
-  getIncomePayScheduleById,
-  getPlannedExpenseById,
-  getRecurringExpenseById,
-  getUserSettings,
+  getExpenses,
   updateExpenseAmount,
-} from "@/lib/db/queries";
-import { currencies, type CurrencyCode } from "@/lib/db/schema";
+} from "@/lib/api/expenses";
+import { getIncomeScheduleById } from "@/lib/api/income-schedules";
+import { getPlannedExpenseById } from "@/lib/api/planned-expenses";
+import { getRecurringExpenseById } from "@/lib/api/recurring-expenses";
+import { getUserSettingsFromApi } from "@/lib/api/settings";
+import { currencies, type CurrencyCode } from "@/lib/types/constants";
 import {
   getPayDatesInRange,
   getPeriodContaining,
@@ -35,12 +34,12 @@ function revalidateExpensePaths() {
 }
 
 async function getCurrentPayPeriod() {
-  const settings = await getUserSettings();
+  const settings = await getUserSettingsFromApi();
   if (!settings.primaryScheduleId) {
     return null;
   }
 
-  const primarySchedule = await getIncomePayScheduleById(
+  const primarySchedule = await getIncomeScheduleById(
     settings.primaryScheduleId,
   );
   if (!primarySchedule) {
@@ -145,7 +144,7 @@ export async function createExpenseAction(
 }
 
 export async function updateExpenseAmountAction(
-  id: number,
+  id: string,
   _prev: ExpenseFormState,
   formData: FormData,
 ): Promise<ExpenseFormState> {
@@ -220,8 +219,8 @@ export async function markFuturePaymentAsPaidAction(
 
   try {
     if (sourceType === "recurring") {
-      const recurringId = Number(recurringIdRaw);
-      if (!Number.isInteger(recurringId) || recurringId <= 0) {
+      const recurringId = String(recurringIdRaw ?? "").trim();
+      if (!recurringId) {
         return { error: "invalid recurring expense" };
       }
 
@@ -243,28 +242,27 @@ export async function markFuturePaymentAsPaidAction(
         return { error: "scheduled date must be in the future" };
       }
 
-      const existing = await getExpenseByRecurringAndDueDate(
-        recurringId,
-        scheduledDate,
+      const allExpenses = await getExpenses();
+      const existing = allExpenses.find(
+        (expense) =>
+          expense.recurringId === recurringId &&
+          (expense.scheduledDate ?? expense.date) === scheduledDate,
       );
       if (existing) {
         return { error: "this payment has already been recorded" };
       }
 
-      await createEarlyPaidExpense({
-        name: recurring.name,
+      await earlyPayExpense({
+        sourceType: "recurring",
+        scheduledDate,
+        paidDate,
         amount,
         currency: currency as CurrencyCode,
-        date: paidDate,
-        scheduledDate,
         recurringId,
-        amountOverridden:
-          amount !== recurring.amount || currency !== recurring.currency,
-        isSubscription: recurring.isSubscription,
       });
     } else {
-      const plannedExpenseId = Number(plannedExpenseIdRaw);
-      if (!Number.isInteger(plannedExpenseId) || plannedExpenseId <= 0) {
+      const plannedExpenseId = String(plannedExpenseIdRaw ?? "").trim();
+      if (!plannedExpenseId) {
         return { error: "invalid planned expense" };
       }
 
@@ -281,21 +279,21 @@ export async function markFuturePaymentAsPaidAction(
         return { error: "scheduled date must be in the future" };
       }
 
-      const existing = await getExpenseByPlannedId(plannedExpenseId);
+      const allExpenses = await getExpenses();
+      const existing = allExpenses.find(
+        (expense) => expense.plannedExpenseId === plannedExpenseId,
+      );
       if (existing) {
         return { error: "this payment has already been recorded" };
       }
 
-      await createEarlyPaidExpense({
-        name: planned.name,
+      await earlyPayExpense({
+        sourceType: "planned",
+        scheduledDate,
+        paidDate,
         amount,
         currency: currency as CurrencyCode,
-        date: paidDate,
-        scheduledDate,
         plannedExpenseId,
-        amountOverridden:
-          amount !== planned.amount || currency !== planned.currency,
-        isSubscription: false,
       });
     }
 
@@ -307,7 +305,7 @@ export async function markFuturePaymentAsPaidAction(
 }
 
 export async function deleteExpenseAction(
-  id: number,
+  id: string,
 ): Promise<ExpenseFormState> {
   const existing = await getExpenseById(id);
   if (!existing) {

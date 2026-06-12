@@ -17,7 +17,7 @@ import { maskNumericValue } from "@/lib/privacy/mask";
 import type { MoneyDisplayContext } from "@/lib/currency/display";
 import { formatProjectionExpenseAmount } from "@/lib/currency/expense-display";
 import { ExpenseAmount } from "./expense-amount";
-import type { CurrencyCode, IncomePaySchedule } from "@/lib/db/schema";
+import type { CurrencyCode, IncomePaySchedule } from "@/lib/types/domain";
 import type { ProjectionExpenseItem } from "@/lib/projections/build-projection";
 import type {
   ExpensePeriodKey,
@@ -79,7 +79,7 @@ function ExpenseAmountEditor({
   rates,
   onDone,
 }: {
-  expenseId: number;
+  expenseId: string;
   initialAmount: number;
   displayCurrency: CurrencyCode;
   rates: MoneyDisplayContext["rates"];
@@ -136,12 +136,12 @@ function ExpenseRow({
   deletePending,
 }: {
   item: ProjectionExpenseItem;
-  editingId: number | null;
-  setEditingId: (id: number | null) => void;
+  editingId: string | null;
+  setEditingId: (id: string | null) => void;
   formatDisplay: (amount: number) => string;
   displayCurrency: CurrencyCode;
   rates: MoneyDisplayContext["rates"];
-  onDelete: (id: number) => void;
+  onDelete: (id: string) => void;
   deletePending: boolean;
 }) {
   const key =
@@ -259,7 +259,7 @@ export function CurrentPeriodExpenses({
 }: CurrentPeriodExpensesProps) {
   const { privacyMode } = usePrivacyMode();
   const [showAdd, setShowAdd] = useState(false);
-  const [editingId, setEditingId] = useState<number | null>(null);
+  const [editingId, setEditingId] = useState<string | null>(null);
   const [deletePending, startDeleteTransition] = useTransition();
   const today = new Date().toISOString().slice(0, 10);
 
@@ -267,7 +267,7 @@ export function CurrentPeriodExpenses({
     setShowAdd(false);
   }, [periodKey]);
 
-  function handleDelete(id: number) {
+  function handleDelete(id: string) {
     startDeleteTransition(async () => {
       await deleteExpenseAction(id);
       if (editingId === id) {

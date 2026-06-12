@@ -8,13 +8,13 @@ import { SectionHeader } from "@/components/ui/section-header";
 import { MoneyText } from "@/components/layout/privacy-mode";
 import { formatMoney } from "@/lib/currency/format";
 import { toDisplayAmount, type MoneyDisplayContext } from "@/lib/currency/display";
-import type { BudgetWithTags, ExpenseWithTags } from "@/lib/db/schema";
+import type { BudgetWithTags, ExpenseWithTags } from "@/lib/types/domain";
 import { BudgetForm } from "./budget-form";
 import { BudgetList } from "./budget-list";
 
 interface BudgetsSectionProps extends MoneyDisplayContext {
   budgets: BudgetWithTags[];
-  budgetExpenses: Record<number, ExpenseWithTags[]>;
+  budgetExpenses: Record<string, ExpenseWithTags[]>;
 }
 
 export function BudgetsSection({

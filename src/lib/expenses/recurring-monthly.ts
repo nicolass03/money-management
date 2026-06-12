@@ -1,5 +1,6 @@
 import { toDisplayAmount, type MoneyDisplayContext } from "@/lib/currency/display";
-import type { PayFrequency, RecurringExpense } from "@/lib/db/schema";
+import type { PayFrequency } from "@/lib/types/constants";
+import type { RecurringExpense } from "@/lib/types/domain";
 
 const MONTHLY_MULTIPLIERS: Record<PayFrequency, number> = {
   weekly: 52 / 12,

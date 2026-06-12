@@ -1,55 +1,49 @@
 export const dynamic = "force-dynamic";
 
 import { ProjectionsDashboard } from "@/components/projections/projections-dashboard";
-import {
-  getBudgetsWithTags,
-  getExpensesWithTags,
-  getIncome,
-  getIncomePayScheduleById,
-  getMoneyContext,
-  getPlannedExpensesWithTags,
-  getRecurringExpensesWithTags,
-  getUserSettings,
-} from "@/lib/db/queries";
-import { buildProjectionRows } from "@/lib/projections/build-projection";
+import { ApiError } from "@/lib/api/client";
+import { getMoneyContext } from "@/lib/api/money-context";
+import { getProjectionsFromApi } from "@/lib/api/projections";
+import { getUserSettingsFromApi } from "@/lib/api/settings";
 
 export default async function ProjectionsPage() {
-  const [settings, money, incomeEntries, expenses, recurringExpenses, plannedExpenses, budgets] =
-    await Promise.all([
-      getUserSettings(),
-      getMoneyContext(),
-      getIncome(),
-      getExpensesWithTags(),
-      getRecurringExpensesWithTags(),
-      getPlannedExpensesWithTags(),
-      getBudgetsWithTags(),
-    ]);
+  const [settings, money] = await Promise.all([
+    getUserSettingsFromApi(),
+    getMoneyContext(),
+  ]);
 
-  const primarySchedule = settings.primaryScheduleId
-    ? await getIncomePayScheduleById(settings.primaryScheduleId)
-    : null;
+  if (!settings.primaryScheduleId) {
+    return (
+      <ProjectionsDashboard
+        rows={[]}
+        primarySchedule={null}
+        displayCurrency={money.displayCurrency}
+        rates={money.rates}
+      />
+    );
+  }
 
-  const rows = primarySchedule
-    ? buildProjectionRows({
-        primarySchedule,
-        incomeEntries,
-        expenses,
-        recurringExpenses,
-        plannedExpenses,
-        budgets,
-        displayCurrency: money.displayCurrency,
-        rates: money.rates,
-        initialFreeMoney: settings.projectionInitialFreeMoney,
-        projectionStartDate: settings.projectionStartDate,
-      })
-    : [];
-
-  return (
-    <ProjectionsDashboard
-      rows={rows}
-      primarySchedule={primarySchedule}
-      displayCurrency={money.displayCurrency}
-      rates={money.rates}
-    />
-  );
+  try {
+    const projections = await getProjectionsFromApi();
+    return (
+      <ProjectionsDashboard
+        rows={projections.rows}
+        primarySchedule={projections.primarySchedule}
+        displayCurrency={projections.displayCurrency}
+        rates={projections.rates}
+      />
+    );
+  } catch (error) {
+    if (error instanceof ApiError && error.status === 400) {
+      return (
+        <ProjectionsDashboard
+          rows={[]}
+          primarySchedule={null}
+          displayCurrency={money.displayCurrency}
+          rates={money.rates}
+        />
+      );
+    }
+    throw error;
+  }
 }

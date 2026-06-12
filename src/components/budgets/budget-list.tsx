@@ -1,13 +1,13 @@
 "use client";
 
 import type { MoneyDisplayContext } from "@/lib/currency/display";
-import type { BudgetWithTags, ExpenseWithTags } from "@/lib/db/schema";
+import type { BudgetWithTags, ExpenseWithTags } from "@/lib/types/domain";
 import { getBudgetStatus } from "@/lib/budgets/budget-status";
 import { BudgetCard } from "./budget-card";
 
 interface BudgetListProps extends MoneyDisplayContext {
   budgets: BudgetWithTags[];
-  budgetExpenses: Record<number, ExpenseWithTags[]>;
+  budgetExpenses: Record<string, ExpenseWithTags[]>;
 }
 
 const GROUP_ORDER = [

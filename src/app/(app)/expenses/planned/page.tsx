@@ -2,11 +2,12 @@ export const dynamic = "force-dynamic";
 
 import Link from "next/link";
 import { PlannedExpenses } from "@/components/expenses/planned-expenses";
-import { getMoneyContext, getPlannedExpensesWithTags } from "@/lib/db/queries";
+import { getMoneyContext } from "@/lib/api/money-context";
+import { getPlannedExpenses } from "@/lib/api/planned-expenses";
 
 export default async function PlannedExpensesPage() {
   const [plannedExpenses, money] = await Promise.all([
-    getPlannedExpensesWithTags(),
+    getPlannedExpenses(),
     getMoneyContext(),
   ]);
 

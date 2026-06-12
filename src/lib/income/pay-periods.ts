@@ -1,8 +1,5 @@
-import type {
-  IncomePaySchedule,
-  PayFrequency,
-  RecurringExpense,
-} from "@/lib/db/schema";
+import type { PayFrequency } from "@/lib/types/constants";
+import type { IncomePaySchedule, RecurringExpense } from "@/lib/types/domain";
 
 export interface PayPeriod {
   payDate: string;

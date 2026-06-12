@@ -8,7 +8,7 @@ import { MoneyText } from "@/components/layout/privacy-mode";
 import { deleteIncomeAction } from "@/lib/actions/income";
 import { formatMoney } from "@/lib/currency/format";
 import type { MoneyDisplayContext } from "@/lib/currency/display";
-import type { Income } from "@/lib/db/schema";
+import type { Income } from "@/lib/types/domain";
 import { isManualIncome } from "@/lib/income/filter-income-entries";
 import { formatDate } from "@/lib/utils";
 import { IncomeForm } from "./income-form";
@@ -22,10 +22,10 @@ export function IncomeEntryList({
   displayCurrency,
   rates,
 }: IncomeEntryListProps) {
-  const [editingId, setEditingId] = useState<number | null>(null);
+  const [editingId, setEditingId] = useState<string | null>(null);
   const [pending, startTransition] = useTransition();
 
-  function handleDelete(id: number) {
+  function handleDelete(id: string) {
     startTransition(async () => {
       await deleteIncomeAction(id);
       if (editingId === id) {

@@ -20,7 +20,7 @@ import { usePrivacyMode } from "@/components/layout/privacy-mode";
 import { formatMoney } from "@/lib/currency/format";
 import { maskNumericValue } from "@/lib/privacy/mask";
 import { toDisplayAmount, type MoneyDisplayContext } from "@/lib/currency/display";
-import type { ExpenseWithTags } from "@/lib/db/schema";
+import type { ExpenseWithTags } from "@/lib/types/domain";
 import { cn } from "@/lib/utils";
 
 interface ExpenseChartsProps extends MoneyDisplayContext {

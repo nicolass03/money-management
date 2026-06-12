@@ -1,20 +1,17 @@
 export const dynamic = "force-dynamic";
 
 import { BudgetsSection } from "@/components/budgets/budgets-section";
-import {
-  getBudgetExpenses,
-  getBudgetsWithTags,
-  getMoneyContext,
-} from "@/lib/db/queries";
-import type { ExpenseWithTags } from "@/lib/db/schema";
+import { getBudgetExpenses, getBudgets } from "@/lib/api/budgets";
+import { getMoneyContext } from "@/lib/api/money-context";
+import type { ExpenseWithTags } from "@/lib/types/domain";
 
 export default async function BudgetsPage() {
   const [budgets, money] = await Promise.all([
-    getBudgetsWithTags(),
+    getBudgets(),
     getMoneyContext(),
   ]);
 
-  const budgetExpenses: Record<number, ExpenseWithTags[]> = {};
+  const budgetExpenses: Record<string, ExpenseWithTags[]> = {};
   await Promise.all(
     budgets.map(async (budget) => {
       budgetExpenses[budget.id] = await getBudgetExpenses(budget.id);
