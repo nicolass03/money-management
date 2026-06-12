@@ -1,5 +1,6 @@
 "use server";
 
+import { handleActionError } from "@/lib/actions/action-error";
 import { revalidatePath } from "next/cache";
 import {
   createIncome,
@@ -86,8 +87,8 @@ export async function createIncomeAction(
     await createIncome(result.data);
     revalidateIncomePaths();
     return { success: true };
-  } catch {
-    return { error: "failed to create income" };
+  } catch (error) {
+    return handleActionError(error, "failed to create income");
   }
 }
 
@@ -123,8 +124,8 @@ export async function updateIncomeAction(
     }
     revalidateIncomePaths();
     return { success: true };
-  } catch {
-    return { error: "failed to update income" };
+  } catch (error) {
+    return handleActionError(error, "failed to update income");
   }
 }
 
@@ -144,7 +145,7 @@ export async function deleteIncomeAction(
     await deleteIncome(id);
     revalidateIncomePaths();
     return { success: true };
-  } catch {
-    return { error: "failed to delete income" };
+  } catch (error) {
+    return handleActionError(error, "failed to delete income");
   }
 }

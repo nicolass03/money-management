@@ -1,5 +1,6 @@
 "use server";
 
+import { handleActionError } from "@/lib/actions/action-error";
 import { revalidatePath } from "next/cache";
 import {
   createIncomeSchedule,
@@ -95,8 +96,8 @@ export async function createSchedule(
     await createIncomeSchedule(result.data);
     revalidateSchedulePaths();
     return { success: true };
-  } catch {
-    return { error: "failed to create schedule" };
+  } catch (error) {
+    return handleActionError(error, "failed to create schedule");
   }
 }
 
@@ -124,8 +125,8 @@ export async function updateSchedule(
     }
     revalidateSchedulePaths();
     return { success: true };
-  } catch {
-    return { error: "failed to update schedule" };
+  } catch (error) {
+    return handleActionError(error, "failed to update schedule");
   }
 }
 
@@ -134,7 +135,7 @@ export async function deleteSchedule(id: string): Promise<ScheduleFormState> {
     await deleteIncomeSchedule(id);
     revalidateSchedulePaths();
     return { success: true };
-  } catch {
-    return { error: "failed to delete schedule" };
+  } catch (error) {
+    return handleActionError(error, "failed to delete schedule");
   }
 }

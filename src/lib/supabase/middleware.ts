@@ -35,9 +35,8 @@ export async function updateSession(request: NextRequest) {
   const { pathname } = request.nextUrl;
   const isLoginPage = pathname === "/login";
   const isAuthApi = pathname.startsWith("/api/auth");
-  const isCronApi = pathname.startsWith("/api/cron");
 
-  if (!isAuthenticated && !isLoginPage && !isAuthApi && !isCronApi) {
+  if (!isAuthenticated && !isLoginPage && !isAuthApi) {
     return NextResponse.redirect(new URL("/login", request.url));
   }
 

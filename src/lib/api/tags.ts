@@ -1,3 +1,5 @@
+import "server-only";
+
 import { apiFetch } from "./client";
 
 export async function getAllTagNames(): Promise<string[]> {

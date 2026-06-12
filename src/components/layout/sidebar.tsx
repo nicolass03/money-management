@@ -6,6 +6,7 @@ import { NavItem } from "./nav-item";
 import { usePrivacyMode } from "./privacy-mode";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
+import { authFetchHeaders } from "@/lib/auth/csrf";
 
 const navItems = [
   { href: "/expenses", label: "~/expenses" },
@@ -21,7 +22,10 @@ export function Sidebar() {
   const { privacyMode, togglePrivacyMode } = usePrivacyMode();
 
   async function handleLogout() {
-    await fetch("/api/auth/logout", { method: "POST" });
+    await fetch("/api/auth/logout", {
+      method: "POST",
+      headers: authFetchHeaders,
+    });
     router.push("/login");
     router.refresh();
   }

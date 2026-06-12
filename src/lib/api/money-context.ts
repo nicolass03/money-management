@@ -1,3 +1,5 @@
+import "server-only";
+
 import type { CurrencyCode } from "@/lib/types/domain";
 import type { ExchangeRates } from "@/lib/currency/convert";
 import { apiFetch } from "./client";

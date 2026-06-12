@@ -13,8 +13,6 @@ A personal finance dashboard for tracking income, expenses, and cash-flow projec
 | **Settings** | Choose a display currency (EUR, USD, COP), configure exchange rates, and set projection options (primary pay schedule, starting balance, start date). |
 | **Privacy mode** | Toggle masking of sensitive amounts in the sidebar. |
 
-Recurring expenses are charged by a daily job in the Rust API when a payment is due—see [Recurring expense cron](#recurring-expense-cron) below.
-
 ## Tech stack
 
 - **Next.js 16** (App Router) + **React 19** + **TypeScript**
@@ -57,7 +55,7 @@ Fill in `.env`:
 | `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` | Publishable API key (safe for the browser) |
 | `API_URL` | Rust API base URL (default `http://localhost:8080`) |
 
-The Rust API needs its own `.env` with `DATABASE_URL`, `SUPABASE_URL`, and optionally `CRON_SECRET`. See the [API README](../money-management-api/README.md).
+The Rust API needs its own `.env` with `DATABASE_URL` and `SUPABASE_URL`. See the [API README](../money-management-api/README.md).
 
 ### 4. Start the API and dev server
 
@@ -75,16 +73,9 @@ Open [http://localhost:3000](http://localhost:3000) and sign in with your Supaba
 
 The login page accepts email and password via Supabase Auth. Middleware keeps sessions fresh and protects all routes except `/login` and auth API endpoints. The UI forwards the Supabase JWT to the Rust API for all data requests.
 
-## Recurring expense cron
+## Recurring expense charging
 
-Recurring expenses define a schedule; actual `expenses` rows are created when a payment is due. In production, run this daily against the **Rust API**:
-
-```bash
-curl -X POST https://your-api.example.com/api/v1/cron/daily-expenses \
-  -H "Authorization: Bearer $CRON_SECRET"
-```
-
-Set `CRON_SECRET` in the API environment and pass the same value in the `Authorization` header.
+Recurring expenses define a schedule; actual `expenses` rows are created when a payment is due. The Rust API runs an **internal daily scheduler** (no HTTP endpoint). Keep at least one API instance running with `ENABLE_INTERNAL_CRON=true` (default).
 
 ## Scripts
 
@@ -118,6 +109,6 @@ src/
 ## Deployment notes
 
 - Set all variables from `.env.example` on the Next.js app.
-- Deploy the Rust API with `DATABASE_URL`, `SUPABASE_URL`, `CORS_ORIGIN`, and `CRON_SECRET`.
+- Deploy the Rust API with `DATABASE_URL`, `SUPABASE_URL`, and `CORS_ORIGIN`.
 - Point `API_URL` at the deployed API.
-- Schedule a daily POST to `/api/v1/cron/daily-expenses` on the API so recurring bills appear on time.
+- Keep the API process running so the internal daily expense scheduler can charge recurring bills on time.

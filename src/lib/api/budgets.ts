@@ -1,3 +1,5 @@
+import "server-only";
+
 import type { BudgetWithTags, CurrencyCode, ExpenseWithTags } from "@/lib/types/domain";
 import { apiFetch } from "./client";
 

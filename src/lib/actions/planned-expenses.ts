@@ -1,5 +1,6 @@
 "use server";
 
+import { handleActionError } from "@/lib/actions/action-error";
 import { revalidatePath } from "next/cache";
 import {
   createPlannedExpense,
@@ -106,8 +107,8 @@ export async function createPlannedExpenseAction(
     await createPlannedExpense(result.data);
     revalidateExpensePaths();
     return { success: true };
-  } catch {
-    return { error: "failed to create planned expense" };
+  } catch (error) {
+    return handleActionError(error, "failed to create planned expense");
   }
 }
 
@@ -138,8 +139,8 @@ export async function updatePlannedExpenseAction(
     }
     revalidateExpensePaths();
     return { success: true };
-  } catch {
-    return { error: "failed to update planned expense" };
+  } catch (error) {
+    return handleActionError(error, "failed to update planned expense");
   }
 }
 
@@ -150,7 +151,7 @@ export async function deletePlannedExpenseAction(
     await deletePlannedExpense(id);
     revalidateExpensePaths();
     return { success: true };
-  } catch {
-    return { error: "failed to delete planned expense" };
+  } catch (error) {
+    return handleActionError(error, "failed to delete planned expense");
   }
 }

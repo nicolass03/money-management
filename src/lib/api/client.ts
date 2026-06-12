@@ -19,6 +19,14 @@ export async function apiFetch<T>(
 ): Promise<T> {
   const supabase = await createSupabaseServerClient();
   const {
+    data: { user },
+    error: userError,
+  } = await supabase.auth.getUser();
+  if (userError || !user) {
+    throw new ApiError(401, "Not authenticated");
+  }
+
+  const {
     data: { session },
   } = await supabase.auth.getSession();
   const token = session?.access_token;

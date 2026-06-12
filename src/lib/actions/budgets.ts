@@ -1,5 +1,6 @@
 "use server";
 
+import { handleActionError } from "@/lib/actions/action-error";
 import { revalidatePath } from "next/cache";
 import {
   createBudget,
@@ -147,8 +148,8 @@ export async function createBudgetAction(
     await createBudget(result.data);
     revalidateBudgetPaths();
     return { success: true };
-  } catch {
-    return { error: "failed to create budget" };
+  } catch (error) {
+    return handleActionError(error, "failed to create budget");
   }
 }
 
@@ -177,8 +178,8 @@ export async function updateBudgetAction(
     }
     revalidateBudgetPaths();
     return { success: true };
-  } catch {
-    return { error: "failed to update budget" };
+  } catch (error) {
+    return handleActionError(error, "failed to update budget");
   }
 }
 
@@ -193,7 +194,7 @@ export async function deleteBudgetAction(
     if (error instanceof ApiError && error.message.includes("expenses")) {
       return { error: "cannot delete budget with recorded expenses" };
     }
-    return { error: "failed to delete budget" };
+    return handleActionError(error, "failed to delete budget");
   }
 }
 
@@ -254,8 +255,8 @@ export async function addBudgetExpenseAction(
     await createBudgetExpense(budgetId, { name, amount, date });
     revalidateBudgetPaths();
     return { success: true };
-  } catch {
-    return { error: "failed to add expense" };
+  } catch (error) {
+    return handleActionError(error, "failed to add expense");
   }
 }
 
@@ -267,7 +268,7 @@ export async function deleteBudgetExpenseAction(
     await deleteBudgetExpense(budgetId, expenseId);
     revalidateBudgetPaths();
     return { success: true };
-  } catch {
-    return { error: "failed to delete expense" };
+  } catch (error) {
+    return handleActionError(error, "failed to delete expense");
   }
 }

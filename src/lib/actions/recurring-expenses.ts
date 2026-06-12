@@ -1,5 +1,6 @@
 "use server";
 
+import { handleActionError } from "@/lib/actions/action-error";
 import { revalidatePath } from "next/cache";
 import {
   createRecurringExpense,
@@ -131,8 +132,8 @@ export async function createRecurringExpenseAction(
     await createRecurringExpense(result.data);
     revalidateExpensePaths();
     return { success: true };
-  } catch {
-    return { error: "failed to create recurring expense" };
+  } catch (error) {
+    return handleActionError(error, "failed to create recurring expense");
   }
 }
 
@@ -163,8 +164,8 @@ export async function updateRecurringExpenseAction(
     }
     revalidateExpensePaths();
     return { success: true };
-  } catch {
-    return { error: "failed to update recurring expense" };
+  } catch (error) {
+    return handleActionError(error, "failed to update recurring expense");
   }
 }
 
@@ -175,7 +176,7 @@ export async function deleteRecurringExpenseAction(
     await deleteRecurringExpense(id);
     revalidateExpensePaths();
     return { success: true };
-  } catch {
-    return { error: "failed to delete recurring expense" };
+  } catch (error) {
+    return handleActionError(error, "failed to delete recurring expense");
   }
 }

@@ -1,5 +1,6 @@
 "use server";
 
+import { handleActionError } from "@/lib/actions/action-error";
 import { revalidatePath } from "next/cache";
 import { getMoneyContext } from "@/lib/api/money-context";
 import { patchSettings } from "@/lib/api/settings";
@@ -35,8 +36,8 @@ export async function updateDisplayCurrency(
     });
     revalidateSettingsPaths();
     return { success: true };
-  } catch {
-    return { error: "failed to update currency" };
+  } catch (error) {
+    return handleActionError(error, "failed to update currency");
   }
 }
 
@@ -79,8 +80,8 @@ export async function updateProjectionSettings(
     }
     revalidateSettingsPaths();
     return { success: true };
-  } catch {
-    return { error: "failed to update projection settings" };
+  } catch (error) {
+    return handleActionError(error, "failed to update projection settings");
   }
 }
 
@@ -89,7 +90,7 @@ export async function refreshExchangeRates(): Promise<SettingsFormState> {
     await getMoneyContext({ forceRefresh: true });
     revalidateSettingsPaths();
     return { success: true };
-  } catch {
-    return { error: "failed to refresh exchange rates" };
+  } catch (error) {
+    return handleActionError(error, "failed to refresh exchange rates");
   }
 }

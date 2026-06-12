@@ -1,5 +1,6 @@
 "use server";
 
+import { handleActionError } from "@/lib/actions/action-error";
 import { revalidatePath } from "next/cache";
 import {
   createExpense,
@@ -138,8 +139,8 @@ export async function createExpenseAction(
     await createExpense(result.data);
     revalidateExpensePaths();
     return { success: true };
-  } catch {
-    return { error: "failed to create expense" };
+  } catch (error) {
+    return handleActionError(error, "failed to create expense");
   }
 }
 
@@ -165,8 +166,8 @@ export async function updateExpenseAmountAction(
     }
     revalidateExpensePaths();
     return { success: true };
-  } catch {
-    return { error: "failed to update expense" };
+  } catch (error) {
+    return handleActionError(error, "failed to update expense");
   }
 }
 
@@ -299,8 +300,8 @@ export async function markFuturePaymentAsPaidAction(
 
     revalidateExpensePaths();
     return { success: true };
-  } catch {
-    return { error: "failed to record early payment" };
+  } catch (error) {
+    return handleActionError(error, "failed to record early payment");
   }
 }
 
@@ -316,7 +317,7 @@ export async function deleteExpenseAction(
     await deleteExpense(id);
     revalidateExpensePaths();
     return { success: true };
-  } catch {
-    return { error: "failed to delete expense" };
+  } catch (error) {
+    return handleActionError(error, "failed to delete expense");
   }
 }
