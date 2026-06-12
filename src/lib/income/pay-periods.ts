@@ -41,7 +41,7 @@ function addMonths(iso: string, months: number): string {
   return toIso({ y: newY, m: newM, d: clampDayOfMonth(newY, newM, d) });
 }
 
-export const PROJECTION_MONTHS_FORWARD = 7;
+export const PROJECTION_MONTHS_FORWARD = 12;
 
 function daysBetween(startIso: string, endIso: string): number {
   const start = parseDate(startIso);
