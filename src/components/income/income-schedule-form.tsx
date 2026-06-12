@@ -141,7 +141,7 @@ export function IncomeScheduleForm({
             value={currency}
             onChange={(e) => setCurrency(e.target.value as CurrencyCode)}
             className={cn(
-              "w-full border border-border bg-surface px-3 py-2 font-mono text-sm text-text outline-none transition-colors focus:border-accent focus:shadow-[0_0_8px_rgba(255,255,255,0.1)]",
+              "w-full border border-border bg-surface px-3 py-2 font-mono text-sm text-text outline-none transition-colors focus:border-accent focus:shadow-[0_0_8px_var(--glow-color)]",
             )}
           >
             {currencies.map((c) => (
@@ -166,7 +166,7 @@ export function IncomeScheduleForm({
           value={frequency}
           onChange={(e) => setFrequency(e.target.value as PayFrequency)}
           className={cn(
-            "w-full border border-border bg-surface px-3 py-2 font-mono text-sm text-text outline-none transition-colors focus:border-accent focus:shadow-[0_0_8px_rgba(255,255,255,0.1)]",
+            "w-full border border-border bg-surface px-3 py-2 font-mono text-sm text-text outline-none transition-colors focus:border-accent focus:shadow-[0_0_8px_var(--glow-color)]",
           )}
         >
           <option value="biweekly">every 2 weeks</option>

@@ -4,6 +4,7 @@ import { useRouter } from "next/navigation";
 import { motion } from "framer-motion";
 import { NavItem } from "./nav-item";
 import { usePrivacyMode } from "./privacy-mode";
+import { ThemeSwitcher } from "./theme-switcher";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { authFetchHeaders } from "@/lib/auth/csrf";
@@ -51,6 +52,7 @@ export function Sidebar() {
       </nav>
 
       <div className="space-y-2 border-t border-border p-4">
+        <ThemeSwitcher className="w-full" />
         <Button
           variant="ghost"
           size="sm"

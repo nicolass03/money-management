@@ -14,6 +14,7 @@ import { Badge } from "@/components/ui/badge";
 import { Card } from "@/components/ui/card";
 import { SectionHeader } from "@/components/ui/section-header";
 import { MoneyText, usePrivacyMode } from "@/components/layout/privacy-mode";
+import { useChartTheme } from "@/hooks/use-chart-theme";
 import { formatMoney } from "@/lib/currency/format";
 import type { MoneyDisplayContext } from "@/lib/currency/display";
 import type { RecurringExpenseWithTags } from "@/lib/types/domain";
@@ -114,6 +115,7 @@ export function RecurringPaymentCharts({
   rates,
 }: RecurringPaymentChartsProps) {
   const { privacyMode } = usePrivacyMode();
+  const chartTheme = useChartTheme();
   const [selectedTags, setSelectedTags] = useState<string[]>([]);
   const ctx = { displayCurrency, rates };
   const today = new Date().toISOString().slice(0, 10);
@@ -255,13 +257,21 @@ export function RecurringPaymentCharts({
             <BarChart data={tagData}>
               <XAxis
                 dataKey="tag"
-                tick={{ fill: "#6b6b6b", fontSize: 11, fontFamily: "monospace" }}
-                axisLine={{ stroke: "#2a2a2a" }}
+                tick={{
+                  fill: chartTheme.tick,
+                  fontSize: 11,
+                  fontFamily: "monospace",
+                }}
+                axisLine={{ stroke: chartTheme.axis }}
                 tickLine={false}
               />
               <YAxis
-                tick={{ fill: "#6b6b6b", fontSize: 11, fontFamily: "monospace" }}
-                axisLine={{ stroke: "#2a2a2a" }}
+                tick={{
+                  fill: chartTheme.tick,
+                  fontSize: 11,
+                  fontFamily: "monospace",
+                }}
+                axisLine={{ stroke: chartTheme.axis }}
                 tickLine={false}
                 tickFormatter={(value) =>
                   privacyMode ? maskNumericValue(String(value)) : String(value)
@@ -269,14 +279,18 @@ export function RecurringPaymentCharts({
               />
               <Tooltip
                 contentStyle={{
-                  background: "#141414",
-                  border: "1px solid #2a2a2a",
+                  background: chartTheme.tooltipBg,
+                  border: `1px solid ${chartTheme.tooltipBorder}`,
                   fontFamily: "monospace",
                   fontSize: 12,
                 }}
                 formatter={(value) => formatChartValue(Number(value))}
               />
-              <Bar dataKey="amount" fill="#d4d4d4" radius={[2, 2, 0, 0]} />
+              <Bar
+                dataKey="amount"
+                fill={chartTheme.barFill}
+                radius={[2, 2, 0, 0]}
+              />
             </BarChart>
           </ResponsiveContainer>
           </div>

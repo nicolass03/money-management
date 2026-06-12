@@ -12,6 +12,7 @@ import {
   getRememberedEmail,
   setRememberedEmail,
 } from "@/lib/auth/remember-email";
+import { ThemeSwitcher } from "@/components/layout/theme-switcher";
 import { authFetchHeaders } from "@/lib/auth/csrf";
 
 export default function LoginPage() {
@@ -77,7 +78,8 @@ export default function LoginPage() {
   }
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-bg p-4">
+    <div className="relative flex min-h-screen items-center justify-center bg-bg p-4">
+      <ThemeSwitcher className="absolute top-4 right-4" />
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
