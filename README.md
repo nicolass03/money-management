@@ -106,9 +106,26 @@ src/
     └── projections/        # Period item builders (display)
 ```
 
-## Deployment notes
+## Deploy to Railway
 
-- Set all variables from `.env.example` on the Next.js app.
-- Deploy the Rust API with `DATABASE_URL`, `SUPABASE_URL`, and `CORS_ORIGIN`.
-- Point `API_URL` at the deployed API.
-- Keep the API process running so the internal daily expense scheduler can charge recurring bills on time.
+Both the UI (this repo) and the [Rust API](../money-management-api) deploy as always-on Railway services via Docker.
+
+### UI (this repo)
+
+1. Create a Railway service and connect this GitHub repo (or run `railway up` from this directory).
+2. Set **service variables** before the first deploy (`NEXT_PUBLIC_*` values are baked in at build time):
+
+   | Variable | Value |
+   |----------|-------|
+   | `NEXT_PUBLIC_SUPABASE_URL` | Supabase project URL |
+   | `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` | Supabase publishable key |
+   | `API_URL` | Public URL of the deployed Rust API (no trailing slash) |
+
+3. Under **Networking → Generate Domain** for the UI service.
+4. Update the API service’s `CORS_ORIGIN` to include the UI domain (comma-separated if you also keep localhost).
+
+Health checks use `GET /login`. Railway injects `PORT`; the standalone server binds `0.0.0.0`.
+
+### API
+
+See the [API README](../money-management-api/README.md#deploy-to-railway). After both services are live, set each service’s public URL on the other (`API_URL` on the UI, `CORS_ORIGIN` on the API).

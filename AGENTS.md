@@ -47,3 +47,11 @@ If `cargo run` fails with `DATABASE_URL is required` while `.env` is set, the sh
 - Use server-only `API_URL` for the Rust API base URL — do not add `NEXT_PUBLIC_API_URL`.
 - HTTP security headers are configured in `next.config.ts` (CSP, HSTS in production, etc.).
 - Server actions redirect to `/login` on 401 via `handleActionError` in `src/lib/actions/action-error.ts`.
+
+## Railway deployment (UI)
+
+- `Dockerfile` builds Next.js with `output: "standalone"` and runs `node server.js` on `0.0.0.0:$PORT`.
+- `railway.toml` sets `healthcheckPath = "/login"` (public route; authenticated pages redirect).
+- Set `NEXT_PUBLIC_*` variables **before** the first build — they are inlined at compile time. Changing them requires a redeploy/rebuild.
+- `API_URL` is server-only and read at runtime; update without rebuild if the API domain changes (still redeploy to pick up in some edge cases — prefer setting it before first deploy).
+- After generating the UI domain, add it to the API’s `CORS_ORIGIN`.
