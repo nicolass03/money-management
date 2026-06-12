@@ -160,11 +160,13 @@ function ExpenseRow({
           )}
         </div>
         <p className="font-mono text-xs text-muted">
-          {item.scheduledDate
-            ? `paid ${formatDate(item.date)} // due ${formatDate(item.scheduledDate)}`
-            : formatDate(item.date)}{" "}
+          {item.projected
+            ? `due ${formatDate(dueDate(item))}`
+            : item.scheduledDate
+              ? `paid ${formatDate(item.date)} // due ${formatDate(item.scheduledDate)}`
+              : `paid ${formatDate(item.date)}`}{" "}
           {"//"} <TagList tags={item.tags} />
-          {item.projected ? " // projected" : " // actual"}
+          {item.projected ? " // due" : " // paid"}
         </p>
       </div>
       <div className="text-right">
@@ -216,58 +218,12 @@ function ExpenseRow({
   );
 }
 
-function ExpenseGroup({
-  title,
-  items,
-  editingId,
-  setEditingId,
-  formatDisplay,
-  displayCurrency,
-  rates,
-  onDelete,
-  deletePending,
-}: {
-  title: string;
-  items: ProjectionExpenseItem[];
-  editingId: number | null;
-  setEditingId: (id: number | null) => void;
-  formatDisplay: (amount: number) => string;
-  displayCurrency: CurrencyCode;
-  rates: MoneyDisplayContext["rates"];
-  onDelete: (id: number) => void;
-  deletePending: boolean;
-}) {
-  if (items.length === 0) {
-    return null;
-  }
+function dueDate(item: ProjectionExpenseItem): string {
+  return item.scheduledDate ?? item.date;
+}
 
-  const subtotal = items.reduce((sum, item) => sum + item.convertedAmount, 0);
-
-  return (
-    <div className="py-3 first:pt-0 last:pb-0">
-      <div className="mb-2 flex items-center justify-between">
-        <p className="font-mono text-xs text-muted">{title}</p>
-        <span className="font-mono text-xs text-danger">
-          -{formatDisplay(subtotal)}
-        </span>
-      </div>
-      <div className="divide-y divide-border/60">
-        {items.map((item) => (
-          <ExpenseRow
-            key={item.id ?? `proj-${item.recurringId}-${item.date}`}
-            item={item}
-            editingId={editingId}
-            setEditingId={setEditingId}
-            formatDisplay={formatDisplay}
-            displayCurrency={displayCurrency}
-            rates={rates}
-            onDelete={onDelete}
-            deletePending={deletePending}
-          />
-        ))}
-      </div>
-    </div>
-  );
+function sortByDueDate(items: ProjectionExpenseItem[]): ProjectionExpenseItem[] {
+  return [...items].sort((a, b) => dueDate(a).localeCompare(dueDate(b)));
 }
 
 export function CurrentPeriodExpenses({
@@ -307,13 +263,9 @@ export function CurrentPeriodExpenses({
     return privacyMode ? maskNumericValue(formatted) : formatted;
   }
 
-  const total =
-    periodView?.items.reduce((sum, item) => sum + item.convertedAmount, 0) ?? 0;
+  const listItems = sortByDueDate(periodView?.items ?? []);
 
-  const subscriptions =
-    periodView?.items.filter((item) => item.isSubscription) ?? [];
-  const otherExpenses =
-    periodView?.items.filter((item) => !item.isSubscription) ?? [];
+  const total = listItems.reduce((sum, item) => sum + item.convertedAmount, 0);
 
   const canAddExpense = periodKey === "last-period" && periodView?.isPayPeriod;
 
@@ -326,7 +278,7 @@ export function CurrentPeriodExpenses({
           className="mb-0"
         />
         <div className="flex items-center gap-3">
-          {periodView && periodView.items.length > 0 && (
+          {listItems.length > 0 && (
             <Badge variant="accent">{formatDisplay(total)}</Badge>
           )}
           {canAddExpense && primarySchedule && periodView && (
@@ -365,34 +317,25 @@ export function CurrentPeriodExpenses({
             </Link>
             {" to define the current period."}
           </p>
-        ) : periodView?.items.length === 0 ? (
+        ) : listItems.length === 0 ? (
           <p className="font-mono text-sm text-muted">
             {"> no expenses in this period."}
           </p>
         ) : (
           <div className="divide-y divide-border">
-            <ExpenseGroup
-              title="subscriptions"
-              items={subscriptions}
-              editingId={editingId}
-              setEditingId={setEditingId}
-              formatDisplay={formatDisplay}
-              displayCurrency={displayCurrency}
-              rates={rates}
-              onDelete={handleDelete}
-              deletePending={deletePending}
-            />
-            <ExpenseGroup
-              title="other_expenses"
-              items={otherExpenses}
-              editingId={editingId}
-              setEditingId={setEditingId}
-              formatDisplay={formatDisplay}
-              displayCurrency={displayCurrency}
-              rates={rates}
-              onDelete={handleDelete}
-              deletePending={deletePending}
-            />
+            {listItems.map((item) => (
+              <ExpenseRow
+                key={item.id ?? `proj-${item.recurringId ?? item.plannedExpenseId}-${item.date}`}
+                item={item}
+                editingId={editingId}
+                setEditingId={setEditingId}
+                formatDisplay={formatDisplay}
+                displayCurrency={displayCurrency}
+                rates={rates}
+                onDelete={handleDelete}
+                deletePending={deletePending}
+              />
+            ))}
           </div>
         )}
       </Card>
