@@ -123,7 +123,7 @@ export function ProjectionsTable({
                       </p>
                       {row.expenseItems.map((item) => (
                         <div
-                          key={`${item.name}-${item.date}`}
+                          key={`${item.budgetId ?? item.id ?? item.name}-${item.date}`}
                           className="flex items-center justify-between font-mono text-xs"
                         >
                           <div>
@@ -133,6 +133,7 @@ export function ProjectionsTable({
                               {item.tags.length > 0
                                 ? item.tags.join(", ")
                                 : "untagged"}
+                              {item.budgetId != null ? " // budget" : ""}
                               {item.isSubscription ? " // subscription" : ""}
                               {item.projected ? " // projected" : " // actual"}
                             </p>

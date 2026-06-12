@@ -1,5 +1,6 @@
 import { convertAmount, type ExchangeRates } from "@/lib/currency/convert";
 import type {
+  BudgetWithTags,
   CurrencyCode,
   ExpenseWithTags,
   IncomePaySchedule,
@@ -148,6 +149,7 @@ export function getExpensePeriodView({
   expenses,
   recurringExpenses,
   plannedExpenses,
+  budgets = [],
   displayCurrency,
   rates,
   today = new Date().toISOString().slice(0, 10),
@@ -157,6 +159,7 @@ export function getExpensePeriodView({
   expenses: ExpenseWithTags[];
   recurringExpenses: RecurringExpenseWithTags[];
   plannedExpenses: PlannedExpenseWithTags[];
+  budgets?: BudgetWithTags[];
   displayCurrency: CurrencyCode;
   rates: ExchangeRates;
   today?: string;
@@ -175,6 +178,8 @@ export function getExpensePeriodView({
       displayCurrency,
       rates,
       today,
+      budgets,
+      { includeBudgetSummaries: true },
     );
 
     return { period, items, isPayPeriod: true };

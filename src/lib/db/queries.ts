@@ -1,4 +1,4 @@
-import { and, desc, eq, isNotNull, isNull, or } from "drizzle-orm";
+import { and, desc, eq, inArray, isNotNull, isNull, or, sql } from "drizzle-orm";
 import {
   fetchExchangeRates,
   isRatesStale,
@@ -6,12 +6,15 @@ import {
 } from "@/lib/currency/fetch-rates";
 import type { ExchangeRates } from "@/lib/currency/convert";
 import {
+  attachTagsToBudgets,
   attachTagsToExpenses,
   attachTagsToPlannedExpenses,
   attachTagsToRecurringExpenses,
   getAllTagNames,
+  copyBudgetTagsToExpense,
   copyPlannedTagsToExpense,
   copyRecurringTagsToExpense,
+  setBudgetTags,
   setExpenseTags,
   setPlannedExpenseTags,
   setRecurringExpenseTags,
@@ -19,6 +22,7 @@ import {
 import { deleteScheduledIncome, syncScheduledIncome } from "@/lib/income/sync-scheduled-income";
 import { db } from "./index";
 import {
+  budgets,
   exchangeRateSnapshots,
   expenses,
   income,
@@ -27,6 +31,7 @@ import {
   recurringExpenses,
   savings,
   userSettings,
+  type BudgetWithTags,
   type CurrencyCode,
   type ExpenseWithTags,
   type IncomeSource,
@@ -605,6 +610,200 @@ export async function createEarlyPaidExpense(data: {
 
 export async function getSavings() {
   return db.select().from(savings).orderBy(desc(savings.date));
+}
+
+export async function getBudgets() {
+  return db.select().from(budgets).orderBy(desc(budgets.createdAt));
+}
+
+async function getSpentByBudgetIds(
+  budgetIds: number[],
+): Promise<Map<number, number>> {
+  const map = new Map<number, number>();
+  if (budgetIds.length === 0) {
+    return map;
+  }
+
+  const rows = await db
+    .select({
+      budgetId: expenses.budgetId,
+      spent: sql<number>`coalesce(sum(${expenses.amount}), 0)`.mapWith(Number),
+    })
+    .from(expenses)
+    .where(inArray(expenses.budgetId, budgetIds))
+    .groupBy(expenses.budgetId);
+
+  for (const row of rows) {
+    if (row.budgetId != null) {
+      map.set(row.budgetId, row.spent);
+    }
+  }
+
+  return map;
+}
+
+export async function getBudgetsWithTags(): Promise<BudgetWithTags[]> {
+  const rows = await getBudgets();
+  const withTags = await attachTagsToBudgets(rows);
+  const spentMap = await getSpentByBudgetIds(rows.map((r) => r.id));
+
+  return withTags.map((budget) => ({
+    ...budget,
+    spent: spentMap.get(budget.id) ?? 0,
+  }));
+}
+
+export async function getBudgetById(id: number) {
+  const [budget] = await db.select().from(budgets).where(eq(budgets.id, id));
+  return budget ?? null;
+}
+
+export async function getBudgetByIdWithTags(
+  id: number,
+): Promise<BudgetWithTags | null> {
+  const budget = await getBudgetById(id);
+  if (!budget) {
+    return null;
+  }
+
+  const [withTags] = await attachTagsToBudgets([budget]);
+  const spent = await getBudgetSpentCents(id);
+  return { ...withTags, spent };
+}
+
+export async function getBudgetSpentCents(budgetId: number): Promise<number> {
+  const map = await getSpentByBudgetIds([budgetId]);
+  return map.get(budgetId) ?? 0;
+}
+
+export async function getBudgetExpenses(budgetId: number) {
+  const rows = await db
+    .select()
+    .from(expenses)
+    .where(eq(expenses.budgetId, budgetId))
+    .orderBy(desc(expenses.date));
+  return attachTagsToExpenses(rows);
+}
+
+export async function createBudget(data: {
+  name: string;
+  amount: number;
+  currency: CurrencyCode;
+  startDate: string | null;
+  endDate: string | null;
+  tags: string[];
+}) {
+  const now = new Date().toISOString();
+  return db.transaction(async (tx) => {
+    const [budget] = await tx
+      .insert(budgets)
+      .values({
+        name: data.name,
+        amount: data.amount,
+        currency: data.currency,
+        startDate: data.startDate,
+        endDate: data.endDate,
+        createdAt: now,
+        updatedAt: now,
+      })
+      .returning();
+
+    await setBudgetTags(budget.id, data.tags, tx);
+    return budget;
+  });
+}
+
+export async function updateBudget(
+  id: number,
+  data: {
+    name: string;
+    amount: number;
+    currency: CurrencyCode;
+    startDate: string | null;
+    endDate: string | null;
+    tags: string[];
+  },
+) {
+  return db.transaction(async (tx) => {
+    const [budget] = await tx
+      .update(budgets)
+      .set({
+        name: data.name,
+        amount: data.amount,
+        currency: data.currency,
+        startDate: data.startDate,
+        endDate: data.endDate,
+        updatedAt: new Date().toISOString(),
+      })
+      .where(eq(budgets.id, id))
+      .returning();
+
+    if (budget) {
+      await setBudgetTags(id, data.tags, tx);
+    }
+
+    return budget ?? null;
+  });
+}
+
+export async function deleteBudget(id: number) {
+  const expenseCount = await db
+    .select({ count: sql<number>`count(*)`.mapWith(Number) })
+    .from(expenses)
+    .where(eq(expenses.budgetId, id));
+
+  if ((expenseCount[0]?.count ?? 0) > 0) {
+    throw new Error("cannot delete budget with expenses");
+  }
+
+  await db.delete(budgets).where(eq(budgets.id, id));
+}
+
+export async function createBudgetExpense(
+  budgetId: number,
+  data: {
+    name: string;
+    amount: number;
+    currency: CurrencyCode;
+    date: string;
+    isDatedBudget: boolean;
+  },
+) {
+  const now = new Date().toISOString();
+  return db.transaction(async (tx) => {
+    const [expense] = await tx
+      .insert(expenses)
+      .values({
+        name: data.name,
+        amount: data.amount,
+        currency: data.currency,
+        date: data.date,
+        budgetId,
+        recurringId: null,
+        plannedExpenseId: null,
+        amountOverridden: false,
+        isSubscription: false,
+        createdAt: now,
+      })
+      .returning();
+
+    await copyBudgetTagsToExpense(budgetId, expense.id, tx);
+    return expense;
+  });
+}
+
+export async function deleteBudgetExpense(id: number) {
+  const [expense] = await db
+    .select()
+    .from(expenses)
+    .where(eq(expenses.id, id));
+
+  if (!expense?.budgetId) {
+    return false;
+  }
+
+  await db.delete(expenses).where(eq(expenses.id, id));
+  return true;
 }
 
 export interface MoneyContext {

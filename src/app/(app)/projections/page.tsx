@@ -2,6 +2,7 @@ export const dynamic = "force-dynamic";
 
 import { ProjectionsDashboard } from "@/components/projections/projections-dashboard";
 import {
+  getBudgetsWithTags,
   getExpensesWithTags,
   getIncome,
   getIncomePayScheduleById,
@@ -13,7 +14,7 @@ import {
 import { buildProjectionRows } from "@/lib/projections/build-projection";
 
 export default async function ProjectionsPage() {
-  const [settings, money, incomeEntries, expenses, recurringExpenses, plannedExpenses] =
+  const [settings, money, incomeEntries, expenses, recurringExpenses, plannedExpenses, budgets] =
     await Promise.all([
       getUserSettings(),
       getMoneyContext(),
@@ -21,6 +22,7 @@ export default async function ProjectionsPage() {
       getExpensesWithTags(),
       getRecurringExpensesWithTags(),
       getPlannedExpensesWithTags(),
+      getBudgetsWithTags(),
     ]);
 
   const primarySchedule = settings.primaryScheduleId
@@ -34,6 +36,7 @@ export default async function ProjectionsPage() {
         expenses,
         recurringExpenses,
         plannedExpenses,
+        budgets,
         displayCurrency: money.displayCurrency,
         rates: money.rates,
         initialFreeMoney: settings.projectionInitialFreeMoney,

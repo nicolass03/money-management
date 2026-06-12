@@ -1,6 +1,7 @@
 import { sql } from "drizzle-orm";
 import {
   boolean,
+  check,
   date,
   integer,
   jsonb,
@@ -90,6 +91,9 @@ export const expenses = pgTable(
       () => plannedExpenses.id,
       { onDelete: "set null" },
     ),
+    budgetId: integer("budget_id").references(() => budgets.id, {
+      onDelete: "set null",
+    }),
     amountOverridden: boolean("amount_overridden").notNull().default(false),
     isSubscription: boolean("is_subscription").notNull().default(false),
     createdAt: timestamp("created_at", { withTimezone: true, mode: "string" }).notNull(),
@@ -101,6 +105,10 @@ export const expenses = pgTable(
     uniqueIndex("expenses_planned_expense_id_unique")
       .on(table.plannedExpenseId)
       .where(sql`${table.plannedExpenseId} IS NOT NULL`),
+    check(
+      "expenses_budget_exclusive",
+      sql`NOT (${table.budgetId} IS NOT NULL AND (${table.recurringId} IS NOT NULL OR ${table.plannedExpenseId} IS NOT NULL))`,
+    ),
   ],
 );
 
@@ -130,6 +138,48 @@ export const plannedExpenseTags = pgTable(
   (table) => [
     primaryKey({ columns: [table.plannedExpenseId, table.tagId] }),
   ],
+);
+
+export const budgets = pgTable(
+  "budgets",
+  {
+    id: serial("id").primaryKey(),
+    name: text("name").notNull(),
+    amount: integer("amount").notNull(),
+    currency: currencyCodeEnum("currency").notNull().default("usd"),
+    startDate: date("start_date"),
+    endDate: date("end_date"),
+    createdAt: timestamp("created_at", { withTimezone: true, mode: "string" }).notNull(),
+    updatedAt: timestamp("updated_at", { withTimezone: true, mode: "string" }).notNull(),
+  },
+  (table) => [
+    check("budgets_amount_positive", sql`${table.amount} > 0`),
+    check(
+      "budgets_end_requires_start",
+      sql`${table.endDate} IS NULL OR ${table.startDate} IS NOT NULL`,
+    ),
+    check(
+      "budgets_end_after_start",
+      sql`${table.endDate} IS NULL OR ${table.endDate} >= ${table.startDate}`,
+    ),
+    check(
+      "budgets_dates_both_or_neither",
+      sql`(${table.startDate} IS NULL AND ${table.endDate} IS NULL) OR (${table.startDate} IS NOT NULL AND ${table.endDate} IS NOT NULL)`,
+    ),
+  ],
+);
+
+export const budgetTags = pgTable(
+  "budget_tags",
+  {
+    budgetId: integer("budget_id")
+      .notNull()
+      .references(() => budgets.id, { onDelete: "cascade" }),
+    tagId: integer("tag_id")
+      .notNull()
+      .references(() => tags.id, { onDelete: "cascade" }),
+  },
+  (table) => [primaryKey({ columns: [table.budgetId, table.tagId] })],
 );
 
 // Income-side pay schedule template; see recurring_expenses for expense-side equivalent.
@@ -197,6 +247,8 @@ export type UserSettings = typeof userSettings.$inferSelect;
 export type ExchangeRateSnapshot = typeof exchangeRateSnapshots.$inferSelect;
 
 export type PlannedExpense = typeof plannedExpenses.$inferSelect;
+export type Budget = typeof budgets.$inferSelect;
 export type ExpenseWithTags = Expense & { tags: string[] };
 export type RecurringExpenseWithTags = RecurringExpense & { tags: string[] };
 export type PlannedExpenseWithTags = PlannedExpense & { tags: string[] };
+export type BudgetWithTags = Budget & { tags: string[]; spent: number };

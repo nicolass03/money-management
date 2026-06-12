@@ -3,6 +3,7 @@ export const dynamic = "force-dynamic";
 import { ExpenseDashboard } from "@/components/expenses/expense-dashboard";
 import {
   getAllTagNames,
+  getBudgetsWithTags,
   getExpensesWithTags,
   getIncomePayScheduleById,
   getMoneyContext,
@@ -13,11 +14,12 @@ import {
 import { getUpcomingPayableItems } from "@/lib/projections/upcoming-payable";
 
 export default async function ExpensesPage() {
-  const [allExpenses, recurringExpenses, plannedExpenses, allTags, settings, money] =
+  const [allExpenses, recurringExpenses, plannedExpenses, budgets, allTags, settings, money] =
     await Promise.all([
       getExpensesWithTags(),
       getRecurringExpensesWithTags(),
       getPlannedExpensesWithTags(),
+      getBudgetsWithTags(),
       getAllTagNames(),
       getUserSettings(),
       getMoneyContext(),
@@ -40,6 +42,7 @@ export default async function ExpensesPage() {
       primarySchedule={primarySchedule}
       recurringExpenses={recurringExpenses}
       plannedExpenses={plannedExpenses}
+      budgets={budgets}
       upcomingPayableItems={upcomingPayableItems}
       displayCurrency={money.displayCurrency}
       rates={money.rates}

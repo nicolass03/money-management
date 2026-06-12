@@ -1,6 +1,14 @@
 import { convertAmount, type ExchangeRates } from "@/lib/currency/convert";
 import type { CurrencyCode } from "@/lib/db/schema";
+import {
+  budgetOverlapsPeriod,
+  getBudgetProjectionAmount,
+  getBudgetProjectionPeriodDate,
+  isBudgetProjectionProjected,
+  isDatedBudget,
+} from "@/lib/budgets/budget-status";
 import type {
+  BudgetWithTags,
   ExpenseWithTags,
   Income,
   IncomePaySchedule,
@@ -27,6 +35,10 @@ export interface ProjectionExpenseItem {
   id?: number;
   recurringId?: number;
   plannedExpenseId?: number;
+  budgetId?: number;
+  budgetTotal?: number;
+  budgetSpent?: number;
+  isBudgetSummary?: boolean;
   name: string;
   date: string;
   scheduledDate?: string;
@@ -58,11 +70,31 @@ interface BuildProjectionInput {
   expenses: ExpenseWithTags[];
   recurringExpenses: RecurringExpenseWithTags[];
   plannedExpenses: PlannedExpenseWithTags[];
+  budgets?: BudgetWithTags[];
   displayCurrency: CurrencyCode;
   rates: ExchangeRates;
   initialFreeMoney?: number;
   projectionStartDate?: string | null;
   today?: string;
+}
+
+interface GetExpenseItemsOptions {
+  includeBudgetSummaries?: boolean;
+}
+
+function sumBudgetSpent(
+  budgetId: number,
+  expenseList: ExpenseWithTags[],
+): number {
+  return expenseList
+    .filter((expense) => expense.budgetId === budgetId)
+    .reduce((sum, expense) => sum + expense.amount, 0);
+}
+
+function buildDatedBudgetIdSet(budgets: BudgetWithTags[]): Set<number> {
+  return new Set(
+    budgets.filter((budget) => isDatedBudget(budget)).map((budget) => budget.id),
+  );
 }
 
 function isOnOrAfterStartDate(date: string, startDate?: string | null): boolean {
@@ -133,13 +165,20 @@ export function getExpenseItemsInPeriod(
   displayCurrency: CurrencyCode,
   rates: ExchangeRates,
   today: string,
+  budgets: BudgetWithTags[] = [],
+  options: GetExpenseItemsOptions = {},
 ): ProjectionExpenseItem[] {
   const items: ProjectionExpenseItem[] = [];
   const recurringMaterialized = buildRecurringMaterializedSet(expenseList);
   const plannedMaterialized = buildPlannedMaterializedSet(expenseList);
+  const datedBudgetIds = buildDatedBudgetIdSet(budgets);
 
   for (const expense of expenseList) {
     if (!isDateInPeriod(expense.date, period)) {
+      continue;
+    }
+
+    if (expense.budgetId != null && datedBudgetIds.has(expense.budgetId)) {
       continue;
     }
 
@@ -253,6 +292,84 @@ export function getExpenseItemsInPeriod(
     });
   }
 
+  if (!options.includeBudgetSummaries) {
+    for (const budget of budgets) {
+      if (!isDatedBudget(budget)) {
+        continue;
+      }
+
+      const spent = budget.spent ?? sumBudgetSpent(budget.id, expenseList);
+      const projectionAmount = getBudgetProjectionAmount(budget, spent, today);
+      if (projectionAmount <= 0 && today > budget.endDate!) {
+        continue;
+      }
+
+      const anchorDate = getBudgetProjectionPeriodDate(budget, today);
+      if (!anchorDate || !isDateInPeriod(anchorDate, period)) {
+        continue;
+      }
+
+      if (projectionAmount <= 0) {
+        continue;
+      }
+
+      items.push({
+        budgetId: budget.id,
+        name: budget.name,
+        date: anchorDate,
+        amount: projectionAmount,
+        currency: budget.currency,
+        convertedAmount: toDisplay(
+          projectionAmount,
+          budget.currency,
+          displayCurrency,
+          rates,
+        ),
+        budgetTotal: budget.amount,
+        budgetSpent: spent,
+        isBudgetSummary: false,
+        tags: budget.tags,
+        isSubscription: false,
+        projected: isBudgetProjectionProjected(budget, today),
+      });
+    }
+  }
+
+  if (options.includeBudgetSummaries) {
+    for (const budget of budgets) {
+      if (!isDatedBudget(budget)) {
+        continue;
+      }
+
+      if (!budgetOverlapsPeriod(budget, period)) {
+        continue;
+      }
+
+      const spent = budget.spent ?? sumBudgetSpent(budget.id, expenseList);
+      const convertedSpent = toDisplay(
+        spent,
+        budget.currency,
+        displayCurrency,
+        rates,
+      );
+
+      items.push({
+        budgetId: budget.id,
+        name: budget.name,
+        date: budget.startDate!,
+        amount: spent,
+        currency: budget.currency,
+        convertedAmount: convertedSpent,
+        budgetTotal: budget.amount,
+        budgetSpent: spent,
+        isBudgetSummary: true,
+        tags: budget.tags,
+        isSubscription: false,
+        projected: false,
+      });
+    }
+  }
+
   return items.sort((a, b) => a.date.localeCompare(b.date));
 }
 
@@ -267,6 +384,7 @@ export function getCurrentPeriodExpenses({
   expenses,
   recurringExpenses,
   plannedExpenses,
+  budgets = [],
   displayCurrency,
   rates,
   today = new Date().toISOString().slice(0, 10),
@@ -275,6 +393,7 @@ export function getCurrentPeriodExpenses({
   expenses: ExpenseWithTags[];
   recurringExpenses: RecurringExpenseWithTags[];
   plannedExpenses: PlannedExpenseWithTags[];
+  budgets?: BudgetWithTags[];
   displayCurrency: CurrencyCode;
   rates: ExchangeRates;
   today?: string;
@@ -290,6 +409,8 @@ export function getCurrentPeriodExpenses({
     displayCurrency,
     rates,
     today,
+    budgets,
+    { includeBudgetSummaries: true },
   );
 
   return { period, items, isPast };
@@ -301,6 +422,7 @@ export function buildProjectionRows({
   expenses,
   recurringExpenses,
   plannedExpenses,
+  budgets = [],
   displayCurrency,
   rates,
   initialFreeMoney = 0,
@@ -342,6 +464,7 @@ export function buildProjectionRows({
       displayCurrency,
       rates,
       today,
+      budgets,
     ).filter((item) => isOnOrAfterStartDate(item.date, minActivityDate));
 
     const expenseTotal = expenseItems.reduce(

@@ -55,11 +55,46 @@ export function formatChargedExpenseAmount(
   return { primary: formatNativeMoney(amountMinor, currency) };
 }
 
+export function formatBudgetSummaryAmount(
+  spent: number,
+  total: number,
+  currency: CurrencyCode,
+  displayCurrency: CurrencyCode,
+  rates: ExchangeRates,
+): FormattedExpenseAmount {
+  const spentFormatted = formatChargedExpenseAmount(
+    spent,
+    currency,
+    displayCurrency,
+    rates,
+  );
+  const totalFormatted = formatChargedExpenseAmount(
+    total,
+    currency,
+    displayCurrency,
+    rates,
+  );
+
+  return {
+    primary: `${spentFormatted.primary} / ${totalFormatted.primary}`,
+  };
+}
+
 export function formatProjectionExpenseAmount(
   item: ProjectionExpenseItem,
   displayCurrency: CurrencyCode,
   rates: ExchangeRates,
 ): FormattedExpenseAmount {
+  if (item.isBudgetSummary && item.budgetTotal != null && item.budgetSpent != null) {
+    return formatBudgetSummaryAmount(
+      item.budgetSpent,
+      item.budgetTotal,
+      item.currency,
+      displayCurrency,
+      rates,
+    );
+  }
+
   if (item.projected) {
     return formatScheduledExpenseAmount(item.amount, item.currency);
   }

@@ -2,6 +2,7 @@ import { eq, inArray } from "drizzle-orm";
 import { db } from "@/lib/db/index";
 import type { DbClient } from "@/lib/db/client";
 import {
+  budgetTags,
   expenseTags,
   plannedExpenseTags,
   recurringExpenseTags,
@@ -75,6 +76,48 @@ export async function setPlannedExpenseTags(
     tagIds.map((tagId) => ({
       plannedExpenseId,
       tagId,
+    })),
+  );
+}
+
+export async function setBudgetTags(
+  budgetId: number,
+  tagNames: string[],
+  dbClient: DbClient = db,
+) {
+  await dbClient.delete(budgetTags).where(eq(budgetTags.budgetId, budgetId));
+
+  const tagIds = await ensureTags(tagNames, dbClient);
+  if (tagIds.length === 0) {
+    return;
+  }
+
+  await dbClient.insert(budgetTags).values(
+    tagIds.map((tagId) => ({
+      budgetId,
+      tagId,
+    })),
+  );
+}
+
+export async function copyBudgetTagsToExpense(
+  budgetId: number,
+  expenseId: number,
+  dbClient: DbClient = db,
+) {
+  const links = await dbClient
+    .select({ tagId: budgetTags.tagId })
+    .from(budgetTags)
+    .where(eq(budgetTags.budgetId, budgetId));
+
+  if (links.length === 0) {
+    return;
+  }
+
+  await dbClient.insert(expenseTags).values(
+    links.map((link) => ({
+      expenseId,
+      tagId: link.tagId,
     })),
   );
 }
@@ -268,6 +311,49 @@ export async function attachTagsToPlannedExpenses<T extends { id: number }>(
   items: T[],
 ): Promise<Array<T & { tags: string[] }>> {
   const tagMap = await getTagNamesByPlannedIds(items.map((item) => item.id));
+  return items.map((item) => ({
+    ...item,
+    tags: tagMap.get(item.id) ?? [],
+  }));
+}
+
+async function getTagNamesByBudgetIds(
+  budgetIds: number[],
+  dbClient: DbClient = db,
+): Promise<Map<number, string[]>> {
+  const map = new Map<number, string[]>();
+  if (budgetIds.length === 0) {
+    return map;
+  }
+
+  const rows = await dbClient
+    .select({
+      budgetId: budgetTags.budgetId,
+      tagName: tags.name,
+    })
+    .from(budgetTags)
+    .innerJoin(tags, eq(budgetTags.tagId, tags.id))
+    .where(inArray(budgetTags.budgetId, budgetIds));
+
+  for (const row of rows) {
+    const existing = map.get(row.budgetId) ?? [];
+    existing.push(row.tagName);
+    map.set(row.budgetId, existing);
+  }
+
+  for (const id of budgetIds) {
+    if (!map.has(id)) {
+      map.set(id, []);
+    }
+  }
+
+  return map;
+}
+
+export async function attachTagsToBudgets<T extends { id: number }>(
+  items: T[],
+): Promise<Array<T & { tags: string[] }>> {
+  const tagMap = await getTagNamesByBudgetIds(items.map((item) => item.id));
   return items.map((item) => ({
     ...item,
     tags: tagMap.get(item.id) ?? [],

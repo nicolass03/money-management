@@ -144,8 +144,13 @@ function ExpenseRow({
   onDelete: (id: number) => void;
   deletePending: boolean;
 }) {
-  const key = item.id ?? `proj-${item.recurringId}-${item.date}`;
-  const canEdit = item.id != null && !item.projected;
+  const key =
+    item.id ??
+    (item.budgetId != null
+      ? `budget-${item.budgetId}`
+      : `proj-${item.recurringId}-${item.date}`);
+  const canEdit =
+    item.id != null && !item.projected && !item.isBudgetSummary;
 
   return (
     <div
@@ -154,19 +159,37 @@ function ExpenseRow({
     >
       <div>
         <div className="flex items-center gap-2">
-          <p className="font-mono text-sm text-text">{item.name}</p>
+          {item.isBudgetSummary && item.budgetId != null ? (
+            <Link
+              href="/budgets"
+              className="font-mono text-sm text-text hover:text-accent-glow"
+            >
+              {item.name}
+            </Link>
+          ) : (
+            <p className="font-mono text-sm text-text">{item.name}</p>
+          )}
+          {item.isBudgetSummary && (
+            <Badge variant="accent">budget</Badge>
+          )}
           {item.isSubscription && (
             <Badge variant="default">subscription</Badge>
           )}
         </div>
         <p className="font-mono text-xs text-muted">
-          {item.projected
-            ? `due ${formatDate(dueDate(item))}`
-            : item.scheduledDate
-              ? `paid ${formatDate(item.date)} // due ${formatDate(item.scheduledDate)}`
-              : `paid ${formatDate(item.date)}`}{" "}
+          {item.isBudgetSummary
+            ? `budget tracking // `
+            : item.projected
+              ? `due ${formatDate(dueDate(item))}`
+              : item.scheduledDate
+                ? `paid ${formatDate(item.date)} // due ${formatDate(item.scheduledDate)}`
+                : `paid ${formatDate(item.date)}`}{" "}
           {"//"} <TagList tags={item.tags} />
-          {item.projected ? " // due" : " // paid"}
+          {item.isBudgetSummary
+            ? " // budget"
+            : item.projected
+              ? " // due"
+              : " // paid"}
         </p>
       </div>
       <div className="text-right">

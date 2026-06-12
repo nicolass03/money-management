@@ -9,6 +9,7 @@ import { ExpenseCharts } from "./expense-charts";
 import { ExpensePeriodSelector } from "./expense-period-selector";
 import type { MoneyDisplayContext } from "@/lib/currency/display";
 import type {
+  BudgetWithTags,
   ExpenseWithTags,
   IncomePaySchedule,
   PlannedExpenseWithTags,
@@ -27,6 +28,7 @@ interface ExpenseDashboardProps extends MoneyDisplayContext {
   primarySchedule: IncomePaySchedule | null;
   recurringExpenses: RecurringExpenseWithTags[];
   plannedExpenses: PlannedExpenseWithTags[];
+  budgets: BudgetWithTags[];
   upcomingPayableItems: PayableFutureItem[];
 }
 
@@ -36,6 +38,7 @@ export function ExpenseDashboard({
   primarySchedule,
   recurringExpenses,
   plannedExpenses,
+  budgets,
   upcomingPayableItems,
   displayCurrency,
   rates,
@@ -62,6 +65,7 @@ export function ExpenseDashboard({
         expenses: allExpenses,
         recurringExpenses,
         plannedExpenses,
+        budgets,
         displayCurrency,
         rates,
         today,
@@ -72,6 +76,7 @@ export function ExpenseDashboard({
       allExpenses,
       recurringExpenses,
       plannedExpenses,
+      budgets,
       displayCurrency,
       rates,
       today,
@@ -95,6 +100,11 @@ export function ExpenseDashboard({
           <Link href="/expenses/planned">
             <Button size="sm" variant="ghost">
               one-time
+            </Button>
+          </Link>
+          <Link href="/budgets">
+            <Button size="sm" variant="ghost">
+              budgets
             </Button>
           </Link>
         </div>
