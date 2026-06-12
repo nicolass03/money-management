@@ -1,4 +1,4 @@
-import { eq, inArray, sql } from "drizzle-orm";
+import { eq, inArray } from "drizzle-orm";
 import { db } from "@/lib/db/index";
 import type { DbClient } from "@/lib/db/client";
 import {
@@ -17,11 +17,10 @@ async function ensureTags(names: string[], dbClient: DbClient = db): Promise<num
 
   const now = new Date().toISOString();
 
-  await dbClient.execute(sql`
-    INSERT INTO tags (name, created_at)
-    SELECT unnest(${names}::text[]), ${now}::timestamptz
-    ON CONFLICT (name) DO NOTHING
-  `);
+  await dbClient
+    .insert(tags)
+    .values(names.map((name) => ({ name, createdAt: now })))
+    .onConflictDoNothing({ target: tags.name });
 
   const rows = await dbClient
     .select({ id: tags.id, name: tags.name })
@@ -29,7 +28,13 @@ async function ensureTags(names: string[], dbClient: DbClient = db): Promise<num
     .where(inArray(tags.name, names));
 
   const nameToId = new Map(rows.map((row) => [row.name, row.id]));
-  return names.map((name) => nameToId.get(name)!);
+  return names.map((name) => {
+    const id = nameToId.get(name);
+    if (id === undefined) {
+      throw new Error(`tag not found after upsert: ${name}`);
+    }
+    return id;
+  });
 }
 
 export async function setExpenseTags(
