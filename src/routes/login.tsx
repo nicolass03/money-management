@@ -92,7 +92,6 @@ function LoginPage() {
               <span className="animate-blink text-accent">_</span>
             </p>
           </div>
-          <SpinningCoin size={56} />
         </div>
 
         <Card className="relative animate-glow-pulse">
