@@ -15,6 +15,8 @@ export interface UserSettings {
   primarySchedule?: IncomePaySchedule | null;
   projectionInitialFreeMoney: number;
   projectionStartDate: string | null;
+  extraExpenseLimit?: number | null;
+  extraExpenseLimitCurrency?: CurrencyCode | null;
   cacheRevision: number;
   updatedAt: string;
 }
@@ -159,6 +161,13 @@ export interface ExpensePeriodView extends ExpenseChartSummary {
   items: ProjectionExpenseItem[];
   totalSpend: number;
   isPayPeriod: boolean;
+  extraSpend?: number;
+  extraSpendLimit?: number | null;
+  extraSpendLimitCurrency?: CurrencyCode | null;
+  extraSpendLimitConverted?: number | null;
+  plannedSpend?: number;
+  plannedTotal?: number;
+  plannedUsedPercent?: number | null;
 }
 
 export interface PayableFutureItem {

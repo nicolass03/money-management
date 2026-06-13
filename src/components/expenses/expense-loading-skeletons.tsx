@@ -1,6 +1,27 @@
 import { Card } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 
+export function ExpensePeriodHeroSkeleton() {
+  return (
+    <div className="mb-4 space-y-4" aria-busy="true" aria-label="loading period hero">
+      <Card>
+        <Skeleton className="mb-2 h-3 w-24" />
+        <Skeleton className="h-9 w-40" />
+      </Card>
+      <div className="grid gap-4 sm:grid-cols-2">
+        <Card>
+          <Skeleton className="mb-2 h-3 w-20" />
+          <Skeleton className="h-7 w-28" />
+        </Card>
+        <Card>
+          <Skeleton className="mb-2 h-3 w-24" />
+          <Skeleton className="h-7 w-16" />
+        </Card>
+      </div>
+    </div>
+  );
+}
+
 export function ExpenseChartsSkeleton() {
   return (
     <section aria-busy="true" aria-label="loading charts">

@@ -13,6 +13,8 @@ export interface PatchSettingsInput {
   primaryScheduleId?: string | null;
   projectionInitialFreeMoney?: number;
   projectionStartDate?: string | null;
+  extraExpenseLimit?: number | null;
+  extraExpenseLimitCurrency?: CurrencyCode | null;
 }
 
 export async function patchSettings(

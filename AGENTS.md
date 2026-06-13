@@ -69,6 +69,8 @@ The expenses tab no longer blocks on 8 parallel fetches. Init uses **settings** 
 
 Each section shows **inline skeletons** (`src/components/ui/skeleton.tsx`, `src/components/ui/list-skeletons.tsx`, `src/components/expenses/expense-loading-skeletons.tsx`) for backend-dependent content; the shell renders immediately. Tags load only when opening the expense form. Period toggle refetches period-view only.
 
+**Pay-period stats** (`last-period` only): `ExpensePeriodHero` under the period selector shows total spent plus two cards — **extra spent** (manual expenses only; warns when over limit) and **planned used %** (actual planned envelope ÷ total planned including projected). Limit is configured in settings (`extraExpenseLimit` + `extraExpenseLimitCurrency`, same amount/currency model as expenses).
+
 **Budgets, income, projections** use the same pattern — page shell + section skeletons; no full-screen `LoadingIndicator` on those tabs (component kept for auth/login and other routes).
 
 ## Railway deployment (UI)

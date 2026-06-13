@@ -3,8 +3,24 @@ import { getMoneyContext } from "@/lib/api/money-context";
 import { patchSettings } from "@/lib/api/settings";
 import { invalidateAfter } from "@/lib/query/invalidation";
 import { currencies, type CurrencyCode } from "@/lib/types/constants";
+import { getMinorDivisor } from "@/lib/currency/types";
 import { parseSignedDollarsToCents } from "@/lib/utils";
 import { mutationError, type FormResult } from "./types";
+
+function parseAmountInput(
+  value: string,
+  currency: CurrencyCode,
+): number | null {
+  const trimmed = value.trim().replace(/[$,]/g, "");
+  if (!trimmed) return null;
+
+  const parsed = Number(trimmed);
+  if (!Number.isFinite(parsed) || parsed < 0) {
+    return null;
+  }
+
+  return Math.round(parsed * getMinorDivisor(currency));
+}
 
 export async function updateDisplayCurrencyMutation(
   displayCurrency: string,
@@ -63,6 +79,45 @@ export async function updateProjectionSettingsMutation(
   }
 }
 
+export interface ExtraExpenseSettingsInput {
+  amount: string;
+  currency: string;
+}
+
+export async function updateExtraExpenseSettingsMutation(
+  input: ExtraExpenseSettingsInput,
+): Promise<FormResult> {
+  const currencyRaw = input.currency.trim().toLowerCase();
+  if (!currencies.includes(currencyRaw as CurrencyCode)) {
+    return { error: "invalid currency" };
+  }
+  const currency = currencyRaw as CurrencyCode;
+  const amountRaw = input.amount.trim();
+
+  try {
+    if (!amountRaw) {
+      await patchSettings({
+        extraExpenseLimit: null,
+        extraExpenseLimitCurrency: null,
+      });
+      return { success: true };
+    }
+
+    const amount = parseAmountInput(amountRaw, currency);
+    if (amount === null) {
+      return { error: "invalid extra expense limit" };
+    }
+
+    await patchSettings({
+      extraExpenseLimit: amount,
+      extraExpenseLimitCurrency: currency,
+    });
+    return { success: true };
+  } catch (error) {
+    return mutationError(error, "failed to update extra expense limit");
+  }
+}
+
 export async function refreshExchangeRatesMutation(): Promise<FormResult> {
   try {
     await getMoneyContext({ forceRefresh: true });
@@ -86,6 +141,16 @@ export function useUpdateProjectionSettings() {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: updateProjectionSettingsMutation,
+    onSuccess: (result) => {
+      if (result.success) void invalidateAfter(queryClient, "settingsChange");
+    },
+  });
+}
+
+export function useUpdateExtraExpenseSettings() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: updateExtraExpenseSettingsMutation,
     onSuccess: (result) => {
       if (result.success) void invalidateAfter(queryClient, "settingsChange");
     },

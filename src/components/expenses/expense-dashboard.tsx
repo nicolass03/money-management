@@ -4,7 +4,11 @@ import { Button } from "@/components/ui/button";
 import { SectionHeader } from "@/components/ui/section-header";
 import { CurrentPeriodExpenses } from "./current-period-expenses";
 import { ExpenseCharts } from "./expense-charts";
-import { ExpenseChartsSkeleton } from "./expense-loading-skeletons";
+import {
+  ExpenseChartsSkeleton,
+  ExpensePeriodHeroSkeleton,
+} from "./expense-loading-skeletons";
+import { ExpensePeriodHero } from "./expense-period-hero";
 import { ExpensePeriodSelector } from "./expense-period-selector";
 import { useExpensePeriodView, useUpcomingPayable } from "@/hooks/use-queries";
 import type { MoneyDisplayContext } from "@/lib/currency/display";
@@ -59,6 +63,17 @@ export function ExpenseDashboard({
         onChange={setPeriodKey}
         className="mb-4"
       />
+
+      {periodKey === "last-period" &&
+        (periodViewQuery.isLoading ? (
+          <ExpensePeriodHeroSkeleton />
+        ) : periodView?.isPayPeriod ? (
+          <ExpensePeriodHero
+            periodView={periodView}
+            displayCurrency={displayCurrency}
+            rates={rates}
+          />
+        ) : null)}
 
       {periodViewQuery.isLoading ? (
         <ExpenseChartsSkeleton />

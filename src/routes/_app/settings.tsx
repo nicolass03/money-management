@@ -1,5 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { CurrencySettings } from "@/components/settings/currency-settings";
+import { ExtraExpenseSettings } from "@/components/settings/extra-expense-settings";
 import { ProjectionSettings } from "@/components/settings/projection-settings";
 import { LoadingIndicator } from "@/components/ui/loading-indicator";
 import { SectionHeader } from "@/components/ui/section-header";
@@ -40,6 +41,12 @@ function SettingsPage() {
         primaryScheduleId={settings.data.primaryScheduleId}
         projectionInitialFreeMoney={settings.data.projectionInitialFreeMoney}
         projectionStartDate={settings.data.projectionStartDate}
+        displayCurrency={settings.data.displayCurrency}
+      />
+
+      <ExtraExpenseSettings
+        extraExpenseLimit={settings.data.extraExpenseLimit}
+        extraExpenseLimitCurrency={settings.data.extraExpenseLimitCurrency}
         displayCurrency={settings.data.displayCurrency}
       />
     </div>
