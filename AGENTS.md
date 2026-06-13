@@ -55,13 +55,13 @@ If `cargo run` fails with `DATABASE_URL is required` while `.env` is set, the sh
 - Do not use `number` for entity/FK IDs in domain types or API clients.
 - Login uses direct `supabase.auth.signInWithPassword` (no BFF proxy). Rate limiting relies on Supabase Auth (the old Next.js IP/email limiter was removed).
 - Env vars (`.env.example`): `VITE_SUPABASE_URL`, `VITE_SUPABASE_PUBLISHABLE_KEY`, `VITE_API_URL` — all baked at **build time**. Set them in Railway before the first deploy.
-- HTTP security headers are set in `server.js` (CSP, HSTS in production). Health check: `GET /health`.
-- `server.js` is plain Node ESM — no TypeScript syntax (Railway runs `node server.js` directly).
+- HTTP security headers for production are set in `nginx/default.conf.template` (CSP, HSTS). Health check: `GET /health`.
+- `server.js` remains for local `npm start` only; Railway serves via **nginx** in Docker.
 - Ensure Rust API `CORS_ORIGIN` includes the deployed UI origin (browser calls API directly, same as iOS).
 
 ## Railway deployment (UI)
 
-- `Dockerfile` runs `vite build` then `node server.js` on `0.0.0.0:$PORT` (static `dist/` + SPA fallback via `serve-handler`).
+- Multi-stage `Dockerfile`: Node builds `dist/`, **nginx:alpine** serves static files with SPA fallback (`try_files` → `/index.html`). `nginx/docker-entrypoint.sh` binds Railway’s injected `PORT`.
 - `railway.toml` sets `healthcheckPath = "/health"`.
-- Set `VITE_*` variables **before** the first build — they are inlined at compile time. Changing them requires a redeploy/rebuild.
+- Set `VITE_*` service variables **before** the first build — Dockerfile declares them as `ARG`/`ENV` in the builder stage so Vite inlines them. Changing them requires a redeploy/rebuild. A blank page after deploy usually means `VITE_*` were missing at image build time.
 - After generating the UI domain, add it to the API’s `CORS_ORIGIN`.
