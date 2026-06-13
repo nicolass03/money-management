@@ -20,95 +20,51 @@ import { usePrivacyMode } from "@/components/layout/privacy-mode";
 import { useChartTheme } from "@/hooks/use-chart-theme";
 import { formatMoney } from "@/lib/currency/format";
 import { maskNumericValue } from "@/lib/privacy/mask";
-import { toDisplayAmount, type MoneyDisplayContext } from "@/lib/currency/display";
-import type { ExpenseWithTags } from "@/lib/types/domain";
+import type { MoneyDisplayContext } from "@/lib/currency/display";
+import type { ExpenseChartSummary } from "@/lib/types/domain";
 import { cn } from "@/lib/utils";
 
 interface ExpenseChartsProps extends MoneyDisplayContext {
-  expenses: ExpenseWithTags[];
-  allTags: string[];
-}
-
-function expenseMatchesTags(expense: ExpenseWithTags, selectedTags: string[]) {
-  if (selectedTags.length === 0) {
-    return true;
-  }
-
-  return expense.tags.some((tag) => selectedTags.includes(tag));
-}
-
-function groupByTags(expenses: ExpenseWithTags[], ctx: MoneyDisplayContext) {
-  const map = new Map<string, number>();
-
-  for (const expense of expenses) {
-    const converted = toDisplayAmount(expense.amount, expense.currency, ctx);
-    for (const tag of expense.tags) {
-      map.set(tag, (map.get(tag) ?? 0) + converted);
-    }
-  }
-
-  return Array.from(map.entries())
-    .map(([tag, amount]) => ({
-      tag,
-      amount: amount / (ctx.displayCurrency === "cop" ? 1 : 100),
-    }))
-    .sort((a, b) => b.amount - a.amount);
-}
-
-function groupBySubscription(
-  expenses: ExpenseWithTags[],
-  ctx: MoneyDisplayContext,
-) {
-  const subscriptions = expenses
-    .filter((e) => e.isSubscription)
-    .reduce(
-      (sum, e) => sum + toDisplayAmount(e.amount, e.currency, ctx),
-      0,
-    );
-  const other = expenses
-    .filter((e) => !e.isSubscription)
-    .reduce(
-      (sum, e) => sum + toDisplayAmount(e.amount, e.currency, ctx),
-      0,
-    );
-
-  const divisor = ctx.displayCurrency === "cop" ? 1 : 100;
-
-  return [
-    { name: "subscriptions", value: subscriptions / divisor },
-    { name: "other", value: other / divisor },
-  ];
+  summary: ExpenseChartSummary;
 }
 
 export function ExpenseCharts({
-  expenses,
-  allTags,
+  summary,
   displayCurrency,
   rates,
 }: ExpenseChartsProps) {
   const { privacyMode } = usePrivacyMode();
   const chartTheme = useChartTheme();
   const [selectedTags, setSelectedTags] = useState<string[]>([]);
-  const ctx = { displayCurrency, rates };
 
-  const filteredExpenses = useMemo(
-    () => expenses.filter((expense) => expenseMatchesTags(expense, selectedTags)),
-    [expenses, selectedTags],
-  );
-
-  const tagData = useMemo(
-    () => groupByTags(filteredExpenses, ctx),
-    [filteredExpenses, displayCurrency, rates],
-  );
-  const typeData = useMemo(
-    () => groupBySubscription(filteredExpenses, ctx),
-    [filteredExpenses, displayCurrency, rates],
+  const allTags = useMemo(
+    () => summary.byTag.map((entry) => entry.tag),
+    [summary.byTag],
   );
 
-  const total = filteredExpenses.reduce(
-    (sum, e) => sum + toDisplayAmount(e.amount, e.currency, ctx),
-    0,
-  );
+  const tagData = useMemo(() => {
+    const minorDivisor = displayCurrency === "cop" ? 1 : 100;
+    return summary.byTag
+      .filter(
+        (entry) =>
+          selectedTags.length === 0 || selectedTags.includes(entry.tag),
+      )
+      .map((entry) => ({
+        tag: entry.tag,
+        amount: entry.amount / minorDivisor,
+      }));
+  }, [summary.byTag, selectedTags, displayCurrency]);
+
+  const typeData = useMemo(() => {
+    const minorDivisor = displayCurrency === "cop" ? 1 : 100;
+    const { subscription, other } = summary.subscriptionSplit;
+    return [
+      { name: "subscriptions", value: subscription / minorDivisor },
+      { name: "other", value: other / minorDivisor },
+    ];
+  }, [summary.subscriptionSplit, displayCurrency]);
+
+  const total = tagData.reduce((sum, entry) => sum + entry.amount, 0);
 
   const minorDivisor = displayCurrency === "cop" ? 1 : 100;
 
@@ -138,7 +94,7 @@ export function ExpenseCharts({
     >
       <SectionHeader
         title="expense_analytics"
-        subtitle={`total: ${formatChartValue(total / minorDivisor)} // ${selectedTags.length > 0 ? `filtered by ${selectedTags.length} tag(s)` : "all expenses"}`}
+        subtitle={`total: ${formatChartValue(total)} // ${selectedTags.length > 0 ? `filtered by ${selectedTags.length} tag(s)` : "all expenses"}`}
       />
 
       {allTags.length > 0 && (

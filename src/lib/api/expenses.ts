@@ -1,5 +1,11 @@
 
-import type { CurrencyCode, ExpenseWithTags } from "@/lib/types/domain";
+import type {
+  CurrencyCode,
+  ExpensePeriodKey,
+  ExpensePeriodView,
+  ExpenseWithTags,
+  PayableFutureItem,
+} from "@/lib/types/domain";
 import { apiFetch } from "./client";
 
 export interface CreateExpenseInput {
@@ -21,8 +27,39 @@ export interface EarlyPayExpenseInput {
   plannedExpenseId?: string;
 }
 
-export async function getExpenses(): Promise<ExpenseWithTags[]> {
-  return apiFetch<ExpenseWithTags[]>("/api/v1/expenses");
+export async function getExpenses(
+  from?: string,
+  to?: string,
+): Promise<ExpenseWithTags[]> {
+  const params = new URLSearchParams();
+  if (from && to) {
+    params.set("from", from);
+    params.set("to", to);
+  }
+  const query = params.toString();
+  return apiFetch<ExpenseWithTags[]>(
+    `/api/v1/expenses${query ? `?${query}` : ""}`,
+  );
+}
+
+export async function getExpensePeriodView(
+  period: ExpensePeriodKey,
+): Promise<ExpensePeriodView> {
+  const params = new URLSearchParams({
+    period,
+    includeProjected: "true",
+  });
+  return apiFetch<ExpensePeriodView>(
+    `/api/v1/expenses/period-view?${params.toString()}`,
+  );
+}
+
+export async function getUpcomingPayable(
+  horizonDays = 30,
+): Promise<PayableFutureItem[]> {
+  return apiFetch<PayableFutureItem[]>(
+    `/api/v1/expenses/upcoming-payable?horizonDays=${horizonDays}`,
+  );
 }
 
 export async function getExpenseById(

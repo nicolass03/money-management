@@ -5,6 +5,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { SectionHeader } from "@/components/ui/section-header";
+import { Skeleton } from "@/components/ui/skeleton";
 import { MoneyText } from "@/components/layout/privacy-mode";
 import { formatMoney } from "@/lib/currency/format";
 import { toDisplayAmount, type MoneyDisplayContext } from "@/lib/currency/display";
@@ -14,10 +15,12 @@ import { IncomeScheduleList } from "./income-schedule-list";
 
 interface PaySchedulesProps extends MoneyDisplayContext {
   schedules: IncomePaySchedule[];
+  loading?: boolean;
 }
 
 export function PaySchedules({
   schedules,
+  loading = false,
   displayCurrency,
   rates,
 }: PaySchedulesProps) {
@@ -39,30 +42,36 @@ export function PaySchedules({
           className="mb-0"
         />
         <div className="flex shrink-0 items-center gap-3">
-          {schedules.length > 0 && (
-            <Badge variant="accent">
-              <MoneyText
-                value={formatMoney(
-                  perCycleTotal,
-                  displayCurrency,
-                  displayCurrency,
-                  rates,
-                )}
-              />
-              /cycle
-            </Badge>
+          {loading ? (
+            <Skeleton className="h-5 w-24" />
+          ) : (
+            schedules.length > 0 && (
+              <Badge variant="accent">
+                <MoneyText
+                  value={formatMoney(
+                    perCycleTotal,
+                    displayCurrency,
+                    displayCurrency,
+                    rates,
+                  )}
+                />
+                /cycle
+              </Badge>
+            )
           )}
-          <Button
-            size="sm"
-            variant={showAdd ? "ghost" : "primary"}
-            onClick={() => setShowAdd((open) => !open)}
-          >
-            {showAdd ? "cancel" : "+ add schedule"}
-          </Button>
+          {!loading && (
+            <Button
+              size="sm"
+              variant={showAdd ? "ghost" : "primary"}
+              onClick={() => setShowAdd((open) => !open)}
+            >
+              {showAdd ? "cancel" : "+ add schedule"}
+            </Button>
+          )}
         </div>
       </div>
 
-      {showAdd && (
+      {showAdd && !loading && (
         <Card className="mb-4">
           <p className="mb-4 font-mono text-xs text-muted">
             set an anchor pay date — future pay dates are derived from it
@@ -80,6 +89,7 @@ export function PaySchedules({
 
       <IncomeScheduleList
         schedules={schedules}
+        loading={loading}
         displayCurrency={displayCurrency}
         rates={rates}
       />

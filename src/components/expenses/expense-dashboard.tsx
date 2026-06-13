@@ -1,85 +1,31 @@
-import { useMemo, useState } from "react";
+import { useState } from "react";
 import { Link } from "@tanstack/react-router";
 import { Button } from "@/components/ui/button";
 import { SectionHeader } from "@/components/ui/section-header";
 import { CurrentPeriodExpenses } from "./current-period-expenses";
 import { ExpenseCharts } from "./expense-charts";
+import { ExpenseChartsSkeleton } from "./expense-loading-skeletons";
 import { ExpensePeriodSelector } from "./expense-period-selector";
+import { useExpensePeriodView, useUpcomingPayable } from "@/hooks/use-queries";
 import type { MoneyDisplayContext } from "@/lib/currency/display";
-import type {
-  BudgetWithTags,
-  ExpenseWithTags,
-  IncomePaySchedule,
-  PlannedExpenseWithTags,
-  RecurringExpenseWithTags,
-} from "@/lib/types/domain";
-import {
-  filterExpensesByPeriod,
-  getExpensePeriodView,
-  type ExpensePeriodKey,
-} from "@/lib/expenses/expense-period-range";
-import type { PayableFutureItem } from "@/lib/projections/upcoming-payable";
+import type { ExpensePeriodKey, IncomePaySchedule } from "@/lib/types/domain";
 
 interface ExpenseDashboardProps extends MoneyDisplayContext {
-  allExpenses: ExpenseWithTags[];
-  allTags: string[];
   primarySchedule: IncomePaySchedule | null;
-  recurringExpenses: RecurringExpenseWithTags[];
-  plannedExpenses: PlannedExpenseWithTags[];
-  budgets: BudgetWithTags[];
-  upcomingPayableItems: PayableFutureItem[];
 }
 
 export function ExpenseDashboard({
-  allExpenses,
-  allTags,
   primarySchedule,
-  recurringExpenses,
-  plannedExpenses,
-  budgets,
-  upcomingPayableItems,
   displayCurrency,
   rates,
 }: ExpenseDashboardProps) {
   const [periodKey, setPeriodKey] = useState<ExpensePeriodKey>("last-period");
-  const today = new Date().toISOString().slice(0, 10);
 
-  const periodExpenses = useMemo(
-    () =>
-      filterExpensesByPeriod(
-        allExpenses,
-        periodKey,
-        primarySchedule,
-        today,
-      ),
-    [allExpenses, periodKey, primarySchedule, today],
-  );
+  const periodViewQuery = useExpensePeriodView(periodKey);
+  const upcomingQuery = useUpcomingPayable();
 
-  const periodView = useMemo(
-    () =>
-      getExpensePeriodView({
-        periodKey,
-        primarySchedule,
-        expenses: allExpenses,
-        recurringExpenses,
-        plannedExpenses,
-        budgets,
-        displayCurrency,
-        rates,
-        today,
-      }),
-    [
-      periodKey,
-      primarySchedule,
-      allExpenses,
-      recurringExpenses,
-      plannedExpenses,
-      budgets,
-      displayCurrency,
-      rates,
-      today,
-    ],
-  );
+  const periodView = periodViewQuery.data ?? null;
+  const upcomingPayableItems = upcomingQuery.data ?? [];
 
   return (
     <div>
@@ -114,18 +60,23 @@ export function ExpenseDashboard({
         className="mb-4"
       />
 
-      <ExpenseCharts
-        expenses={periodExpenses}
-        allTags={allTags}
-        displayCurrency={displayCurrency}
-        rates={rates}
-      />
+      {periodViewQuery.isLoading ? (
+        <ExpenseChartsSkeleton />
+      ) : periodView ? (
+        <ExpenseCharts
+          summary={periodView}
+          displayCurrency={displayCurrency}
+          rates={rates}
+        />
+      ) : null}
 
       <CurrentPeriodExpenses
         primarySchedule={primarySchedule}
         periodView={periodView}
         periodKey={periodKey}
+        periodLoading={periodViewQuery.isLoading}
         upcomingPayableItems={upcomingPayableItems}
+        upcomingLoading={upcomingQuery.isLoading}
         displayCurrency={displayCurrency}
         rates={rates}
       />

@@ -4,6 +4,7 @@ import { useState, useTransition } from "react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
+import { CardListSkeleton } from "@/components/ui/list-skeletons";
 import { MoneyText } from "@/components/layout/privacy-mode";
 import { useDeleteIncome } from "@/lib/mutations/income";
 import { formatMoney } from "@/lib/currency/format";
@@ -15,10 +16,12 @@ import { IncomeForm } from "./income-form";
 
 interface IncomeEntryListProps extends MoneyDisplayContext {
   entries: Income[];
+  loading?: boolean;
 }
 
 export function IncomeEntryList({
   entries,
+  loading = false,
   displayCurrency,
   rates,
 }: IncomeEntryListProps) {
@@ -33,6 +36,10 @@ export function IncomeEntryList({
         setEditingId(null);
       }
     });
+  }
+
+  if (loading) {
+    return <CardListSkeleton count={3} label="loading income entries" />;
   }
 
   if (entries.length === 0) {

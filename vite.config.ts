@@ -1,6 +1,5 @@
 import path from "node:path";
 import { defineConfig } from "vite";
-import react from "@vitejs/plugin-react";
 import { TanStackRouterVite } from "@tanstack/router-plugin/vite";
 
 export default defineConfig({
@@ -9,8 +8,10 @@ export default defineConfig({
       target: "react",
       autoCodeSplitting: true,
     }),
-    react(),
   ],
+  esbuild: {
+    jsx: "automatic",
+  },
   resolve: {
     alias: {
       "@": path.resolve(__dirname, "./src"),

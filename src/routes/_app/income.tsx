@@ -1,11 +1,12 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { IncomeDashboard } from "@/components/income/income-dashboard";
-import { LoadingIndicator } from "@/components/ui/loading-indicator";
 import {
   useIncome,
   useIncomeSchedules,
   useMoneyContext,
 } from "@/hooks/use-queries";
+import type { ExchangeRates } from "@/lib/currency/convert";
+import type { CurrencyCode } from "@/lib/types/constants";
 
 export const Route = createFileRoute("/_app/income")({
   component: IncomePage,
@@ -16,16 +17,18 @@ function IncomePage() {
   const schedules = useIncomeSchedules();
   const money = useMoneyContext();
 
-  if (entries.isLoading || schedules.isLoading || money.isLoading || !money.data) {
-    return <LoadingIndicator label="fetching data" />;
-  }
+  const displayCurrency: CurrencyCode = money.data?.displayCurrency ?? "usd";
+  const rates: ExchangeRates =
+    money.data?.rates ?? { base: "USD", rates: {}, fetchedAt: "" };
 
   return (
     <IncomeDashboard
       entries={entries.data ?? []}
       schedules={schedules.data ?? []}
-      displayCurrency={money.data.displayCurrency}
-      rates={money.data.rates}
+      entriesLoading={entries.isLoading || money.isLoading}
+      schedulesLoading={schedules.isLoading || money.isLoading}
+      displayCurrency={displayCurrency}
+      rates={rates}
     />
   );
 }

@@ -15,15 +15,21 @@ import { maskNumericValue } from "@/lib/privacy/mask";
 import type { MoneyDisplayContext } from "@/lib/currency/display";
 import { formatProjectionExpenseAmount } from "@/lib/currency/expense-display";
 import { ExpenseAmount } from "./expense-amount";
-import type { CurrencyCode, IncomePaySchedule } from "@/lib/types/domain";
-import type { ProjectionExpenseItem } from "@/lib/projections/build-projection";
 import type {
+  CurrencyCode,
   ExpensePeriodKey,
   ExpensePeriodView,
-} from "@/lib/expenses/expense-period-range";
-import type { PayableFutureItem } from "@/lib/projections/upcoming-payable";
+  IncomePaySchedule,
+  PayableFutureItem,
+  ProjectionExpenseItem,
+} from "@/lib/types/domain";
+import { Skeleton } from "@/components/ui/skeleton";
 import { cn, formatCentsAsDollarsInput, formatDate } from "@/lib/utils";
 import { ExpenseForm } from "./expense-form";
+import {
+  EarlyPaymentPanelSkeleton,
+  ExpensePeriodListSkeleton,
+} from "./expense-loading-skeletons";
 import { MarkEarlyPaymentPanel } from "./mark-early-payment-panel";
 import { TagList } from "./tag-input";
 
@@ -31,7 +37,9 @@ interface CurrentPeriodExpensesProps extends MoneyDisplayContext {
   primarySchedule: IncomePaySchedule | null;
   periodView: ExpensePeriodView | null;
   periodKey: ExpensePeriodKey;
+  periodLoading?: boolean;
   upcomingPayableItems: PayableFutureItem[];
+  upcomingLoading?: boolean;
 }
 
 function periodSectionTitle(periodKey: ExpensePeriodKey): string {
@@ -251,7 +259,9 @@ export function CurrentPeriodExpenses({
   primarySchedule,
   periodView,
   periodKey,
+  periodLoading = false,
   upcomingPayableItems,
+  upcomingLoading = false,
   displayCurrency,
   rates,
 }: CurrentPeriodExpensesProps) {
@@ -287,7 +297,9 @@ export function CurrentPeriodExpenses({
 
   const listItems = sortByDueDate(periodView?.items ?? []);
 
-  const total = listItems.reduce((sum, item) => sum + item.convertedAmount, 0);
+  const total =
+    periodView?.totalSpend ??
+    listItems.reduce((sum, item) => sum + item.convertedAmount, 0);
 
   const canAddExpense = periodKey === "last-period" && periodView?.isPayPeriod;
 
@@ -296,14 +308,24 @@ export function CurrentPeriodExpenses({
       <div className="mb-4 flex flex-wrap items-center justify-between gap-4">
         <SectionHeader
           title={periodSectionTitle(periodKey)}
-          subtitle={periodSectionSubtitle(periodView, periodKey)}
+          subtitle={
+            periodLoading ? (
+              <Skeleton className="h-3 w-56" />
+            ) : (
+              periodSectionSubtitle(periodView, periodKey)
+            )
+          }
           className="mb-0"
         />
         <div className="flex items-center gap-3">
-          {listItems.length > 0 && (
-            <Badge variant="accent">{formatDisplay(total)}</Badge>
+          {periodLoading ? (
+            <Skeleton className="h-5 w-20" />
+          ) : (
+            listItems.length > 0 && (
+              <Badge variant="accent">{formatDisplay(total)}</Badge>
+            )
           )}
-          {canAddExpense && primarySchedule && periodView && (
+          {!periodLoading && canAddExpense && primarySchedule && periodView && (
             <Button
               size="sm"
               variant={showAdd ? "ghost" : "primary"}
@@ -328,7 +350,9 @@ export function CurrentPeriodExpenses({
       )}
 
       <Card>
-        {periodKey === "last-period" && !primarySchedule ? (
+        {periodLoading ? (
+          <ExpensePeriodListSkeleton />
+        ) : periodKey === "last-period" && !primarySchedule ? (
           <p className="font-mono text-sm text-muted">
             {"> set a primary pay schedule in "}
             <Link
@@ -362,13 +386,17 @@ export function CurrentPeriodExpenses({
         )}
       </Card>
 
-      {canAddExpense && primarySchedule && periodView && (
-        <MarkEarlyPaymentPanel
-          upcomingItems={upcomingPayableItems}
-          periodStartDate={periodView.period.startDate}
-          periodEndDate={periodView.period.endDate}
-          defaultPaidDate={today}
-        />
+      {canAddExpense && primarySchedule && (periodView || periodLoading) && (
+        periodLoading || upcomingLoading ? (
+          <EarlyPaymentPanelSkeleton />
+        ) : periodView ? (
+          <MarkEarlyPaymentPanel
+            upcomingItems={upcomingPayableItems}
+            periodStartDate={periodView.period.startDate}
+            periodEndDate={periodView.period.endDate}
+            defaultPaidDate={today}
+          />
+        ) : null
       )}
     </section>
   );

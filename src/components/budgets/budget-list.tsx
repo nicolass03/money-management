@@ -2,12 +2,14 @@
 
 import type { MoneyDisplayContext } from "@/lib/currency/display";
 import type { BudgetWithTags, ExpenseWithTags } from "@/lib/types/domain";
+import { CardListSkeleton } from "@/components/ui/list-skeletons";
 import { getBudgetStatus } from "@/lib/budgets/budget-status";
 import { BudgetCard } from "./budget-card";
 
 interface BudgetListProps extends MoneyDisplayContext {
   budgets: BudgetWithTags[];
   budgetExpenses: Record<string, ExpenseWithTags[]>;
+  loading?: boolean;
 }
 
 const GROUP_ORDER = [
@@ -29,9 +31,14 @@ const GROUP_LABELS: Record<(typeof GROUP_ORDER)[number], string> = {
 export function BudgetList({
   budgets,
   budgetExpenses,
+  loading = false,
   displayCurrency,
   rates,
 }: BudgetListProps) {
+  if (loading) {
+    return <CardListSkeleton count={3} label="loading budgets" />;
+  }
+
   if (budgets.length === 0) {
     return (
       <p className="font-mono text-sm text-muted">

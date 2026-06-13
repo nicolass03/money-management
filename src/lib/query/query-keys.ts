@@ -3,6 +3,11 @@ export const queryKeys = {
   moneyContext: (forceRefresh?: boolean) =>
     ["moneyContext", forceRefresh ?? false] as const,
   expenses: () => ["expenses"] as const,
+  expensePeriodView: (period: string) =>
+    ["expensePeriodView", period, true] as const,
+  expensePeriodViews: () => ["expensePeriodView"] as const,
+  upcomingPayable: (horizonDays?: number) =>
+    ["upcomingPayable", horizonDays ?? 30] as const,
   recurringExpenses: () => ["recurringExpenses"] as const,
   plannedExpenses: () => ["plannedExpenses"] as const,
   budgets: () => ["budgets"] as const,
@@ -27,21 +32,32 @@ export type InvalidationEvent =
 type QueryKey = readonly unknown[];
 
 const invalidationMap: Record<InvalidationEvent, QueryKey[]> = {
-  expenseChange: [queryKeys.expenses(), queryKeys.projections()],
+  expenseChange: [
+    queryKeys.expenses(),
+    queryKeys.projections(),
+    queryKeys.expensePeriodViews(),
+    queryKeys.upcomingPayable(),
+  ],
   recurringChange: [
     queryKeys.recurringExpenses(),
     queryKeys.expenses(),
     queryKeys.projections(),
+    queryKeys.expensePeriodViews(),
+    queryKeys.upcomingPayable(),
   ],
   plannedChange: [
     queryKeys.plannedExpenses(),
     queryKeys.expenses(),
     queryKeys.projections(),
+    queryKeys.expensePeriodViews(),
+    queryKeys.upcomingPayable(),
   ],
   budgetChange: [
     queryKeys.budgets(),
     queryKeys.expenses(),
     queryKeys.projections(),
+    queryKeys.expensePeriodViews(),
+    queryKeys.upcomingPayable(),
   ],
   incomeChange: [queryKeys.income(), queryKeys.projections()],
   scheduleChange: [
@@ -49,6 +65,7 @@ const invalidationMap: Record<InvalidationEvent, QueryKey[]> = {
     queryKeys.income(),
     queryKeys.projections(),
     queryKeys.settings(),
+    queryKeys.expensePeriodViews(),
   ],
   settingsChange: [
     queryKeys.settings(),
@@ -56,6 +73,8 @@ const invalidationMap: Record<InvalidationEvent, QueryKey[]> = {
     queryKeys.projections(),
     queryKeys.income(),
     queryKeys.expenses(),
+    queryKeys.expensePeriodViews(),
+    queryKeys.upcomingPayable(),
   ],
   moneyContextRefresh: [queryKeys.moneyContext()],
 };

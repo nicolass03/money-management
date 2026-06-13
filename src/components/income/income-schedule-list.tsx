@@ -4,6 +4,7 @@ import { useState, useTransition } from "react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
+import { CardListSkeleton } from "@/components/ui/list-skeletons";
 import { MoneyText } from "@/components/layout/privacy-mode";
 import { useDeleteSchedule } from "@/lib/mutations/income-schedules";
 import { formatMoney } from "@/lib/currency/format";
@@ -19,10 +20,12 @@ import { IncomeScheduleForm } from "./income-schedule-form";
 
 interface IncomeScheduleListProps extends MoneyDisplayContext {
   schedules: IncomePaySchedule[];
+  loading?: boolean;
 }
 
 export function IncomeScheduleList({
   schedules,
+  loading = false,
   displayCurrency,
   rates,
 }: IncomeScheduleListProps) {
@@ -37,6 +40,10 @@ export function IncomeScheduleList({
         setEditingId(null);
       }
     });
+  }
+
+  if (loading) {
+    return <CardListSkeleton count={2} label="loading pay schedules" />;
   }
 
   if (schedules.length === 0) {

@@ -1,6 +1,10 @@
 import { useQuery } from "@tanstack/react-query";
 import { getBudgetExpenses, getBudgets } from "@/lib/api/budgets";
-import { getExpenses } from "@/lib/api/expenses";
+import {
+  getExpensePeriodView,
+  getExpenses,
+  getUpcomingPayable,
+} from "@/lib/api/expenses";
 import { getIncome } from "@/lib/api/income";
 import { getIncomeScheduleById, getIncomeSchedules } from "@/lib/api/income-schedules";
 import { getMoneyContext } from "@/lib/api/money-context";
@@ -12,6 +16,7 @@ import { getUserSettingsFromApi } from "@/lib/api/settings";
 import { getAllTagNames } from "@/lib/api/tags";
 import { ApiError } from "@/lib/api/client";
 import { queryKeys } from "@/lib/query/query-keys";
+import type { ExpensePeriodKey } from "@/lib/types/domain";
 
 export function useSettings() {
   return useQuery({
@@ -27,10 +32,33 @@ export function useMoneyContext(forceRefresh = false) {
   });
 }
 
-export function useExpenses() {
+export function useExpenses(from?: string, to?: string) {
   return useQuery({
-    queryKey: queryKeys.expenses(),
-    queryFn: getExpenses,
+    queryKey:
+      from && to
+        ? ([...queryKeys.expenses(), from, to] as const)
+        : queryKeys.expenses(),
+    queryFn: () => getExpenses(from, to),
+  });
+}
+
+export function useExpensePeriodView(period: ExpensePeriodKey) {
+  return useQuery({
+    queryKey: queryKeys.expensePeriodView(period),
+    queryFn: () => getExpensePeriodView(period),
+    retry: (failureCount, error) => {
+      if (error instanceof ApiError && error.status === 400) {
+        return false;
+      }
+      return failureCount < 1;
+    },
+  });
+}
+
+export function useUpcomingPayable(horizonDays = 30) {
+  return useQuery({
+    queryKey: queryKeys.upcomingPayable(horizonDays),
+    queryFn: () => getUpcomingPayable(horizonDays),
   });
 }
 

@@ -5,6 +5,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { SectionHeader } from "@/components/ui/section-header";
+import { Skeleton } from "@/components/ui/skeleton";
 import { MoneyText } from "@/components/layout/privacy-mode";
 import { formatMoney } from "@/lib/currency/format";
 import { toDisplayAmount, type MoneyDisplayContext } from "@/lib/currency/display";
@@ -16,11 +17,13 @@ import { IncomeForm } from "./income-form";
 interface IncomeEntriesProps extends MoneyDisplayContext {
   entries: Income[];
   schedules: IncomePaySchedule[];
+  loading?: boolean;
 }
 
 export function IncomeEntries({
   entries,
   schedules,
+  loading = false,
   displayCurrency,
   rates,
 }: IncomeEntriesProps) {
@@ -43,24 +46,30 @@ export function IncomeEntries({
           className="mb-0"
         />
         <div className="flex shrink-0 items-center gap-3">
-          {visibleEntries.length > 0 && (
-            <Badge variant="success">
-              <MoneyText
-                value={formatMoney(total, displayCurrency, displayCurrency, rates)}
-              />
-            </Badge>
+          {loading ? (
+            <Skeleton className="h-5 w-20" />
+          ) : (
+            visibleEntries.length > 0 && (
+              <Badge variant="success">
+                <MoneyText
+                  value={formatMoney(total, displayCurrency, displayCurrency, rates)}
+                />
+              </Badge>
+            )
           )}
-          <Button
-            size="sm"
-            variant={showAdd ? "ghost" : "primary"}
-            onClick={() => setShowAdd((open) => !open)}
-          >
-            {showAdd ? "cancel" : "+ add income"}
-          </Button>
+          {!loading && (
+            <Button
+              size="sm"
+              variant={showAdd ? "ghost" : "primary"}
+              onClick={() => setShowAdd((open) => !open)}
+            >
+              {showAdd ? "cancel" : "+ add income"}
+            </Button>
+          )}
         </div>
       </div>
 
-      {showAdd && (
+      {showAdd && !loading && (
         <Card className="mb-4">
           <IncomeForm
             defaultDate={today}
@@ -72,6 +81,7 @@ export function IncomeEntries({
 
       <IncomeEntryList
         entries={visibleEntries}
+        loading={loading}
         displayCurrency={displayCurrency}
         rates={rates}
       />

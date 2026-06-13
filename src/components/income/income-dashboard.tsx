@@ -1,6 +1,7 @@
-import { MoneyText } from "@/components/layout/privacy-mode";
 import { Badge } from "@/components/ui/badge";
 import { SectionHeader } from "@/components/ui/section-header";
+import { Skeleton } from "@/components/ui/skeleton";
+import { MoneyText } from "@/components/layout/privacy-mode";
 import { formatMoney } from "@/lib/currency/format";
 import { toDisplayAmount, type MoneyDisplayContext } from "@/lib/currency/display";
 import type { Income, IncomePaySchedule } from "@/lib/types/domain";
@@ -10,6 +11,8 @@ import { PaySchedules } from "./pay-schedules";
 interface IncomeDashboardProps extends MoneyDisplayContext {
   entries: Income[];
   schedules: IncomePaySchedule[];
+  entriesLoading?: boolean;
+  schedulesLoading?: boolean;
 }
 
 function sumEntries(
@@ -26,6 +29,8 @@ function sumEntries(
 export function IncomeDashboard({
   entries,
   schedules,
+  entriesLoading = false,
+  schedulesLoading = false,
   displayCurrency,
   rates,
 }: IncomeDashboardProps) {
@@ -40,17 +45,22 @@ export function IncomeDashboard({
           subtitle="manage pay schedules and track earnings"
           className="mb-0"
         />
-        {entries.length > 0 && (
-          <Badge variant="success">
-            <MoneyText
-              value={formatMoney(total, displayCurrency, displayCurrency, rates)}
-            />
-          </Badge>
+        {entriesLoading ? (
+          <Skeleton className="h-5 w-20" />
+        ) : (
+          entries.length > 0 && (
+            <Badge variant="success">
+              <MoneyText
+                value={formatMoney(total, displayCurrency, displayCurrency, rates)}
+              />
+            </Badge>
+          )
         )}
       </div>
 
       <PaySchedules
         schedules={schedules}
+        loading={schedulesLoading}
         displayCurrency={displayCurrency}
         rates={rates}
       />
@@ -58,6 +68,7 @@ export function IncomeDashboard({
       <IncomeEntries
         entries={entries}
         schedules={schedules}
+        loading={entriesLoading}
         displayCurrency={displayCurrency}
         rates={rates}
       />

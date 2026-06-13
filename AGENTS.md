@@ -48,6 +48,7 @@ If `cargo run` fails with `DATABASE_URL is required` while `.env` is set, the sh
 ## Vite SPA (TanStack Router + Query)
 
 - **Vite 6** + React 19. Entry: `index.html` → `src/main.tsx`. Routes: file-based under `src/routes/` (TanStack Router plugin generates `src/routeTree.gen.ts`).
+- **JSX via esbuild** — `vite.config.ts` sets `esbuild: { jsx: 'automatic' }`. Do **not** add `@vitejs/plugin-react` unless you need React Fast Refresh; its dev path uses Babel + `react-refresh`, which broke when `@babel/types@7.29` removed `t.identifier()` (esbuild is Vite's default and avoids that toolchain).
 - **No Next.js** — no RSC, Server Actions, or middleware. Auth uses `@supabase/supabase-js` in the browser (`src/lib/supabase/client.ts`, `src/lib/auth/session-store.tsx`).
 - All data goes through `src/lib/api/*` → Rust API with `Authorization: Bearer` from the Supabase session (`src/lib/api/client.ts`).
 - **TanStack Query** hooks in `src/hooks/use-queries.ts`; mutations in `src/lib/mutations/*`. Cache invalidation mirrors iOS `InvalidationMap` in `src/lib/query/invalidation.ts` — call `invalidateAfter(queryClient, event)` after writes.
@@ -58,6 +59,17 @@ If `cargo run` fails with `DATABASE_URL is required` while `.env` is set, the sh
 - HTTP security headers for production are set in `nginx/default.conf.template` (CSP, HSTS). Health check: `GET /health`.
 - `server.js` remains for local `npm start` only; Railway serves via **nginx** in Docker.
 - Ensure Rust API `CORS_ORIGIN` includes the deployed UI origin (browser calls API directly, same as iOS).
+
+## Expenses tab loading
+
+The expenses tab no longer blocks on 8 parallel fetches. Init uses **settings** (with embedded `primarySchedule`), **money-context**, and section queries:
+
+- `useExpensePeriodView(period)` → hero + period list **and charts** (`byTag` / `subscriptionSplit` are embedded in the period-view response, so `ExpenseCharts` reads `periodView` directly — there is no separate chart-summary request)
+- `useUpcomingPayable()` → early-pay panel
+
+Each section shows **inline skeletons** (`src/components/ui/skeleton.tsx`, `src/components/ui/list-skeletons.tsx`, `src/components/expenses/expense-loading-skeletons.tsx`) for backend-dependent content; the shell renders immediately. Tags load only when opening the expense form. Period toggle refetches period-view only.
+
+**Budgets, income, projections** use the same pattern — page shell + section skeletons; no full-screen `LoadingIndicator` on those tabs (component kept for auth/login and other routes).
 
 ## Railway deployment (UI)
 

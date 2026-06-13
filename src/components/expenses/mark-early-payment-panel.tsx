@@ -9,7 +9,7 @@ import { formatNativeMoney } from "@/lib/currency/format";
 import { formatCurrencyLabel } from "@/lib/currency/types";
 import { currencies, type CurrencyCode } from "@/lib/types/constants";
 import { maskNumericValue } from "@/lib/privacy/mask";
-import type { PayableFutureItem } from "@/lib/projections/upcoming-payable";
+import type { PayableFutureItem } from "@/lib/types/domain";
 import { cn, formatCentsAsDollarsInput, formatDate } from "@/lib/utils";
 
 

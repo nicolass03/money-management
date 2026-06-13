@@ -12,8 +12,10 @@ export interface UserSettings {
   id: string;
   displayCurrency: CurrencyCode;
   primaryScheduleId: string | null;
+  primarySchedule?: IncomePaySchedule | null;
   projectionInitialFreeMoney: number;
   projectionStartDate: string | null;
+  cacheRevision: number;
   updatedAt: string;
 }
 
@@ -137,4 +139,37 @@ export interface ProjectionRow {
   cumulativeFree: number;
   expenseItems: ProjectionExpenseItem[];
   isPast: boolean;
+}
+
+export type ExpensePeriodKey = "last-period" | "last-month" | "last-3-months";
+
+export interface ExpenseChartSummary {
+  byTag: { tag: string; amount: number }[];
+  subscriptionSplit: { subscription: number; other: number };
+}
+
+// The period-view response embeds the chart aggregates (byTag / subscriptionSplit) for the
+// resolved period, so the client makes one request instead of a separate chart-summary call.
+export interface ExpensePeriodView extends ExpenseChartSummary {
+  period: {
+    payDate: string;
+    startDate: string;
+    endDate: string;
+  };
+  items: ProjectionExpenseItem[];
+  totalSpend: number;
+  isPayPeriod: boolean;
+}
+
+export interface PayableFutureItem {
+  key: string;
+  sourceType: "recurring" | "planned";
+  recurringId?: string;
+  plannedExpenseId?: string;
+  scheduledDate: string;
+  name: string;
+  amount: number;
+  currency: CurrencyCode;
+  tags: string[];
+  isSubscription: boolean;
 }

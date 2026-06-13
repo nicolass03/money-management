@@ -1,0 +1,14 @@
+{
+	"folders": [
+		{
+			"path": "../.."
+		},
+		{
+			"path": "../../../money-management-api"
+		},
+		{
+			"path": "../../../money-management-ios"
+		}
+	],
+	"settings": {}
+}
