@@ -1,7 +1,4 @@
-"use client";
-
-import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { Link, useRouterState } from "@tanstack/react-router";
 import { motion } from "framer-motion";
 import { cn } from "@/lib/utils";
 
@@ -11,11 +8,11 @@ interface NavItemProps {
 }
 
 export function NavItem({ href, label }: NavItemProps) {
-  const pathname = usePathname();
+  const pathname = useRouterState({ select: (s) => s.location.pathname });
   const isActive = pathname === href || pathname.startsWith(`${href}/`);
 
   return (
-    <Link href={href} className="relative block">
+    <Link to={href} className="relative block">
       {isActive && (
         <motion.div
           layoutId="sidebar-active"

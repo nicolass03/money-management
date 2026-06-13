@@ -1,14 +1,8 @@
-"use client";
-
-import { useActionState, useEffect, useState } from "react";
+import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { cn } from "@/lib/utils";
-import {
-  createSchedule,
-  updateSchedule,
-  type ScheduleFormState,
-} from "@/lib/actions/income-schedules";
+import { useCreateSchedule, useUpdateSchedule } from "@/lib/mutations/income-schedules";
 import { MoneyText } from "@/components/layout/privacy-mode";
 import { formatMoney } from "@/lib/currency/format";
 import type { MoneyDisplayContext } from "@/lib/currency/display";
@@ -25,8 +19,6 @@ import {
   formatDate,
   parseDollarsToCents,
 } from "@/lib/utils";
-
-const initialState: ScheduleFormState = {};
 
 interface IncomeScheduleFormProps extends MoneyDisplayContext {
   schedule?: IncomePaySchedule;
@@ -53,18 +45,25 @@ export function IncomeScheduleForm({
   const [amount, setAmount] = useState(
     schedule ? formatCentsAsDollarsInput(schedule.amount) : "",
   );
+  const [error, setError] = useState("");
 
-  const action = isEditing
-    ? updateSchedule.bind(null, schedule!.id)
-    : createSchedule;
+  const createSchedule = useCreateSchedule();
+  const updateSchedule = useUpdateSchedule();
+  const pending = createSchedule.isPending || updateSchedule.isPending;
 
-  const [state, formAction, pending] = useActionState(action, initialState);
-
-  useEffect(() => {
-    if (state.success) {
-      onSuccess?.();
+  async function handleSubmit(e: React.FormEvent) {
+    e.preventDefault();
+    setError("");
+    const input = { name, anchorDate, frequency, amount, currency };
+    const result = isEditing
+      ? await updateSchedule.mutateAsync({ id: schedule!.id, input })
+      : await createSchedule.mutateAsync(input);
+    if (result.error) {
+      setError(result.error);
+      return;
     }
-  }, [state.success, onSuccess]);
+    onSuccess?.();
+  }
 
   const previewDates =
     anchorDate && payFrequencies.includes(frequency)
@@ -73,7 +72,7 @@ export function IncomeScheduleForm({
   const previewAmount = parseDollarsToCents(amount);
 
   return (
-    <form action={formAction} className="space-y-4">
+    <form onSubmit={handleSubmit} className="space-y-4">
       <div>
         <label
           htmlFor="schedule-name"
@@ -83,7 +82,6 @@ export function IncomeScheduleForm({
         </label>
         <Input
           id="schedule-name"
-          name="name"
           value={name}
           onChange={(e) => setName(e.target.value)}
           placeholder="Salary"
@@ -100,7 +98,6 @@ export function IncomeScheduleForm({
         </label>
         <Input
           id="schedule-anchor"
-          name="anchorDate"
           type="date"
           value={anchorDate}
           onChange={(e) => setAnchorDate(e.target.value)}
@@ -118,7 +115,6 @@ export function IncomeScheduleForm({
           </label>
           <Input
             id="schedule-amount"
-            name="amount"
             type="text"
             inputMode="decimal"
             value={amount}
@@ -137,7 +133,6 @@ export function IncomeScheduleForm({
           </label>
           <select
             id="schedule-currency"
-            name="currency"
             value={currency}
             onChange={(e) => setCurrency(e.target.value as CurrencyCode)}
             className={cn(
@@ -162,7 +157,6 @@ export function IncomeScheduleForm({
         </label>
         <select
           id="schedule-frequency"
-          name="frequency"
           value={frequency}
           onChange={(e) => setFrequency(e.target.value as PayFrequency)}
           className={cn(
@@ -206,9 +200,7 @@ export function IncomeScheduleForm({
         </div>
       )}
 
-      {state.error && (
-        <p className="font-mono text-xs text-danger">{state.error}</p>
-      )}
+      {error && <p className="font-mono text-xs text-danger">{error}</p>}
 
       <div className="flex gap-2">
         <Button type="submit" loading={pending}>

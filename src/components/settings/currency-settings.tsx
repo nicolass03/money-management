@@ -1,14 +1,11 @@
-"use client";
-
-import { useActionState, useTransition } from "react";
+import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { SectionHeader } from "@/components/ui/section-header";
 import {
-  refreshExchangeRates,
-  updateDisplayCurrency,
-  type SettingsFormState,
-} from "@/lib/actions/user-settings";
+  useRefreshExchangeRates,
+  useUpdateDisplayCurrency,
+} from "@/lib/mutations/settings";
 import type { ExchangeRates } from "@/lib/currency/convert";
 import { MoneyText, usePrivacyMode } from "@/components/layout/privacy-mode";
 import { formatMoney } from "@/lib/currency/format";
@@ -16,8 +13,6 @@ import { maskNumericValue } from "@/lib/privacy/mask";
 import { formatCurrencyLabel } from "@/lib/currency/types";
 import { currencies, type CurrencyCode } from "@/lib/types/constants";
 import { cn } from "@/lib/utils";
-
-const initialState: SettingsFormState = {};
 
 interface CurrencySettingsProps {
   displayCurrency: CurrencyCode;
@@ -29,16 +24,18 @@ export function CurrencySettings({
   rates,
 }: CurrencySettingsProps) {
   const { privacyMode } = usePrivacyMode();
-  const [currencyState, currencyAction, currencyPending] = useActionState(
-    updateDisplayCurrency,
-    initialState,
-  );
-  const [refreshPending, startRefresh] = useTransition();
+  const updateCurrency = useUpdateDisplayCurrency();
+  const refreshRates = useRefreshExchangeRates();
+  const [currencySuccess, setCurrencySuccess] = useState(false);
 
-  function handleRefresh() {
-    startRefresh(async () => {
-      await refreshExchangeRates();
-    });
+  async function handleCurrencySubmit(e: React.FormEvent<HTMLFormElement>) {
+    e.preventDefault();
+    setCurrencySuccess(false);
+    const formData = new FormData(e.currentTarget);
+    const result = await updateCurrency.mutateAsync(
+      String(formData.get("displayCurrency") ?? ""),
+    );
+    if (result.success) setCurrencySuccess(true);
   }
 
   const sampleAmounts: { currency: CurrencyCode; amount: number }[] = [
@@ -55,7 +52,7 @@ export function CurrencySettings({
       />
 
       <Card>
-        <form action={currencyAction} className="space-y-4">
+        <form onSubmit={handleCurrencySubmit} className="space-y-4">
           <div>
             <label
               htmlFor="display-currency"
@@ -79,17 +76,19 @@ export function CurrencySettings({
             </select>
           </div>
 
-          {currencyState.error && (
-            <p className="font-mono text-xs text-danger">{currencyState.error}</p>
+          {updateCurrency.data?.error && (
+            <p className="font-mono text-xs text-danger">
+              {updateCurrency.data.error}
+            </p>
           )}
-          {currencyState.success && (
+          {currencySuccess && (
             <p className="font-mono text-xs text-success">
               {"> currency updated"}
             </p>
           )}
 
-          <Button type="submit" loading={currencyPending}>
-            {currencyPending ? "saving..." : "save currency"}
+          <Button type="submit" loading={updateCurrency.isPending}>
+            {updateCurrency.isPending ? "saving..." : "save currency"}
           </Button>
         </form>
 
@@ -100,10 +99,10 @@ export function CurrencySettings({
               type="button"
               size="sm"
               variant="ghost"
-              loading={refreshPending}
-              onClick={handleRefresh}
+              loading={refreshRates.isPending}
+              onClick={() => refreshRates.mutate()}
             >
-              {refreshPending ? "refreshing..." : "refresh rates"}
+              {refreshRates.isPending ? "refreshing..." : "refresh rates"}
             </Button>
           </div>
           <p className="mt-1 font-mono text-xs text-muted">

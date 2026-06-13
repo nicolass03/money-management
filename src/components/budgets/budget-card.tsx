@@ -5,7 +5,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { MoneyText } from "@/components/layout/privacy-mode";
-import { deleteBudgetAction } from "@/lib/actions/budgets";
+import { useDeleteBudget } from "@/lib/mutations/budgets";
 import { formatMoney } from "@/lib/currency/format";
 import { toDisplayAmount, type MoneyDisplayContext } from "@/lib/currency/display";
 import type { BudgetWithTags, ExpenseWithTags } from "@/lib/types/domain";
@@ -45,6 +45,7 @@ export function BudgetCard({
   const [expanded, setExpanded] = useState(false);
   const [editing, setEditing] = useState(false);
   const [pending, startTransition] = useTransition();
+  const deleteBudget = useDeleteBudget();
   const ctx = { displayCurrency, rates };
 
   const status = getBudgetStatus(budget);
@@ -54,7 +55,7 @@ export function BudgetCard({
 
   function handleDelete() {
     startTransition(async () => {
-      await deleteBudgetAction(budget.id);
+      await deleteBudget.mutateAsync(budget.id);
     });
   }
 

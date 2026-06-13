@@ -4,7 +4,7 @@ import { useState, useTransition } from "react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { deletePlannedExpenseAction } from "@/lib/actions/planned-expenses";
+import { useDeletePlannedExpense } from "@/lib/mutations/planned-expenses";
 import type { MoneyDisplayContext } from "@/lib/currency/display";
 import { formatScheduledExpenseAmount } from "@/lib/currency/expense-display";
 import { formatCurrencyLabel } from "@/lib/currency/types";
@@ -25,10 +25,11 @@ export function PlannedExpenseList({
 }: PlannedExpenseListProps) {
   const [editingId, setEditingId] = useState<string | null>(null);
   const [pending, startTransition] = useTransition();
+  const deletePlanned = useDeletePlannedExpense();
 
   function handleDelete(id: string) {
     startTransition(async () => {
-      await deletePlannedExpenseAction(id);
+      await deletePlanned.mutateAsync(id);
       if (editingId === id) {
         setEditingId(null);
       }

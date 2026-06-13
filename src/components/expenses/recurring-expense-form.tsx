@@ -1,13 +1,10 @@
-"use client";
-
-import { useActionState, useEffect, useState } from "react";
+import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
-  createRecurringExpenseAction,
-  updateRecurringExpenseAction,
-  type RecurringFormState,
-} from "@/lib/actions/recurring-expenses";
+  useCreateRecurringExpense,
+  useUpdateRecurringExpense,
+} from "@/lib/mutations/recurring-expenses";
 import { formatScheduledExpenseAmount } from "@/lib/currency/expense-display";
 import { formatCurrencyLabel } from "@/lib/currency/types";
 import { ExpenseAmount } from "./expense-amount";
@@ -29,7 +26,6 @@ import {
 } from "@/lib/utils";
 import { TagInput } from "./tag-input";
 
-const initialState: RecurringFormState = {};
 
 interface RecurringExpenseFormProps extends MoneyDisplayContext {
   recurring?: RecurringExpenseWithTags;
@@ -66,17 +62,34 @@ export function RecurringExpenseForm({
     recurring?.lastPaymentDate ?? "",
   );
 
-  const action = isEditing
-    ? updateRecurringExpenseAction.bind(null, recurring!.id)
-    : createRecurringExpenseAction;
+  const [error, setError] = useState("");
 
-  const [state, formAction, pending] = useActionState(action, initialState);
+  const createRecurring = useCreateRecurringExpense();
+  const updateRecurring = useUpdateRecurringExpense();
+  const pending = createRecurring.isPending || updateRecurring.isPending;
 
-  useEffect(() => {
-    if (state.success) {
-      onSuccess?.();
+  async function handleSubmit(e: React.FormEvent) {
+    e.preventDefault();
+    setError("");
+    const input = {
+      name,
+      tags,
+      anchorDate,
+      frequency,
+      amount,
+      currency,
+      isSubscription,
+      lastPaymentDate,
+    };
+    const result = isEditing
+      ? await updateRecurring.mutateAsync({ id: recurring!.id, input })
+      : await createRecurring.mutateAsync(input);
+    if (result.error) {
+      setError(result.error);
+      return;
     }
-  }, [state.success, onSuccess]);
+    onSuccess?.();
+  }
 
   const previewDates =
     anchorDate && payFrequencies.includes(frequency)
@@ -92,7 +105,7 @@ export function RecurringExpenseForm({
   const previewAmount = parseDollarsToCents(amount);
 
   return (
-    <form action={formAction} className="space-y-4">
+    <form onSubmit={handleSubmit} className="space-y-4">
       <div>
         <label htmlFor="expense-name" className="mb-2 block font-mono text-xs text-muted">
           name:
@@ -242,8 +255,8 @@ export function RecurringExpenseForm({
         </div>
       )}
 
-      {state.error && (
-        <p className="font-mono text-xs text-danger">{state.error}</p>
+      {error && (
+        <p className="font-mono text-xs text-danger">{error}</p>
       )}
 
       <div className="flex gap-2">

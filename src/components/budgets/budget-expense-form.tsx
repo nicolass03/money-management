@@ -1,24 +1,17 @@
-"use client";
-
-import { useActionState, useEffect, useState } from "react";
+import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import {
-  addBudgetExpenseAction,
-  type BudgetFormState,
-} from "@/lib/actions/budgets";
+import { useAddBudgetExpense } from "@/lib/mutations/budgets";
 import type { BudgetWithTags } from "@/lib/types/domain";
 import { isDatedBudget } from "@/lib/budgets/budget-status";
 import { formatCentsAsDollarsInput } from "@/lib/utils";
-
-const initialState: BudgetFormState = {};
 
 interface BudgetExpenseFormProps {
   budget: BudgetWithTags;
   onSuccess?: () => void;
 }
 
-function todayIso(): string {
+function todayIso() {
   return new Date().toISOString().slice(0, 10);
 }
 
@@ -31,18 +24,26 @@ export function BudgetExpenseForm({ budget, onSuccess }: BudgetExpenseFormProps)
   const [name, setName] = useState("");
   const [amount, setAmount] = useState("");
   const [date, setDate] = useState(today);
+  const [error, setError] = useState("");
 
-  const action = addBudgetExpenseAction.bind(null, budget.id);
-  const [state, formAction, pending] = useActionState(action, initialState);
+  const addExpense = useAddBudgetExpense();
 
-  useEffect(() => {
-    if (state.success) {
-      setName("");
-      setAmount("");
-      setDate(todayIso());
-      onSuccess?.();
+  async function handleSubmit(e: React.FormEvent) {
+    e.preventDefault();
+    setError("");
+    const result = await addExpense.mutateAsync({
+      budgetId: budget.id,
+      input: { name, amount, date },
+    });
+    if (result.error) {
+      setError(result.error);
+      return;
     }
-  }, [state.success, onSuccess]);
+    setName("");
+    setAmount("");
+    setDate(todayIso());
+    onSuccess?.();
+  }
 
   if (!canSpend) {
     return (
@@ -59,7 +60,7 @@ export function BudgetExpenseForm({ budget, onSuccess }: BudgetExpenseFormProps)
   }
 
   return (
-    <form action={formAction} className="space-y-4">
+    <form onSubmit={handleSubmit} className="space-y-4">
       {dated && (
         <div>
           <label
@@ -70,7 +71,6 @@ export function BudgetExpenseForm({ budget, onSuccess }: BudgetExpenseFormProps)
           </label>
           <Input
             id={`budget-expense-name-${budget.id}`}
-            name="name"
             value={name}
             onChange={(e) => setName(e.target.value)}
             placeholder={budget.name}
@@ -88,7 +88,6 @@ export function BudgetExpenseForm({ budget, onSuccess }: BudgetExpenseFormProps)
           </label>
           <Input
             id={`budget-expense-amount-${budget.id}`}
-            name="amount"
             type="text"
             inputMode="decimal"
             value={amount}
@@ -107,7 +106,6 @@ export function BudgetExpenseForm({ budget, onSuccess }: BudgetExpenseFormProps)
           </label>
           <Input
             id={`budget-expense-date-${budget.id}`}
-            name="date"
             type="date"
             value={date}
             onChange={(e) => setDate(e.target.value)}
@@ -116,12 +114,10 @@ export function BudgetExpenseForm({ budget, onSuccess }: BudgetExpenseFormProps)
         </div>
       </div>
 
-      {state.error && (
-        <p className="font-mono text-xs text-danger">{state.error}</p>
-      )}
+      {error && <p className="font-mono text-xs text-danger">{error}</p>}
 
-      <Button type="submit" size="sm" loading={pending}>
-        {pending ? "adding..." : "add expense"}
+      <Button type="submit" size="sm" loading={addExpense.isPending}>
+        {addExpense.isPending ? "adding..." : "add expense"}
       </Button>
     </form>
   );

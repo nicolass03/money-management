@@ -1,13 +1,11 @@
-"use client";
-
-import { useRouter } from "next/navigation";
+import { useNavigate } from "@tanstack/react-router";
 import { motion } from "framer-motion";
 import { NavItem } from "./nav-item";
 import { usePrivacyMode } from "./privacy-mode";
 import { ThemeSwitcher } from "./theme-switcher";
 import { Button } from "@/components/ui/button";
+import { useSession } from "@/lib/auth/session-store";
 import { cn } from "@/lib/utils";
-import { authFetchHeaders } from "@/lib/auth/csrf";
 
 const navItems = [
   { href: "/expenses", label: "~/expenses" },
@@ -19,16 +17,13 @@ const navItems = [
 ];
 
 export function Sidebar() {
-  const router = useRouter();
+  const navigate = useNavigate();
+  const { signOut } = useSession();
   const { privacyMode, togglePrivacyMode } = usePrivacyMode();
 
   async function handleLogout() {
-    await fetch("/api/auth/logout", {
-      method: "POST",
-      headers: authFetchHeaders,
-    });
-    router.push("/login");
-    router.refresh();
+    await signOut();
+    void navigate({ to: "/login" });
   }
 
   return (

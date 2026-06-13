@@ -1,0 +1,43 @@
+import { createFileRoute, Outlet, useNavigate } from "@tanstack/react-router";
+import { useEffect } from "react";
+import { AppShell } from "@/components/layout/app-shell";
+import { LoadingIndicator } from "@/components/ui/loading-indicator";
+import { requireAuth } from "@/lib/auth/route-guards";
+import { useSession } from "@/lib/auth/session-store";
+
+export const Route = createFileRoute("/_app")({
+  beforeLoad: async () => {
+    await requireAuth();
+  },
+  pendingComponent: AuthPending,
+  component: AppLayout,
+});
+
+function AuthPending() {
+  return (
+    <div className="flex min-h-screen items-center justify-center bg-bg">
+      <LoadingIndicator label="authenticating" />
+    </div>
+  );
+}
+
+function AppLayout() {
+  const navigate = useNavigate();
+  const { isAuthenticated, isBootstrapping } = useSession();
+
+  useEffect(() => {
+    if (!isBootstrapping && !isAuthenticated) {
+      void navigate({ to: "/login", replace: true });
+    }
+  }, [isBootstrapping, isAuthenticated, navigate]);
+
+  if (isBootstrapping || !isAuthenticated) {
+    return <AuthPending />;
+  }
+
+  return (
+    <AppShell>
+      <Outlet />
+    </AppShell>
+  );
+}

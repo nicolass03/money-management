@@ -1,18 +1,10 @@
-"use client";
-
-import { useActionState, useEffect, useState } from "react";
+import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import {
-  createIncomeAction,
-  updateIncomeAction,
-  type IncomeFormState,
-} from "@/lib/actions/income";
+import { useCreateIncome, useUpdateIncome } from "@/lib/mutations/income";
 import { currencies, type CurrencyCode } from "@/lib/types/constants";
 import type { Income } from "@/lib/types/domain";
 import { cn, formatCentsAsDollarsInput } from "@/lib/utils";
-
-const initialState: IncomeFormState = {};
 
 interface IncomeFormProps {
   entry?: Income;
@@ -38,27 +30,34 @@ export function IncomeForm({
   const [date, setDate] = useState(
     entry?.date ?? defaultDate ?? new Date().toISOString().slice(0, 10),
   );
+  const [error, setError] = useState("");
 
-  const action = isEditing
-    ? updateIncomeAction.bind(null, entry!.id)
-    : createIncomeAction;
+  const createIncome = useCreateIncome();
+  const updateIncome = useUpdateIncome();
+  const pending = createIncome.isPending || updateIncome.isPending;
 
-  const [state, formAction, pending] = useActionState(action, initialState);
-
-  useEffect(() => {
-    if (state.success) {
-      if (!isEditing) {
-        setName("");
-        setAmount("");
-        setCurrency("usd");
-        setDate(defaultDate ?? new Date().toISOString().slice(0, 10));
-      }
-      onSuccess?.();
+  async function handleSubmit(e: React.FormEvent) {
+    e.preventDefault();
+    setError("");
+    const input = { name, amount, currency, date };
+    const result = isEditing
+      ? await updateIncome.mutateAsync({ id: entry!.id, input })
+      : await createIncome.mutateAsync(input);
+    if (result.error) {
+      setError(result.error);
+      return;
     }
-  }, [state.success, isEditing, defaultDate, onSuccess]);
+    if (!isEditing) {
+      setName("");
+      setAmount("");
+      setCurrency("usd");
+      setDate(defaultDate ?? new Date().toISOString().slice(0, 10));
+    }
+    onSuccess?.();
+  }
 
   return (
-    <form action={formAction} className="space-y-4">
+    <form onSubmit={handleSubmit} className="space-y-4">
       <div>
         <label
           htmlFor="income-name"
@@ -68,7 +67,6 @@ export function IncomeForm({
         </label>
         <Input
           id="income-name"
-          name="name"
           value={name}
           onChange={(e) => setName(e.target.value)}
           placeholder="Freelance payment"
@@ -86,7 +84,6 @@ export function IncomeForm({
           </label>
           <Input
             id="income-amount"
-            name="amount"
             type="text"
             inputMode="decimal"
             value={amount}
@@ -105,7 +102,6 @@ export function IncomeForm({
           </label>
           <select
             id="income-currency"
-            name="currency"
             value={currency}
             onChange={(e) => setCurrency(e.target.value as CurrencyCode)}
             className={cn(
@@ -130,7 +126,6 @@ export function IncomeForm({
         </label>
         <Input
           id="income-date"
-          name="date"
           type="date"
           value={date}
           onChange={(e) => setDate(e.target.value)}
@@ -138,9 +133,7 @@ export function IncomeForm({
         />
       </div>
 
-      {state.error && (
-        <p className="font-mono text-xs text-danger">{state.error}</p>
-      )}
+      {error && <p className="font-mono text-xs text-danger">{error}</p>}
 
       <div className="flex gap-2">
         <Button type="submit" loading={pending}>

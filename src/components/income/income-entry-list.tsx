@@ -5,7 +5,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { MoneyText } from "@/components/layout/privacy-mode";
-import { deleteIncomeAction } from "@/lib/actions/income";
+import { useDeleteIncome } from "@/lib/mutations/income";
 import { formatMoney } from "@/lib/currency/format";
 import type { MoneyDisplayContext } from "@/lib/currency/display";
 import type { Income } from "@/lib/types/domain";
@@ -24,10 +24,11 @@ export function IncomeEntryList({
 }: IncomeEntryListProps) {
   const [editingId, setEditingId] = useState<string | null>(null);
   const [pending, startTransition] = useTransition();
+  const deleteIncome = useDeleteIncome();
 
   function handleDelete(id: string) {
     startTransition(async () => {
-      await deleteIncomeAction(id);
+      await deleteIncome.mutateAsync(id);
       if (editingId === id) {
         setEditingId(null);
       }

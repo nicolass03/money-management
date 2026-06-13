@@ -1,7 +1,6 @@
-import "server-only";
-
-import { createSupabaseServerClient } from "@/lib/supabase/server";
-import { getApiUrl } from "./env";
+import { getApiUrl } from "@/lib/env";
+import { supabase } from "@/lib/supabase/client";
+import { triggerUnauthorized } from "./unauthorized";
 
 export class ApiError extends Error {
   constructor(
@@ -13,19 +12,7 @@ export class ApiError extends Error {
   }
 }
 
-export async function apiFetch<T>(
-  path: string,
-  init?: RequestInit,
-): Promise<T> {
-  const supabase = await createSupabaseServerClient();
-  const {
-    data: { user },
-    error: userError,
-  } = await supabase.auth.getUser();
-  if (userError || !user) {
-    throw new ApiError(401, "Not authenticated");
-  }
-
+async function getAccessToken(): Promise<string> {
   const {
     data: { session },
   } = await supabase.auth.getSession();
@@ -33,6 +20,14 @@ export async function apiFetch<T>(
   if (!token) {
     throw new ApiError(401, "Not authenticated");
   }
+  return token;
+}
+
+export async function apiFetch<T>(
+  path: string,
+  init?: RequestInit,
+): Promise<T> {
+  const token = await getAccessToken();
 
   const headers = new Headers(init?.headers);
   headers.set("Accept", "application/json");
@@ -44,8 +39,12 @@ export async function apiFetch<T>(
   const response = await fetch(`${getApiUrl()}${path}`, {
     ...init,
     headers,
-    cache: "no-store",
   });
+
+  if (response.status === 401) {
+    triggerUnauthorized();
+    throw new ApiError(401, "Not authenticated");
+  }
 
   if (!response.ok) {
     const text = await response.text().catch(() => "");

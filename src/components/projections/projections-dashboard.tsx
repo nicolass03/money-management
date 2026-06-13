@@ -1,4 +1,4 @@
-import Link from "next/link";
+import { Link } from "@tanstack/react-router";
 import { Card } from "@/components/ui/card";
 import { SectionHeader } from "@/components/ui/section-header";
 import type { MoneyDisplayContext } from "@/lib/currency/display";
@@ -31,7 +31,7 @@ export function ProjectionsDashboard({
             {"> no primary pay schedule configured."}
           </p>
           <Link
-            href="/settings"
+            to="/settings"
             className="mt-3 inline-block font-mono text-sm text-accent hover:text-accent-glow"
           >
             configure in ~/settings

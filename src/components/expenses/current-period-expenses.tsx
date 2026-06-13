@@ -1,16 +1,14 @@
-"use client";
-
 import { useEffect, useState, useTransition } from "react";
-import Link from "next/link";
+import { Link } from "@tanstack/react-router";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { SectionHeader } from "@/components/ui/section-header";
 import {
-  deleteExpenseAction,
-  updateExpenseAmountAction,
-} from "@/lib/actions/expenses";
+  useDeleteExpense,
+  useUpdateExpenseAmount,
+} from "@/lib/mutations/expenses";
 import { usePrivacyMode } from "@/components/layout/privacy-mode";
 import { formatMoney } from "@/lib/currency/format";
 import { maskNumericValue } from "@/lib/privacy/mask";
@@ -89,11 +87,11 @@ function ExpenseAmountEditor({
   const [error, setError] = useState<string | null>(null);
   const [pending, startTransition] = useTransition();
 
+  const updateAmount = useUpdateExpenseAmount();
+
   function handleSave() {
-    const formData = new FormData();
-    formData.set("amount", amount);
     startTransition(async () => {
-      const result = await updateExpenseAmountAction(expenseId, {}, formData);
+      const result = await updateAmount.mutateAsync({ id: expenseId, amount });
       if (result.error) {
         setError(result.error);
         return;
@@ -161,7 +159,7 @@ function ExpenseRow({
         <div className="flex items-center gap-2">
           {item.isBudgetSummary && item.budgetId != null ? (
             <Link
-              href="/budgets"
+              to="/budgets"
               className="font-mono text-sm text-text hover:text-accent-glow"
             >
               {item.name}
@@ -261,6 +259,7 @@ export function CurrentPeriodExpenses({
   const [showAdd, setShowAdd] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [deletePending, startDeleteTransition] = useTransition();
+  const deleteExpense = useDeleteExpense();
   const today = new Date().toISOString().slice(0, 10);
 
   useEffect(() => {
@@ -269,7 +268,7 @@ export function CurrentPeriodExpenses({
 
   function handleDelete(id: string) {
     startDeleteTransition(async () => {
-      await deleteExpenseAction(id);
+      await deleteExpense.mutateAsync(id);
       if (editingId === id) {
         setEditingId(null);
       }
@@ -333,7 +332,7 @@ export function CurrentPeriodExpenses({
           <p className="font-mono text-sm text-muted">
             {"> set a primary pay schedule in "}
             <Link
-              href="/settings"
+              to="/settings"
               className="text-accent hover:text-accent-glow"
             >
               ~/settings

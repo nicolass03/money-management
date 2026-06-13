@@ -5,7 +5,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { MoneyText } from "@/components/layout/privacy-mode";
-import { deleteSchedule } from "@/lib/actions/income-schedules";
+import { useDeleteSchedule } from "@/lib/mutations/income-schedules";
 import { formatMoney } from "@/lib/currency/format";
 import type { MoneyDisplayContext } from "@/lib/currency/display";
 import type { IncomePaySchedule } from "@/lib/types/domain";
@@ -28,10 +28,11 @@ export function IncomeScheduleList({
 }: IncomeScheduleListProps) {
   const [editingId, setEditingId] = useState<string | null>(null);
   const [pending, startTransition] = useTransition();
+  const deleteScheduleMutation = useDeleteSchedule();
 
   function handleDelete(id: string) {
     startTransition(async () => {
-      await deleteSchedule(id);
+      await deleteScheduleMutation.mutateAsync(id);
       if (editingId === id) {
         setEditingId(null);
       }

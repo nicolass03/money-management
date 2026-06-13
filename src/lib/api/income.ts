@@ -1,4 +1,3 @@
-import "server-only";
 
 import type { CurrencyCode, Income } from "@/lib/types/domain";
 import { apiFetch } from "./client";

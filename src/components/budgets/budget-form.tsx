@@ -1,13 +1,7 @@
-"use client";
-
-import { useActionState, useEffect, useState } from "react";
+import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import {
-  createBudgetAction,
-  updateBudgetAction,
-  type BudgetFormState,
-} from "@/lib/actions/budgets";
+import { useCreateBudget, useUpdateBudget } from "@/lib/mutations/budgets";
 import { formatCurrencyLabel } from "@/lib/currency/types";
 import type { MoneyDisplayContext } from "@/lib/currency/display";
 import { currencies, type CurrencyCode } from "@/lib/types/constants";
@@ -15,8 +9,6 @@ import type { BudgetWithTags } from "@/lib/types/domain";
 import { formatTagNames } from "@/lib/expenses/tag-utils";
 import { cn, formatCentsAsDollarsInput } from "@/lib/utils";
 import { TagInput } from "@/components/expenses/tag-input";
-
-const initialState: BudgetFormState = {};
 
 interface BudgetFormProps extends MoneyDisplayContext {
   budget?: BudgetWithTags;
@@ -41,18 +33,32 @@ export function BudgetForm({
   const [startDate, setStartDate] = useState(budget?.startDate ?? "");
   const [endDate, setEndDate] = useState(budget?.endDate ?? "");
   const [dated, setDated] = useState(Boolean(budget?.startDate));
+  const [error, setError] = useState("");
 
-  const action = isEditing
-    ? updateBudgetAction.bind(null, budget!.id)
-    : createBudgetAction;
+  const createBudget = useCreateBudget();
+  const updateBudget = useUpdateBudget();
+  const pending = createBudget.isPending || updateBudget.isPending;
 
-  const [state, formAction, pending] = useActionState(action, initialState);
-
-  useEffect(() => {
-    if (state.success) {
-      onSuccess?.();
+  async function handleSubmit(e: React.FormEvent) {
+    e.preventDefault();
+    setError("");
+    const input = {
+      name,
+      amount,
+      currency,
+      startDate: dated ? startDate : "",
+      endDate: dated ? endDate : "",
+      tags,
+    };
+    const result = isEditing
+      ? await updateBudget.mutateAsync({ id: budget!.id, input })
+      : await createBudget.mutateAsync(input);
+    if (result.error) {
+      setError(result.error);
+      return;
     }
-  }, [state.success, onSuccess]);
+    onSuccess?.();
+  }
 
   function handleDatedToggle(checked: boolean) {
     setDated(checked);
@@ -63,14 +69,13 @@ export function BudgetForm({
   }
 
   return (
-    <form action={formAction} className="space-y-4">
+    <form onSubmit={handleSubmit} className="space-y-4">
       <div>
         <label htmlFor="budget-name" className="mb-2 block font-mono text-xs text-muted">
           name:
         </label>
         <Input
           id="budget-name"
-          name="name"
           value={name}
           onChange={(e) => setName(e.target.value)}
           placeholder="Summer trip"
@@ -87,7 +92,6 @@ export function BudgetForm({
           </label>
           <Input
             id="budget-amount"
-            name="amount"
             type="text"
             inputMode="decimal"
             value={amount}
@@ -103,7 +107,6 @@ export function BudgetForm({
           </label>
           <select
             id="budget-currency"
-            name="currency"
             value={currency}
             onChange={(e) => setCurrency(e.target.value as CurrencyCode)}
             className={cn(
@@ -137,7 +140,6 @@ export function BudgetForm({
               </label>
               <Input
                 id="budget-start"
-                name="startDate"
                 type="date"
                 value={startDate}
                 onChange={(e) => setStartDate(e.target.value)}
@@ -150,7 +152,6 @@ export function BudgetForm({
               </label>
               <Input
                 id="budget-end"
-                name="endDate"
                 type="date"
                 value={endDate}
                 onChange={(e) => setEndDate(e.target.value)}
@@ -166,9 +167,7 @@ export function BudgetForm({
         </p>
       </div>
 
-      {state.error && (
-        <p className="font-mono text-xs text-danger">{state.error}</p>
-      )}
+      {error && <p className="font-mono text-xs text-danger">{error}</p>}
 
       <div className="flex gap-2">
         <Button type="submit" loading={pending}>

@@ -1,18 +1,11 @@
-"use client";
-
-import { useActionState, useEffect, useState } from "react";
+import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import {
-  createExpenseAction,
-  type ExpenseFormState,
-} from "@/lib/actions/expenses";
+import { useCreateExpense } from "@/lib/mutations/expenses";
 import { formatCurrencyLabel } from "@/lib/currency/types";
 import { currencies, type CurrencyCode } from "@/lib/types/constants";
 import { cn } from "@/lib/utils";
 import { TagInput } from "./tag-input";
-
-const initialState: ExpenseFormState = {};
 
 interface ExpenseFormProps {
   periodStartDate: string;
@@ -35,33 +28,42 @@ export function ExpenseForm({
   const [currency, setCurrency] = useState<CurrencyCode>("usd");
   const [date, setDate] = useState(defaultDate);
   const [isSubscription, setIsSubscription] = useState(false);
+  const [error, setError] = useState("");
 
-  const [state, formAction, pending] = useActionState(
-    createExpenseAction,
-    initialState,
-  );
+  const createExpense = useCreateExpense();
 
-  useEffect(() => {
-    if (state.success) {
-      setName("");
-      setTags("");
-      setAmount("");
-      setCurrency("usd");
-      setDate(defaultDate);
-      setIsSubscription(false);
-      onSuccess?.();
+  async function handleSubmit(e: React.FormEvent) {
+    e.preventDefault();
+    setError("");
+    const result = await createExpense.mutateAsync({
+      name,
+      tags,
+      amount,
+      currency,
+      date,
+      isSubscription,
+    });
+    if (result.error) {
+      setError(result.error);
+      return;
     }
-  }, [state.success, defaultDate, onSuccess]);
+    setName("");
+    setTags("");
+    setAmount("");
+    setCurrency("usd");
+    setDate(defaultDate);
+    setIsSubscription(false);
+    onSuccess?.();
+  }
 
   return (
-    <form action={formAction} className="space-y-4">
+    <form onSubmit={handleSubmit} className="space-y-4">
       <div>
         <label htmlFor="oneoff-name" className="mb-2 block font-mono text-xs text-muted">
           name:
         </label>
         <Input
           id="oneoff-name"
-          name="name"
           value={name}
           onChange={(e) => setName(e.target.value)}
           placeholder="Groceries"
@@ -78,7 +80,6 @@ export function ExpenseForm({
           </label>
           <Input
             id="oneoff-amount"
-            name="amount"
             type="text"
             inputMode="decimal"
             value={amount}
@@ -94,7 +95,6 @@ export function ExpenseForm({
           </label>
           <select
             id="oneoff-currency"
-            name="currency"
             value={currency}
             onChange={(e) => setCurrency(e.target.value as CurrencyCode)}
             className={cn(
@@ -116,7 +116,6 @@ export function ExpenseForm({
         </label>
         <Input
           id="oneoff-date"
-          name="date"
           type="date"
           value={date}
           min={periodStartDate}
@@ -129,7 +128,6 @@ export function ExpenseForm({
       <label className="flex items-center gap-2 font-mono text-sm text-text">
         <input
           type="checkbox"
-          name="isSubscription"
           checked={isSubscription}
           onChange={(e) => setIsSubscription(e.target.checked)}
           className="accent-accent"
@@ -137,13 +135,11 @@ export function ExpenseForm({
         subscription
       </label>
 
-      {state.error && (
-        <p className="font-mono text-xs text-danger">{state.error}</p>
-      )}
+      {error && <p className="font-mono text-xs text-danger">{error}</p>}
 
       <div className="flex gap-2">
-        <Button type="submit" loading={pending}>
-          {pending ? "saving..." : "add expense"}
+        <Button type="submit" loading={createExpense.isPending}>
+          {createExpense.isPending ? "saving..." : "add expense"}
         </Button>
         {onCancel && (
           <Button type="button" variant="ghost" onClick={onCancel}>

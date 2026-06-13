@@ -1,15 +1,10 @@
-"use client";
-
-import { useActionState, useEffect, useState, useTransition } from "react";
+import { useEffect, useState } from "react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { usePrivacyMode } from "@/components/layout/privacy-mode";
-import {
-  markFuturePaymentAsPaidAction,
-  type ExpenseFormState,
-} from "@/lib/actions/expenses";
+import { useMarkFuturePaymentAsPaid } from "@/lib/mutations/expenses";
 import { formatNativeMoney } from "@/lib/currency/format";
 import { formatCurrencyLabel } from "@/lib/currency/types";
 import { currencies, type CurrencyCode } from "@/lib/types/constants";
@@ -17,7 +12,6 @@ import { maskNumericValue } from "@/lib/privacy/mask";
 import type { PayableFutureItem } from "@/lib/projections/upcoming-payable";
 import { cn, formatCentsAsDollarsInput, formatDate } from "@/lib/utils";
 
-const initialState: ExpenseFormState = {};
 
 interface MarkEarlyPaymentPanelProps {
   upcomingItems: PayableFutureItem[];
@@ -37,11 +31,8 @@ export function MarkEarlyPaymentPanel({
   const [amount, setAmount] = useState("");
   const [currency, setCurrency] = useState<CurrencyCode>("usd");
   const [paidDate, setPaidDate] = useState(defaultPaidDate);
-  const [state, formAction, pending] = useActionState(
-    markFuturePaymentAsPaidAction,
-    initialState,
-  );
-  const [, startResetTransition] = useTransition();
+  const [error, setError] = useState("");
+  const markPaid = useMarkFuturePaymentAsPaid();
   const { privacyMode } = usePrivacyMode();
 
   function formatItemAmount(item: PayableFutureItem) {
@@ -62,18 +53,17 @@ export function MarkEarlyPaymentPanel({
   }, [selected, defaultPaidDate]);
 
   useEffect(() => {
-    if (!state.success) {
+    if (!markPaid.isSuccess) {
       return;
     }
 
-    startResetTransition(() => {
-      setExpanded(false);
-      setSelectedKey(null);
-      setAmount("");
-      setCurrency("usd");
-      setPaidDate(defaultPaidDate);
-    });
-  }, [state.success, defaultPaidDate]);
+    setExpanded(false);
+    setSelectedKey(null);
+    setAmount("");
+    setCurrency("usd");
+    setPaidDate(defaultPaidDate);
+    markPaid.reset();
+  }, [markPaid.isSuccess, defaultPaidDate, markPaid]);
 
   function handleSelect(item: PayableFutureItem) {
     setSelectedKey(item.key);
@@ -114,28 +104,23 @@ export function MarkEarlyPaymentPanel({
               {"> no upcoming payments in the next 30 days."}
             </p>
           ) : selected ? (
-            <form action={formAction} className="space-y-4">
-              <input type="hidden" name="sourceType" value={selected.sourceType} />
-              <input
-                type="hidden"
-                name="scheduledDate"
-                value={selected.scheduledDate}
-              />
-              {selected.recurringId != null && (
-                <input
-                  type="hidden"
-                  name="recurringId"
-                  value={selected.recurringId}
-                />
-              )}
-              {selected.plannedExpenseId != null && (
-                <input
-                  type="hidden"
-                  name="plannedExpenseId"
-                  value={selected.plannedExpenseId}
-                />
-              )}
-
+            <form
+              onSubmit={async (e) => {
+                e.preventDefault();
+                setError("");
+                const result = await markPaid.mutateAsync({
+                  sourceType: selected.sourceType,
+                  scheduledDate: selected.scheduledDate,
+                  paidDate,
+                  amount,
+                  currency,
+                  recurringId: selected.recurringId ?? undefined,
+                  plannedExpenseId: selected.plannedExpenseId ?? undefined,
+                });
+                if (result.error) setError(result.error);
+              }}
+              className="space-y-4"
+            >
               <div>
                 <p className="font-mono text-sm text-text">{selected.name}</p>
                 <p className="font-mono text-xs text-muted">
@@ -207,13 +192,13 @@ export function MarkEarlyPaymentPanel({
                 />
               </div>
 
-              {state.error && (
-                <p className="font-mono text-xs text-danger">{state.error}</p>
+              {error && (
+                <p className="font-mono text-xs text-danger">{error}</p>
               )}
 
               <div className="flex gap-2">
-                <Button type="submit" loading={pending}>
-                  {pending ? "saving..." : "confirm payment"}
+                <Button type="submit" loading={markPaid.isPending}>
+                  {markPaid.isPending ? "saving..." : "confirm payment"}
                 </Button>
                 <Button
                   type="button"

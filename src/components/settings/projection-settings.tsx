@@ -1,21 +1,14 @@
-"use client";
-
-import Link from "next/link";
-import { useActionState } from "react";
+import { Link } from "@tanstack/react-router";
+import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { SectionHeader } from "@/components/ui/section-header";
-import {
-  updateProjectionSettings,
-  type SettingsFormState,
-} from "@/lib/actions/user-settings";
+import { useUpdateProjectionSettings } from "@/lib/mutations/settings";
 import { CURRENCY_LABELS } from "@/lib/currency/types";
 import type { CurrencyCode, IncomePaySchedule } from "@/lib/types/domain";
 import { formatFrequency } from "@/lib/income/pay-periods";
 import { cn, formatCentsAsDollarsInput } from "@/lib/utils";
-
-const initialState: SettingsFormState = {};
 
 interface ProjectionSettingsProps {
   schedules: IncomePaySchedule[];
@@ -32,10 +25,20 @@ export function ProjectionSettings({
   projectionStartDate,
   displayCurrency,
 }: ProjectionSettingsProps) {
-  const [state, formAction, pending] = useActionState(
-    updateProjectionSettings,
-    initialState,
-  );
+  const updateSettings = useUpdateProjectionSettings();
+  const [success, setSuccess] = useState(false);
+
+  async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
+    e.preventDefault();
+    setSuccess(false);
+    const formData = new FormData(e.currentTarget);
+    const result = await updateSettings.mutateAsync({
+      primaryScheduleId: String(formData.get("primaryScheduleId") ?? ""),
+      initialFreeMoney: String(formData.get("initialFreeMoney") ?? ""),
+      projectionStartDate: String(formData.get("projectionStartDate") ?? ""),
+    });
+    if (result.success) setSuccess(true);
+  }
 
   return (
     <div className="space-y-4">
@@ -48,16 +51,13 @@ export function ProjectionSettings({
         {schedules.length === 0 ? (
           <p className="font-mono text-sm text-muted">
             {"> add an income pay schedule on "}
-            <Link
-              href="/income"
-              className="text-accent hover:text-accent-glow"
-            >
+            <Link to="/income" className="text-accent hover:text-accent-glow">
               ~/income
             </Link>
             {" first."}
           </p>
         ) : (
-          <form action={formAction} className="space-y-4">
+          <form onSubmit={handleSubmit} className="space-y-4">
             <div>
               <label
                 htmlFor="primary-schedule"
@@ -120,17 +120,19 @@ export function ProjectionSettings({
               </p>
             </div>
 
-            {state.error && (
-              <p className="font-mono text-xs text-danger">{state.error}</p>
+            {updateSettings.data?.error && (
+              <p className="font-mono text-xs text-danger">
+                {updateSettings.data.error}
+              </p>
             )}
-            {state.success && (
+            {success && (
               <p className="font-mono text-xs text-success">
                 {"> projection settings updated"}
               </p>
             )}
 
-            <Button type="submit" loading={pending}>
-              {pending ? "saving..." : "save projection settings"}
+            <Button type="submit" loading={updateSettings.isPending}>
+              {updateSettings.isPending ? "saving..." : "save projection settings"}
             </Button>
           </form>
         )}

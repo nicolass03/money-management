@@ -1,4 +1,3 @@
-import "server-only";
 
 import type { Saving } from "@/lib/types/domain";
 import { apiFetch } from "./client";

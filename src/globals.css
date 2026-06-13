@@ -1,0 +1,116 @@
+@import "tailwindcss";
+@import "@fontsource/jetbrains-mono/400.css";
+@import "@fontsource/jetbrains-mono/500.css";
+@import "@fontsource/jetbrains-mono/700.css";
+
+:root {
+  --font-jetbrains-mono: "JetBrains Mono", ui-monospace, monospace;
+  --bg: #0a0a0a;
+  --surface: #141414;
+  --surface-elevated: #1a1a1a;
+  --border: #2a2a2a;
+  --text: #e8e8e8;
+  --muted: #6b6b6b;
+  --accent: #d4d4d4;
+  --accent-glow: #ffffff;
+  --success: #a3e635;
+  --danger: #f87171;
+  --scanline-color: rgba(0, 0, 0, 0.03);
+  --glow-color: rgba(255, 255, 255, 0.12);
+  --glow-pulse-color: rgba(255, 255, 255, 0.08);
+  color-scheme: dark;
+}
+
+.light {
+  --bg: #f7f7f7;
+  --surface: #ffffff;
+  --surface-elevated: #f0f0f0;
+  --border: #e0e0e0;
+  --text: #171717;
+  --muted: #737373;
+  --accent: #404040;
+  --accent-glow: #0a0a0a;
+  --success: #4d7c0f;
+  --scanline-color: rgba(0, 0, 0, 0.015);
+  --glow-color: rgba(0, 0, 0, 0.08);
+  --glow-pulse-color: rgba(0, 0, 0, 0.06);
+  color-scheme: light;
+}
+
+@theme inline {
+  --color-bg: var(--bg);
+  --color-surface: var(--surface);
+  --color-surface-elevated: var(--surface-elevated);
+  --color-border: var(--border);
+  --color-text: var(--text);
+  --color-muted: var(--muted);
+  --color-accent: var(--accent);
+  --color-accent-glow: var(--accent-glow);
+  --color-success: var(--success);
+  --color-danger: var(--danger);
+  --font-mono: var(--font-jetbrains-mono);
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--font-jetbrains-mono);
+  min-height: 100vh;
+}
+
+body::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 9999;
+  background: repeating-linear-gradient(
+    0deg,
+    transparent,
+    transparent 2px,
+    var(--scanline-color) 2px,
+    var(--scanline-color) 4px
+  );
+}
+
+@keyframes blink {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0;
+  }
+}
+
+@keyframes glow-pulse {
+  0%,
+  100% {
+    box-shadow: 0 0 0 0 transparent;
+  }
+  50% {
+    box-shadow: 0 0 20px 2px var(--glow-pulse-color);
+  }
+}
+
+.animate-blink {
+  animation: blink 1s step-end infinite;
+}
+
+.animate-glow-pulse {
+  animation: glow-pulse 3s ease-in-out infinite;
+}
+
+.terminal-prompt::before {
+  content: "> ";
+  color: var(--accent);
+}
+
+.terminal-dollar::before {
+  content: "$ ";
+  color: var(--accent);
+}

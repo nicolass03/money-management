@@ -1,7 +1,5 @@
-"use client";
-
 import { useMemo, useState } from "react";
-import Link from "next/link";
+import { Link } from "@tanstack/react-router";
 import { Button } from "@/components/ui/button";
 import { SectionHeader } from "@/components/ui/section-header";
 import { CurrentPeriodExpenses } from "./current-period-expenses";
@@ -92,17 +90,17 @@ export function ExpenseDashboard({
           className="mb-0"
         />
         <div className="flex shrink-0 items-center gap-2">
-          <Link href="/expenses/recurring">
+          <Link to="/expenses/recurring">
             <Button size="sm" variant="ghost">
               recurring
             </Button>
           </Link>
-          <Link href="/expenses/planned">
+          <Link to="/expenses/planned">
             <Button size="sm" variant="ghost">
               one-time
             </Button>
           </Link>
-          <Link href="/budgets">
+          <Link to="/budgets">
             <Button size="sm" variant="ghost">
               budgets
             </Button>

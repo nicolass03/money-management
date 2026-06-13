@@ -39,27 +39,28 @@ If `cargo run` fails with `DATABASE_URL is required` while `.env` is set, the sh
 
 ## Theming
 
-- Semantic color tokens live in `src/app/globals.css` (`--bg`, `--surface`, `--text`, etc.) and map to Tailwind utilities via `@theme inline`.
+- Semantic color tokens live in `src/globals.css` (`--bg`, `--surface`, `--text`, etc.) and map to Tailwind utilities via `@theme inline`.
 - Light mode overrides the same tokens under the `.light` class, toggled by [`next-themes`](https://github.com/pacocoursey/next-themes) in `src/components/layout/theme-provider.tsx` (root layout).
 - Theme preference: **dark** (default), **light**, or **system** (follows OS). Persisted in `localStorage` under key `theme`. Switcher: sidebar footer + login page (`ThemeSwitcher`).
 - Recharts cannot read CSS variables — use `useChartTheme()` from `src/hooks/use-chart-theme.ts`; do not hardcode hex colors in chart components.
 - Focus/hover glows use `--glow-color` (theme-aware); scanlines use `--scanline-color`.
 
-## Next.js
+## Vite SPA (TanStack Router + Query)
 
-- This app has **no local Drizzle DB** — all data goes through `src/lib/api/*` → Rust API.
+- **Vite 6** + React 19. Entry: `index.html` → `src/main.tsx`. Routes: file-based under `src/routes/` (TanStack Router plugin generates `src/routeTree.gen.ts`).
+- **No Next.js** — no RSC, Server Actions, or middleware. Auth uses `@supabase/supabase-js` in the browser (`src/lib/supabase/client.ts`, `src/lib/auth/session-store.tsx`).
+- All data goes through `src/lib/api/*` → Rust API with `Authorization: Bearer` from the Supabase session (`src/lib/api/client.ts`).
+- **TanStack Query** hooks in `src/hooks/use-queries.ts`; mutations in `src/lib/mutations/*`. Cache invalidation mirrors iOS `InvalidationMap` in `src/lib/query/invalidation.ts` — call `invalidateAfter(queryClient, event)` after writes.
+- Tab visibility refresh: `visibilitychange` in `src/main.tsx` invalidates all queries (parity with iOS `scenePhase == .active`).
 - Do not use `number` for entity/FK IDs in domain types or API clients.
-- `apiFetch` validates the session with `getUser()` before forwarding the JWT to the Rust API.
-- Auth route handlers (`/api/auth/login`, `/api/auth/logout`) require the `X-Requested-With: XMLHttpRequest` header — client fetches must use `authFetchHeaders` from `src/lib/auth/csrf.ts`.
-- Login is rate-limited (10 attempts per 15 minutes per IP and per email) in `src/lib/auth/rate-limit.ts`.
-- Use server-only `API_URL` for the Rust API base URL — do not add `NEXT_PUBLIC_API_URL`.
-- HTTP security headers are configured in `next.config.ts` (CSP, HSTS in production, etc.).
-- Server actions redirect to `/login` on 401 via `handleActionError` in `src/lib/actions/action-error.ts`.
+- Login uses direct `supabase.auth.signInWithPassword` (no BFF proxy). Rate limiting relies on Supabase Auth (the old Next.js IP/email limiter was removed).
+- Env vars (`.env.example`): `VITE_SUPABASE_URL`, `VITE_SUPABASE_PUBLISHABLE_KEY`, `VITE_API_URL` — all baked at **build time**. Set them in Railway before the first deploy.
+- HTTP security headers are set in `server.js` (CSP, HSTS in production). Health check: `GET /health`.
+- Ensure Rust API `CORS_ORIGIN` includes the deployed UI origin (browser calls API directly, same as iOS).
 
 ## Railway deployment (UI)
 
-- `Dockerfile` builds Next.js with `output: "standalone"` and runs `node server.js` on `0.0.0.0:$PORT`.
-- `railway.toml` sets `healthcheckPath = "/login"` (public route; authenticated pages redirect).
-- Set `NEXT_PUBLIC_*` variables **before** the first build — they are inlined at compile time. Changing them requires a redeploy/rebuild.
-- `API_URL` is server-only and read at runtime; update without rebuild if the API domain changes (still redeploy to pick up in some edge cases — prefer setting it before first deploy).
+- `Dockerfile` runs `vite build` then `node server.js` on `0.0.0.0:$PORT` (static `dist/` + SPA fallback via `serve-handler`).
+- `railway.toml` sets `healthcheckPath = "/health"`.
+- Set `VITE_*` variables **before** the first build — they are inlined at compile time. Changing them requires a redeploy/rebuild.
 - After generating the UI domain, add it to the API’s `CORS_ORIGIN`.

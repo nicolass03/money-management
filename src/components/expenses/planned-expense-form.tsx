@@ -1,13 +1,10 @@
-"use client";
-
-import { useActionState, useEffect, useState } from "react";
+import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
-  createPlannedExpenseAction,
-  updatePlannedExpenseAction,
-  type PlannedFormState,
-} from "@/lib/actions/planned-expenses";
+  useCreatePlannedExpense,
+  useUpdatePlannedExpense,
+} from "@/lib/mutations/planned-expenses";
 import { formatScheduledExpenseAmount } from "@/lib/currency/expense-display";
 import { formatCurrencyLabel } from "@/lib/currency/types";
 import { ExpenseAmount } from "./expense-amount";
@@ -23,7 +20,6 @@ import {
 } from "@/lib/utils";
 import { TagInput } from "./tag-input";
 
-const initialState: PlannedFormState = {};
 
 interface PlannedExpenseFormProps extends MoneyDisplayContext {
   planned?: PlannedExpenseWithTags;
@@ -51,22 +47,30 @@ export function PlannedExpenseForm({
     planned ? formatCentsAsDollarsInput(planned.amount) : "",
   );
 
-  const action = isEditing
-    ? updatePlannedExpenseAction.bind(null, planned!.id)
-    : createPlannedExpenseAction;
+  const [error, setError] = useState("");
 
-  const [state, formAction, pending] = useActionState(action, initialState);
+  const createPlanned = useCreatePlannedExpense();
+  const updatePlanned = useUpdatePlannedExpense();
+  const pending = createPlanned.isPending || updatePlanned.isPending;
 
-  useEffect(() => {
-    if (state.success) {
-      onSuccess?.();
+  async function handleSubmit(e: React.FormEvent) {
+    e.preventDefault();
+    setError("");
+    const input = { name, tags, date, amount, currency };
+    const result = isEditing
+      ? await updatePlanned.mutateAsync({ id: planned!.id, input })
+      : await createPlanned.mutateAsync(input);
+    if (result.error) {
+      setError(result.error);
+      return;
     }
-  }, [state.success, onSuccess]);
+    onSuccess?.();
+  }
 
   const previewAmount = parseDollarsToCents(amount);
 
   return (
-    <form action={formAction} className="space-y-4">
+    <form onSubmit={handleSubmit} className="space-y-4">
       <div>
         <label htmlFor="planned-name" className="mb-2 block font-mono text-xs text-muted">
           name:
@@ -154,8 +158,8 @@ export function PlannedExpenseForm({
         </div>
       )}
 
-      {state.error && (
-        <p className="font-mono text-xs text-danger">{state.error}</p>
+      {error && (
+        <p className="font-mono text-xs text-danger">{error}</p>
       )}
 
       <div className="flex gap-2">

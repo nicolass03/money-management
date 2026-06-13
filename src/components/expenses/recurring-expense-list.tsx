@@ -4,7 +4,7 @@ import { useState, useTransition } from "react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { deleteRecurringExpenseAction } from "@/lib/actions/recurring-expenses";
+import { useDeleteRecurringExpense } from "@/lib/mutations/recurring-expenses";
 import type { MoneyDisplayContext } from "@/lib/currency/display";
 import { formatScheduledExpenseAmount } from "@/lib/currency/expense-display";
 import { formatCurrencyLabel } from "@/lib/currency/types";
@@ -30,10 +30,11 @@ export function RecurringExpenseList({
 }: RecurringExpenseListProps) {
   const [editingId, setEditingId] = useState<string | null>(null);
   const [pending, startTransition] = useTransition();
+  const deleteRecurring = useDeleteRecurringExpense();
 
   function handleDelete(id: string) {
     startTransition(async () => {
-      await deleteRecurringExpenseAction(id);
+      await deleteRecurring.mutateAsync(id);
       if (editingId === id) {
         setEditingId(null);
       }

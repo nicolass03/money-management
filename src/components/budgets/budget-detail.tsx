@@ -2,7 +2,7 @@
 
 import { useTransition } from "react";
 import { Button } from "@/components/ui/button";
-import { deleteBudgetExpenseAction } from "@/lib/actions/budgets";
+import { useDeleteBudgetExpense } from "@/lib/mutations/budgets";
 import { formatChargedExpenseAmount } from "@/lib/currency/expense-display";
 import type { MoneyDisplayContext } from "@/lib/currency/display";
 import type { BudgetWithTags, ExpenseWithTags } from "@/lib/types/domain";
@@ -23,10 +23,14 @@ export function BudgetDetail({
   rates,
 }: BudgetDetailProps) {
   const [pending, startTransition] = useTransition();
+  const deleteBudgetExpense = useDeleteBudgetExpense();
 
   function handleDelete(expenseId: string) {
     startTransition(async () => {
-      await deleteBudgetExpenseAction(budget.id, expenseId);
+      await deleteBudgetExpense.mutateAsync({
+        budgetId: budget.id,
+        expenseId,
+      });
     });
   }
 
