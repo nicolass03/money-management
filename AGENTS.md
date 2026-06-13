@@ -56,6 +56,7 @@ If `cargo run` fails with `DATABASE_URL is required` while `.env` is set, the sh
 - Login uses direct `supabase.auth.signInWithPassword` (no BFF proxy). Rate limiting relies on Supabase Auth (the old Next.js IP/email limiter was removed).
 - Env vars (`.env.example`): `VITE_SUPABASE_URL`, `VITE_SUPABASE_PUBLISHABLE_KEY`, `VITE_API_URL` — all baked at **build time**. Set them in Railway before the first deploy.
 - HTTP security headers are set in `server.js` (CSP, HSTS in production). Health check: `GET /health`.
+- `server.js` is plain Node ESM — no TypeScript syntax (Railway runs `node server.js` directly).
 - Ensure Rust API `CORS_ORIGIN` includes the deployed UI origin (browser calls API directly, same as iOS).
 
 ## Railway deployment (UI)

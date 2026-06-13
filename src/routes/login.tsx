@@ -81,15 +81,18 @@ function LoginPage() {
         transition={{ duration: 0.4 }}
         className="w-full max-w-md"
       >
-        <div className="mb-6 font-mono">
-          <p className="text-xs text-muted">money-mgmt v0.1.0</p>
-          <p className="mt-2 text-sm text-text">
-            <span className="text-accent">guest</span>
-            <span className="text-muted">:</span>
-            <span className="text-accent-glow">~</span>
-            <span className="text-muted">$</span> auth --login
-            <span className="animate-blink text-accent">_</span>
-          </p>
+        <div className="mb-6 flex items-center justify-between gap-4 font-mono">
+          <div>
+            <p className="text-xs text-muted">incm-mgmt v0.1.0</p>
+            <p className="mt-2 text-sm text-text">
+              <span className="text-accent">guest</span>
+              <span className="text-muted">:</span>
+              <span className="text-accent-glow">~</span>
+              <span className="text-muted">$</span> auth --login
+              <span className="animate-blink text-accent">_</span>
+            </p>
+          </div>
+          <SpinningCoin size={56} />
         </div>
 
         <Card className="relative animate-glow-pulse">

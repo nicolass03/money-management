@@ -1,4 +1,4 @@
-# UI Design System — money-mgmt
+# UI Design System — incm-mgmt
 
 A replication guide for the terminal-inspired dark UI used in this app. The aesthetic is deliberately **CLI / hacker-terminal**: monospace type, near-black surfaces, sharp borders, subtle glow, and copy that reads like shell commands.
 
@@ -194,7 +194,7 @@ Axis ticks: `fill: "#6b6b6b"`, `fontSize: 11`, `fontFamily: "monospace"`. Axis l
 
 | Role | Classes | Example |
 |------|---------|---------|
-| App version / meta | `text-xs text-muted` | `money-mgmt v0.1` |
+| App version / meta | `text-xs text-muted` | `incm-mgmt v0.1` |
 | Section title | `text-lg text-text` + `.terminal-prompt` | `> expenses` (prompt added via CSS) |
 | Page heading (sidebar) | `text-sm text-accent-glow` | `$ ./dashboard` |
 | Body / list primary | `text-sm text-text` | Expense name |

@@ -34,7 +34,7 @@ export function Sidebar() {
       className="sticky top-0 flex h-screen w-56 shrink-0 flex-col border-r border-border bg-surface"
     >
       <div className="border-b border-border px-4 py-5">
-        <p className="font-mono text-xs text-muted">money-mgmt v0.1</p>
+        <p className="font-mono text-xs text-muted">incm-mgmt v0.1</p>
         <h1 className="mt-1 font-mono text-sm text-accent-glow">
           $ ./dashboard
         </h1>

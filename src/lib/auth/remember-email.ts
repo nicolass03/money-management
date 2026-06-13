@@ -1,4 +1,4 @@
-const STORAGE_KEY = "money-mgmt-remembered-email";
+const STORAGE_KEY = "incm-mgmt-remembered-email";
 
 export function getRememberedEmail(): string | null {
   if (typeof window === "undefined") return null;

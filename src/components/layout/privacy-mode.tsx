@@ -10,7 +10,7 @@ import {
 import { maskNumericValue } from "@/lib/privacy/mask";
 import { cn } from "@/lib/utils";
 
-const STORAGE_KEY = "money-mgmt-privacy-mode";
+const STORAGE_KEY = "incm-mgmt-privacy-mode";
 
 interface PrivacyModeContextValue {
   privacyMode: boolean;
