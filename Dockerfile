@@ -14,16 +14,13 @@ COPY . .
 ENV NODE_ENV=production
 RUN npm run build
 
-FROM nginx:1.27-alpine AS runner
+FROM caddy:2-alpine AS runner
+WORKDIR /app
 
-RUN apk add --no-cache gettext \
-    && rm -f /etc/nginx/conf.d/default.conf
+COPY Caddyfile ./
+RUN caddy fmt Caddyfile --overwrite
 
-COPY nginx/default.conf.template /etc/nginx/templates/default.conf.template
-COPY nginx/docker-entrypoint.sh /docker-entrypoint.sh
-RUN chmod +x /docker-entrypoint.sh
-
-COPY --from=builder /app/dist /usr/share/nginx/html
+COPY --from=builder /app/dist ./dist
 
 EXPOSE 8080
-ENTRYPOINT ["/docker-entrypoint.sh"]
+CMD ["caddy", "run", "--config", "Caddyfile", "--adapter", "caddyfile"]
