@@ -5,9 +5,6 @@ import { motion } from "framer-motion";
 import {
   Bar,
   BarChart,
-  Cell,
-  Pie,
-  PieChart,
   ResponsiveContainer,
   Tooltip,
   XAxis,
@@ -21,15 +18,16 @@ import { useChartTheme } from "@/hooks/use-chart-theme";
 import { formatMoney } from "@/lib/currency/format";
 import { maskNumericValue } from "@/lib/privacy/mask";
 import type { MoneyDisplayContext } from "@/lib/currency/display";
-import type { ExpenseChartSummary } from "@/lib/types/domain";
+import type { ExpensePeriodView } from "@/lib/types/domain";
 import { cn } from "@/lib/utils";
+import { ExpensePeriodKpis } from "./expense-period-kpis";
 
 interface ExpenseChartsProps extends MoneyDisplayContext {
-  summary: ExpenseChartSummary;
+  periodView: ExpensePeriodView;
 }
 
 export function ExpenseCharts({
-  summary,
+  periodView,
   displayCurrency,
   rates,
 }: ExpenseChartsProps) {
@@ -38,13 +36,13 @@ export function ExpenseCharts({
   const [selectedTags, setSelectedTags] = useState<string[]>([]);
 
   const allTags = useMemo(
-    () => summary.byTag.map((entry) => entry.tag),
-    [summary.byTag],
+    () => periodView.byTag.map((entry) => entry.tag),
+    [periodView.byTag],
   );
 
   const tagData = useMemo(() => {
     const minorDivisor = displayCurrency === "cop" ? 1 : 100;
-    return summary.byTag
+    return periodView.byTag
       .filter(
         (entry) =>
           selectedTags.length === 0 || selectedTags.includes(entry.tag),
@@ -53,20 +51,19 @@ export function ExpenseCharts({
         tag: entry.tag,
         amount: entry.amount / minorDivisor,
       }));
-  }, [summary.byTag, selectedTags, displayCurrency]);
-
-  const typeData = useMemo(() => {
-    const minorDivisor = displayCurrency === "cop" ? 1 : 100;
-    const { subscription, other } = summary.subscriptionSplit;
-    return [
-      { name: "subscriptions", value: subscription / minorDivisor },
-      { name: "other", value: other / minorDivisor },
-    ];
-  }, [summary.subscriptionSplit, displayCurrency]);
-
-  const total = tagData.reduce((sum, entry) => sum + entry.amount, 0);
+  }, [periodView.byTag, selectedTags, displayCurrency]);
 
   const minorDivisor = displayCurrency === "cop" ? 1 : 100;
+
+  function formatMinorAmount(amountMinor: number) {
+    const formatted = formatMoney(
+      amountMinor,
+      displayCurrency,
+      displayCurrency,
+      rates,
+    );
+    return privacyMode ? maskNumericValue(formatted) : formatted;
+  }
 
   function formatChartValue(value: number) {
     const formatted = formatMoney(
@@ -94,7 +91,7 @@ export function ExpenseCharts({
     >
       <SectionHeader
         title="expense_analytics"
-        subtitle={`total: ${formatChartValue(total)} // ${selectedTags.length > 0 ? `filtered by ${selectedTags.length} tag(s)` : "all expenses"}`}
+        subtitle={`total: ${formatMinorAmount(periodView.totalSpend)} // ${selectedTags.length > 0 ? `filtered by ${selectedTags.length} tag(s)` : "all expenses"}`}
       />
 
       {allTags.length > 0 && (
@@ -131,39 +128,11 @@ export function ExpenseCharts({
       )}
 
       <div className="grid gap-4 md:grid-cols-3">
-        <Card className="md:col-span-1 animate-glow-pulse">
-          <p className="mb-2 font-mono text-xs text-muted">by_type</p>
-          <ResponsiveContainer width="100%" height={180}>
-            <PieChart>
-              <Pie
-                data={typeData}
-                dataKey="value"
-                nameKey="name"
-                cx="50%"
-                cy="50%"
-                innerRadius={40}
-                outerRadius={70}
-                stroke="none"
-              >
-                {typeData.map((_, index) => (
-                  <Cell
-                    key={index}
-                    fill={chartTheme.pieColors[index % chartTheme.pieColors.length]}
-                  />
-                ))}
-              </Pie>
-              <Tooltip
-                contentStyle={{
-                  background: chartTheme.tooltipBg,
-                  border: `1px solid ${chartTheme.tooltipBorder}`,
-                  fontFamily: "monospace",
-                  fontSize: 12,
-                }}
-                formatter={(value) => formatChartValue(Number(value))}
-              />
-            </PieChart>
-          </ResponsiveContainer>
-        </Card>
+        <ExpensePeriodKpis
+          periodView={periodView}
+          displayCurrency={displayCurrency}
+          rates={rates}
+        />
 
         <Card className="md:col-span-2">
           <p className="mb-2 font-mono text-xs text-muted">by_tag</p>

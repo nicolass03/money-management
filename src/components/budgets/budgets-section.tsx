@@ -28,7 +28,7 @@ export function BudgetsSection({
   displayCurrency,
   rates,
 }: BudgetsSectionProps) {
-  const [showAdd, setShowAdd] = useState(budgets.length === 0);
+  const [showAdd, setShowAdd] = useState(false);
   const ctx = { displayCurrency, rates };
   const listLoading = budgetsLoading || expensesLoading;
 
@@ -84,9 +84,7 @@ export function BudgetsSection({
           <BudgetForm
             displayCurrency={displayCurrency}
             rates={rates}
-            onCancel={
-              budgets.length > 0 ? () => setShowAdd(false) : undefined
-            }
+            onCancel={() => setShowAdd(false)}
             onSuccess={() => setShowAdd(false)}
           />
         </Card>

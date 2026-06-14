@@ -24,7 +24,7 @@ export function PaySchedules({
   displayCurrency,
   rates,
 }: PaySchedulesProps) {
-  const [showAdd, setShowAdd] = useState(schedules.length === 0);
+  const [showAdd, setShowAdd] = useState(false);
   const ctx = { displayCurrency, rates };
 
   const perCycleTotal = schedules.reduce(
@@ -79,9 +79,7 @@ export function PaySchedules({
           <IncomeScheduleForm
             displayCurrency={displayCurrency}
             rates={rates}
-            onCancel={
-              schedules.length > 0 ? () => setShowAdd(false) : undefined
-            }
+            onCancel={() => setShowAdd(false)}
             onSuccess={() => setShowAdd(false)}
           />
         </Card>

@@ -3,7 +3,7 @@ import { getMoneyContext } from "@/lib/api/money-context";
 import { patchSettings } from "@/lib/api/settings";
 import { invalidateAfter } from "@/lib/query/invalidation";
 import { currencies, type CurrencyCode } from "@/lib/types/constants";
-import { parseSignedDollarsToCents } from "@/lib/utils";
+import { parseDollarsToCents, parseSignedDollarsToCents } from "@/lib/utils";
 import { mutationError, type FormResult } from "./types";
 
 export async function updateDisplayCurrencyMutation(
@@ -63,6 +63,34 @@ export async function updateProjectionSettingsMutation(
   }
 }
 
+export async function updateExtraSpentLimitMutation(
+  rawLimit: string,
+): Promise<FormResult> {
+  const trimmed = rawLimit.trim();
+
+  // An empty input clears the limit; any value must be a positive amount.
+  if (!trimmed) {
+    try {
+      await patchSettings({ extraSpentLimit: null });
+      return { success: true };
+    } catch (error) {
+      return mutationError(error, "failed to update extra spent limit");
+    }
+  }
+
+  const limit = parseDollarsToCents(trimmed);
+  if (limit === null || limit <= 0) {
+    return { error: "invalid extra spent limit" };
+  }
+
+  try {
+    await patchSettings({ extraSpentLimit: limit });
+    return { success: true };
+  } catch (error) {
+    return mutationError(error, "failed to update extra spent limit");
+  }
+}
+
 export async function refreshExchangeRatesMutation(): Promise<FormResult> {
   try {
     await getMoneyContext({ forceRefresh: true });
@@ -86,6 +114,16 @@ export function useUpdateProjectionSettings() {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: updateProjectionSettingsMutation,
+    onSuccess: (result) => {
+      if (result.success) void invalidateAfter(queryClient, "settingsChange");
+    },
+  });
+}
+
+export function useUpdateExtraSpentLimit() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: updateExtraSpentLimitMutation,
     onSuccess: (result) => {
       if (result.success) void invalidateAfter(queryClient, "settingsChange");
     },

@@ -58,7 +58,7 @@ function periodSectionSubtitle(
 ): string {
   if (!periodView) {
     return periodKey === "last-period"
-      ? "planned spend for the active pay period"
+      ? "actual expenses in the active pay period"
       : "actual expenses in the selected range";
   }
 
@@ -131,6 +131,17 @@ function ExpenseAmountEditor({
   );
 }
 
+function isExtraExpense(item: ProjectionExpenseItem): boolean {
+  return (
+    item.id != null &&
+    !item.projected &&
+    !item.isBudgetSummary &&
+    item.recurringId == null &&
+    item.plannedExpenseId == null &&
+    item.budgetId == null
+  );
+}
+
 function ExpenseRow({
   item,
   editingId,
@@ -181,6 +192,9 @@ function ExpenseRow({
           {item.isSubscription && (
             <Badge variant="default">subscription</Badge>
           )}
+          {isExtraExpense(item) && (
+            <Badge variant="warning">extra</Badge>
+          )}
         </div>
         <p className="font-mono text-xs text-muted">
           {item.isBudgetSummary
@@ -195,7 +209,9 @@ function ExpenseRow({
             ? " // budget"
             : item.projected
               ? " // due"
-              : " // paid"}
+              : item.budgetId != null
+                ? " // from budget"
+                : null}
         </p>
       </div>
       <div className="text-right">
@@ -251,8 +267,8 @@ function dueDate(item: ProjectionExpenseItem): string {
   return item.scheduledDate ?? item.date;
 }
 
-function sortByDueDate(items: ProjectionExpenseItem[]): ProjectionExpenseItem[] {
-  return [...items].sort((a, b) => dueDate(a).localeCompare(dueDate(b)));
+function sortByDateDesc(items: ProjectionExpenseItem[]): ProjectionExpenseItem[] {
+  return [...items].sort((a, b) => dueDate(b).localeCompare(dueDate(a)));
 }
 
 export function CurrentPeriodExpenses({
@@ -295,11 +311,11 @@ export function CurrentPeriodExpenses({
     return privacyMode ? maskNumericValue(formatted) : formatted;
   }
 
-  const listItems = sortByDueDate(periodView?.items ?? []);
+  const listItems = sortByDateDesc(
+    (periodView?.items ?? []).filter((item) => !item.projected),
+  );
 
-  const total =
-    periodView?.totalSpend ??
-    listItems.reduce((sum, item) => sum + item.convertedAmount, 0);
+  const total = listItems.reduce((sum, item) => sum + item.convertedAmount, 0);
 
   const canAddExpense = periodKey === "last-period" && periodView?.isPayPeriod;
 

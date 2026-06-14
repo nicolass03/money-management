@@ -166,6 +166,7 @@ export function getExpenseItemsInPeriod(
       id: expense.id,
       recurringId: expense.recurringId ?? undefined,
       plannedExpenseId: expense.plannedExpenseId ?? undefined,
+      budgetId: expense.budgetId ?? undefined,
       name: expense.name,
       date: expense.date,
       scheduledDate: dueDate !== expense.date ? dueDate : undefined,

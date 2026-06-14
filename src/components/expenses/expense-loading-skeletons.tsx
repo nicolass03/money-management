@@ -17,10 +17,17 @@ export function ExpenseChartsSkeleton() {
       </div>
 
       <div className="grid gap-4 md:grid-cols-3">
-        <Card className="md:col-span-1">
-          <Skeleton className="mb-2 h-3 w-16" />
-          <Skeleton className="mx-auto h-[180px] w-[140px] rounded-full" />
-        </Card>
+        <div className="flex flex-col gap-4 md:col-span-1">
+          <Card>
+            <Skeleton className="mb-2 h-3 w-20" />
+            <Skeleton className="h-8 w-28" />
+          </Card>
+          <Card>
+            <Skeleton className="mb-2 h-3 w-20" />
+            <Skeleton className="h-8 w-28" />
+            <Skeleton className="mt-2 h-3 w-24" />
+          </Card>
+        </div>
         <Card className="md:col-span-2">
           <Skeleton className="mb-2 h-3 w-14" />
           <div className="flex h-[180px] items-end gap-3">

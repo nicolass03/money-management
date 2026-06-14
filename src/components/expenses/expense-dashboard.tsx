@@ -64,7 +64,7 @@ export function ExpenseDashboard({
         <ExpenseChartsSkeleton />
       ) : periodView ? (
         <ExpenseCharts
-          summary={periodView}
+          periodView={periodView}
           displayCurrency={displayCurrency}
           rates={rates}
         />

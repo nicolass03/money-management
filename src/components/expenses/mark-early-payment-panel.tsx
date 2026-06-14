@@ -86,11 +86,9 @@ export function MarkEarlyPaymentPanel({
               expanded && "rotate-90",
             )}
           >
-            ▶
+            ›
           </span>
-          <p className="font-mono text-sm text-text">
-            mark future payment as paid
-          </p>
+          <p className="font-mono text-sm text-text">mark as paid</p>
         </div>
         {upcomingItems.length > 0 && (
           <Badge variant="default">{upcomingItems.length}</Badge>

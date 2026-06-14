@@ -14,6 +14,7 @@
   --accent: #d4d4d4;
   --accent-glow: #ffffff;
   --success: #a3e635;
+  --warning: #facc15;
   --danger: #f87171;
   --scanline-color: rgba(0, 0, 0, 0.03);
   --glow-color: rgba(255, 255, 255, 0.12);
@@ -31,6 +32,7 @@
   --accent: #404040;
   --accent-glow: #0a0a0a;
   --success: #4d7c0f;
+  --warning: #b45309;
   --scanline-color: rgba(0, 0, 0, 0.015);
   --glow-color: rgba(0, 0, 0, 0.08);
   --glow-pulse-color: rgba(0, 0, 0, 0.06);
@@ -47,6 +49,7 @@
   --color-accent: var(--accent);
   --color-accent-glow: var(--accent-glow);
   --color-success: var(--success);
+  --color-warning: var(--warning);
   --color-danger: var(--danger);
   --font-mono: var(--font-jetbrains-mono);
 }
