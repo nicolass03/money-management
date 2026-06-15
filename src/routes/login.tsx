@@ -17,14 +17,19 @@ import type { AuthErrorCode } from "@/lib/auth/session-store";
 import { ThemeSwitcher } from "@/components/layout/theme-switcher";
 
 type LoginSearch = {
-  error?: "callback_failed";
+  error?: "callback_failed" | "session_invalid";
 };
 
 export const Route = createFileRoute("/login")({
-  validateSearch: (search: Record<string, unknown>): LoginSearch => ({
-    error:
-      search.error === "callback_failed" ? "callback_failed" : undefined,
-  }),
+  validateSearch: (search: Record<string, unknown>): LoginSearch => {
+    if (search.error === "session_invalid") {
+      return { error: "session_invalid" };
+    }
+    if (search.error === "callback_failed") {
+      return { error: "callback_failed" };
+    }
+    return {};
+  },
   beforeLoad: async () => {
     await redirectIfAuthenticated();
   },
@@ -33,7 +38,7 @@ export const Route = createFileRoute("/login")({
 
 function authErrorMessage(
   t: (key: string) => string,
-  code: AuthErrorCode | "callback_failed",
+  code: AuthErrorCode | "callback_failed" | "session_invalid",
 ): string {
   switch (code) {
     case "invalid_credentials":
@@ -46,6 +51,8 @@ function authErrorMessage(
       return t("auth:networkError");
     case "callback_failed":
       return t("auth:callbackFailed");
+    case "session_invalid":
+      return t("auth:sessionInvalid");
     default:
       return t("auth:authFailed");
   }

@@ -3,12 +3,11 @@ import { useEffect, useRef } from "react";
 import { useTranslation } from "react-i18next";
 import { LoadingIndicator } from "@/components/ui/loading-indicator";
 import {
-  clearAuthParamsFromUrl,
+  establishAuthSessionFromUrl,
   getAuthCallbackType,
   isPasswordSetupFlow,
 } from "@/lib/auth/auth-flow";
 import { setPasswordFlow } from "@/lib/auth/password-flow";
-import { supabase } from "@/lib/supabase/client";
 
 export const Route = createFileRoute("/auth/callback")({
   component: AuthCallbackPage,
@@ -25,32 +24,28 @@ function AuthCallbackPage() {
 
     async function handleCallback() {
       const callbackType = getAuthCallbackType();
-      const params = new URLSearchParams(window.location.search);
-      const code = params.get("code");
-      const authError = params.get("error_description") ?? params.get("error");
+      const result = await establishAuthSessionFromUrl();
 
-      if (authError) {
-        clearAuthParamsFromUrl();
+      if (result.status === "invalid") {
+        void navigate({
+          to: "/login",
+          search: {
+            error:
+              result.reason === "user_not_found"
+                ? "session_invalid"
+                : "callback_failed",
+          },
+        });
+        return;
+      }
+
+      if (result.status === "no_session") {
         void navigate({
           to: "/login",
           search: { error: "callback_failed" },
         });
         return;
       }
-
-      if (code) {
-        const { error } = await supabase.auth.exchangeCodeForSession(code);
-        if (error) {
-          clearAuthParamsFromUrl();
-          void navigate({
-            to: "/login",
-            search: { error: "callback_failed" },
-          });
-          return;
-        }
-      }
-
-      clearAuthParamsFromUrl();
 
       if (isPasswordSetupFlow(callbackType)) {
         if (callbackType === "recovery") {

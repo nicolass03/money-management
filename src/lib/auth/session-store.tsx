@@ -12,7 +12,7 @@ import { completeOnboarding } from "@/lib/api/auth";
 import { ApiError } from "@/lib/api/client";
 import { setOnboardingRequiredHandler } from "@/lib/api/onboarding-required";
 import { setUnauthorizedHandler } from "@/lib/api/unauthorized";
-import { canAccessApp } from "@/lib/auth/auth-flow";
+import { canAccessApp, clearInvalidLocalSession } from "@/lib/auth/auth-flow";
 import {
   clearPasswordFlow,
   setPasswordFlow,
@@ -29,6 +29,7 @@ export type AuthErrorCode =
 export type PasswordUpdateErrorCode =
   | "password_too_short"
   | "onboarding_failed"
+  | "session_invalid"
   | "unknown";
 
 function mapSignInError(error: AuthError): AuthErrorCode {
@@ -136,11 +137,37 @@ export function SessionProvider({ children }: { children: ReactNode }) {
       return { error: "password_too_short" as const };
     }
 
+    const {
+      data: { user },
+      error: userError,
+    } = await supabase.auth.getUser();
+    if (userError || !user) {
+      const message = userError?.message?.toLowerCase() ?? "";
+      const code = userError?.code;
+      if (
+        code === "user_not_found" ||
+        message.includes("user from sub claim") ||
+        message.includes("user not found")
+      ) {
+        await clearInvalidLocalSession();
+        return { error: "session_invalid" as const };
+      }
+      return { error: "unknown" as const };
+    }
+
     const { error } = await supabase.auth.updateUser({
       password,
       data: { password_set: true },
     });
     if (error) {
+      const message = error.message.toLowerCase();
+      if (
+        error.code === "user_not_found" ||
+        message.includes("user from sub claim")
+      ) {
+        await clearInvalidLocalSession();
+        return { error: "session_invalid" as const };
+      }
       return { error: "unknown" as const };
     }
 

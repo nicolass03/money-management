@@ -1,7 +1,66 @@
 import type { Session } from "@supabase/supabase-js";
-import { getPasswordFlow } from "@/lib/auth/password-flow";
+import { getPasswordFlow, setPasswordFlow } from "@/lib/auth/password-flow";
+import { supabase } from "@/lib/supabase/client";
 
 export type AuthCallbackType = "invite" | "recovery" | "signup" | "email" | null;
+
+export type EstablishSessionResult =
+  | { status: "ready" }
+  | { status: "no_session" }
+  | { status: "invalid"; reason: "callback_failed" | "user_not_found" };
+
+function isUserNotFoundError(message: string, code?: string): boolean {
+  const normalized = message.toLowerCase();
+  return (
+    code === "user_not_found" ||
+    normalized.includes("user from sub claim") ||
+    normalized.includes("user not found")
+  );
+}
+
+/** Exchange PKCE `?code=` (if present), then validate the session against Supabase Auth. */
+export async function establishAuthSessionFromUrl(): Promise<EstablishSessionResult> {
+  const callbackType = getAuthCallbackType();
+  const params = new URLSearchParams(window.location.search);
+  const authError = params.get("error_description") ?? params.get("error");
+
+  if (authError) {
+    clearAuthParamsFromUrl();
+    return { status: "invalid", reason: "callback_failed" };
+  }
+
+  const code = params.get("code");
+  if (code) {
+    const { error } = await supabase.auth.exchangeCodeForSession(code);
+    if (error) {
+      clearAuthParamsFromUrl();
+      return { status: "invalid", reason: "callback_failed" };
+    }
+    if (callbackType === "recovery") {
+      setPasswordFlow("recovery");
+    }
+    clearAuthParamsFromUrl();
+  }
+
+  const {
+    data: { user },
+    error,
+  } = await supabase.auth.getUser();
+
+  if (error || !user) {
+    if (error && isUserNotFoundError(error.message, error.code)) {
+      await supabase.auth.signOut({ scope: "local" });
+      return { status: "invalid", reason: "user_not_found" };
+    }
+    return { status: "no_session" };
+  }
+
+  return { status: "ready" };
+}
+
+export async function clearInvalidLocalSession(): Promise<void> {
+  await supabase.auth.signOut({ scope: "local" });
+}
 
 /** Parse `type` from the current URL hash or query (Supabase auth redirects). */
 export function getAuthCallbackType(): AuthCallbackType {

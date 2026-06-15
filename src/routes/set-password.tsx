@@ -7,7 +7,10 @@ import { Input } from "@/components/ui/input";
 import { Card } from "@/components/ui/card";
 import { LoadingIndicator } from "@/components/ui/loading-indicator";
 import { ThemeSwitcher } from "@/components/layout/theme-switcher";
-import { canSetPassword, clearAuthParamsFromUrl, getAuthCallbackType } from "@/lib/auth/auth-flow";
+import {
+  canSetPassword,
+  establishAuthSessionFromUrl,
+} from "@/lib/auth/auth-flow";
 import { useSession } from "@/lib/auth/session-store";
 
 export const Route = createFileRoute("/set-password")({
@@ -23,30 +26,56 @@ function SetPasswordPage() {
   const [confirmPassword, setConfirmPassword] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
-
-  const [allowSetup, setAllowSetup] = useState(false);
+  const [sessionReady, setSessionReady] = useState(false);
+  const establishing = useRef(false);
 
   useEffect(() => {
-    if (isBootstrapping) return;
+    if (isBootstrapping || establishing.current) return;
+    establishing.current = true;
+
+    async function prepareSession() {
+      const result = await establishAuthSessionFromUrl();
+
+      if (result.status === "invalid") {
+        void navigate({
+          to: "/login",
+          replace: true,
+          search: {
+            error:
+              result.reason === "user_not_found"
+                ? "session_invalid"
+                : "callback_failed",
+          },
+        });
+        return;
+      }
+
+      if (result.status === "no_session") {
+        void navigate({ to: "/login", replace: true });
+        return;
+      }
+
+      setSessionReady(true);
+    }
+
+    void prepareSession();
+  }, [isBootstrapping, navigate]);
+
+  useEffect(() => {
+    if (!sessionReady || isBootstrapping) return;
 
     if (!session?.access_token) {
       void navigate({ to: "/login", replace: true });
       return;
     }
 
-    const callbackType = getAuthCallbackType();
     if (!canSetPassword(session)) {
       void navigate({ to: "/expenses", replace: true });
       return;
     }
 
-    if (callbackType) {
-      clearAuthParamsFromUrl();
-    }
-
-    setAllowSetup(true);
     passwordRef.current?.focus();
-  }, [isBootstrapping, session, navigate]);
+  }, [sessionReady, isBootstrapping, session, navigate]);
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -65,6 +94,14 @@ function SetPasswordPage() {
     setLoading(true);
     const result = await updatePassword(password);
     if (result.error) {
+      if (result.error === "session_invalid") {
+        void navigate({
+          to: "/login",
+          replace: true,
+          search: { error: "session_invalid" },
+        });
+        return;
+      }
       setError(
         result.error === "password_too_short"
           ? t("auth:passwordTooShort")
@@ -77,7 +114,15 @@ function SetPasswordPage() {
     void navigate({ to: "/expenses" });
   }
 
-  if (isBootstrapping || !session?.access_token || !allowSetup) {
+  if (isBootstrapping || !sessionReady || !session?.access_token) {
+    return (
+      <div className="flex min-h-screen items-center justify-center bg-bg">
+        <LoadingIndicator label={t("common:authenticating")} />
+      </div>
+    );
+  }
+
+  if (!canSetPassword(session)) {
     return (
       <div className="flex min-h-screen items-center justify-center bg-bg">
         <LoadingIndicator label={t("common:authenticating")} />
