@@ -1,5 +1,6 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useEffect, useRef, useState } from "react";
+import type { Session } from "@supabase/supabase-js";
 import { motion } from "framer-motion";
 import { useTranslation } from "react-i18next";
 import { Button } from "@/components/ui/button";
@@ -7,10 +8,7 @@ import { Input } from "@/components/ui/input";
 import { Card } from "@/components/ui/card";
 import { LoadingIndicator } from "@/components/ui/loading-indicator";
 import { ThemeSwitcher } from "@/components/layout/theme-switcher";
-import {
-  canSetPassword,
-  establishAuthSessionFromUrl,
-} from "@/lib/auth/auth-flow";
+import { establishAuthSessionFromUrl } from "@/lib/auth/auth-flow";
 import { useSession } from "@/lib/auth/session-store";
 
 export const Route = createFileRoute("/set-password")({
@@ -20,23 +18,27 @@ export const Route = createFileRoute("/set-password")({
 function SetPasswordPage() {
   const { t } = useTranslation(["auth", "common"]);
   const navigate = useNavigate();
-  const { session, isBootstrapping, updatePassword } = useSession();
+  const { updatePassword } = useSession();
   const passwordRef = useRef<HTMLInputElement>(null);
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
-  const [sessionReady, setSessionReady] = useState(false);
+  const [verifiedSession, setVerifiedSession] = useState<Session | null>(null);
+  const [pageState, setPageState] = useState<"loading" | "ready" | "redirecting">(
+    "loading",
+  );
   const establishing = useRef(false);
 
   useEffect(() => {
-    if (isBootstrapping || establishing.current) return;
+    if (establishing.current) return;
     establishing.current = true;
 
     async function prepareSession() {
       const result = await establishAuthSessionFromUrl();
 
       if (result.status === "invalid") {
+        setPageState("redirecting");
         void navigate({
           to: "/login",
           replace: true,
@@ -51,31 +53,24 @@ function SetPasswordPage() {
       }
 
       if (result.status === "no_session") {
+        setPageState("redirecting");
         void navigate({ to: "/login", replace: true });
         return;
       }
 
-      setSessionReady(true);
+      if (!result.passwordSetup) {
+        setPageState("redirecting");
+        void navigate({ to: "/expenses", replace: true });
+        return;
+      }
+
+      setVerifiedSession(result.session);
+      setPageState("ready");
+      passwordRef.current?.focus();
     }
 
     void prepareSession();
-  }, [isBootstrapping, navigate]);
-
-  useEffect(() => {
-    if (!sessionReady || isBootstrapping) return;
-
-    if (!session?.access_token) {
-      void navigate({ to: "/login", replace: true });
-      return;
-    }
-
-    if (!canSetPassword(session)) {
-      void navigate({ to: "/expenses", replace: true });
-      return;
-    }
-
-    passwordRef.current?.focus();
-  }, [sessionReady, isBootstrapping, session, navigate]);
+  }, [navigate]);
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -95,6 +90,7 @@ function SetPasswordPage() {
     const result = await updatePassword(password);
     if (result.error) {
       if (result.error === "session_invalid") {
+        setPageState("redirecting");
         void navigate({
           to: "/login",
           replace: true,
@@ -114,15 +110,7 @@ function SetPasswordPage() {
     void navigate({ to: "/expenses" });
   }
 
-  if (isBootstrapping || !sessionReady || !session?.access_token) {
-    return (
-      <div className="flex min-h-screen items-center justify-center bg-bg">
-        <LoadingIndicator label={t("common:authenticating")} />
-      </div>
-    );
-  }
-
-  if (!canSetPassword(session)) {
+  if (pageState !== "ready" || !verifiedSession) {
     return (
       <div className="flex min-h-screen items-center justify-center bg-bg">
         <LoadingIndicator label={t("common:authenticating")} />

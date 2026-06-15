@@ -5,7 +5,6 @@ import { LoadingIndicator } from "@/components/ui/loading-indicator";
 import {
   establishAuthSessionFromUrl,
   getAuthCallbackType,
-  isPasswordSetupFlow,
 } from "@/lib/auth/auth-flow";
 import { setPasswordFlow } from "@/lib/auth/password-flow";
 
@@ -47,7 +46,7 @@ function AuthCallbackPage() {
         return;
       }
 
-      if (isPasswordSetupFlow(callbackType)) {
+      if (result.passwordSetup) {
         if (callbackType === "recovery") {
           setPasswordFlow("recovery");
         }
