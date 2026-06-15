@@ -7,7 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Card } from "@/components/ui/card";
 import { LoadingIndicator } from "@/components/ui/loading-indicator";
 import { ThemeSwitcher } from "@/components/layout/theme-switcher";
-import { needsPasswordSetup, getAuthCallbackType, isPasswordSetupFlow, clearAuthParamsFromUrl } from "@/lib/auth/auth-flow";
+import { canSetPassword, clearAuthParamsFromUrl, getAuthCallbackType } from "@/lib/auth/auth-flow";
 import { useSession } from "@/lib/auth/session-store";
 
 export const Route = createFileRoute("/set-password")({
@@ -35,10 +35,7 @@ function SetPasswordPage() {
     }
 
     const callbackType = getAuthCallbackType();
-    const canSet =
-      needsPasswordSetup(session) || isPasswordSetupFlow(callbackType);
-
-    if (!canSet) {
+    if (!canSetPassword(session)) {
       void navigate({ to: "/expenses", replace: true });
       return;
     }
@@ -68,7 +65,11 @@ function SetPasswordPage() {
     setLoading(true);
     const result = await updatePassword(password);
     if (result.error) {
-      setError(result.error);
+      setError(
+        result.error === "password_too_short"
+          ? t("auth:passwordTooShort")
+          : t("auth:setPasswordFailed"),
+      );
       setLoading(false);
       return;
     }

@@ -3,6 +3,7 @@ import { useEffect } from "react";
 import { useTranslation } from "react-i18next";
 import { AppShell } from "@/components/layout/app-shell";
 import { LoadingIndicator } from "@/components/ui/loading-indicator";
+import { needsPasswordSetup } from "@/lib/auth/auth-flow";
 import { requireAuth } from "@/lib/auth/route-guards";
 import { useSession } from "@/lib/auth/session-store";
 
@@ -25,15 +26,22 @@ function AuthPending() {
 
 function AppLayout() {
   const navigate = useNavigate();
-  const { isAuthenticated, isBootstrapping } = useSession();
+  const { canAccessApp, isBootstrapping, session } = useSession();
 
   useEffect(() => {
-    if (!isBootstrapping && !isAuthenticated) {
-      void navigate({ to: "/login", replace: true });
-    }
-  }, [isBootstrapping, isAuthenticated, navigate]);
+    if (isBootstrapping) return;
 
-  if (isBootstrapping || !isAuthenticated) {
+    if (!session?.access_token) {
+      void navigate({ to: "/login", replace: true });
+      return;
+    }
+
+    if (!canAccessApp || needsPasswordSetup(session)) {
+      void navigate({ to: "/set-password", replace: true });
+    }
+  }, [isBootstrapping, session, canAccessApp, navigate]);
+
+  if (isBootstrapping || !canAccessApp) {
     return <AuthPending />;
   }
 

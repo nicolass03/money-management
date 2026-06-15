@@ -117,14 +117,8 @@ function LoginPage() {
     }
 
     setResetLoading(true);
-    const result = await resetPasswordForEmail(trimmedEmail);
+    await resetPasswordForEmail(trimmedEmail);
     setResetLoading(false);
-
-    if (result.error) {
-      setError(result.error);
-      return;
-    }
-
     setInfo(t("auth:resetPasswordSent"));
   }
 

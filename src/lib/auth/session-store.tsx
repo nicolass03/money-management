@@ -8,7 +8,15 @@ import {
   type ReactNode,
 } from "react";
 import type { AuthError, Session } from "@supabase/supabase-js";
+import { completeOnboarding } from "@/lib/api/auth";
+import { ApiError } from "@/lib/api/client";
+import { setOnboardingRequiredHandler } from "@/lib/api/onboarding-required";
 import { setUnauthorizedHandler } from "@/lib/api/unauthorized";
+import { canAccessApp } from "@/lib/auth/auth-flow";
+import {
+  clearPasswordFlow,
+  setPasswordFlow,
+} from "@/lib/auth/password-flow";
 import { supabase } from "@/lib/supabase/client";
 
 export type AuthErrorCode =
@@ -16,6 +24,11 @@ export type AuthErrorCode =
   | "email_not_confirmed"
   | "rate_limited"
   | "network"
+  | "unknown";
+
+export type PasswordUpdateErrorCode =
+  | "password_too_short"
+  | "onboarding_failed"
   | "unknown";
 
 function mapSignInError(error: AuthError): AuthErrorCode {
@@ -38,14 +51,17 @@ function mapSignInError(error: AuthError): AuthErrorCode {
 interface SessionContextValue {
   session: Session | null;
   isAuthenticated: boolean;
+  canAccessApp: boolean;
   isBootstrapping: boolean;
   signIn: (
     email: string,
     password: string,
   ) => Promise<{ error?: AuthErrorCode }>;
   signOut: () => Promise<void>;
-  updatePassword: (password: string) => Promise<{ error?: string }>;
-  resetPasswordForEmail: (email: string) => Promise<{ error?: string }>;
+  updatePassword: (
+    password: string,
+  ) => Promise<{ error?: PasswordUpdateErrorCode }>;
+  resetPasswordForEmail: (email: string) => Promise<void>;
 }
 
 const SessionContext = createContext<SessionContextValue | null>(null);
@@ -55,6 +71,7 @@ export function SessionProvider({ children }: { children: ReactNode }) {
   const [isBootstrapping, setIsBootstrapping] = useState(true);
 
   const signOut = useCallback(async () => {
+    clearPasswordFlow();
     await supabase.auth.signOut();
     setSession(null);
   }, []);
@@ -62,6 +79,11 @@ export function SessionProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     setUnauthorizedHandler(() => {
       void signOut();
+    });
+    setOnboardingRequiredHandler(() => {
+      if (typeof window !== "undefined") {
+        window.location.assign("/set-password");
+      }
     });
   }, [signOut]);
 
@@ -86,6 +108,7 @@ export function SessionProvider({ children }: { children: ReactNode }) {
         typeof window !== "undefined" &&
         !window.location.pathname.startsWith("/set-password")
       ) {
+        setPasswordFlow("recovery");
         window.location.assign("/set-password");
       }
     });
@@ -109,33 +132,51 @@ export function SessionProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const updatePassword = useCallback(async (password: string) => {
+    if (password.length < 8) {
+      return { error: "password_too_short" as const };
+    }
+
     const { error } = await supabase.auth.updateUser({
       password,
       data: { password_set: true },
     });
     if (error) {
-      return { error: error.message };
+      return { error: "unknown" as const };
     }
+
+    const { error: refreshError } = await supabase.auth.refreshSession();
+    if (refreshError) {
+      return { error: "onboarding_failed" as const };
+    }
+
+    try {
+      await completeOnboarding();
+    } catch (caught) {
+      if (
+        caught instanceof ApiError &&
+        caught.status === 400 &&
+        caught.message.includes("password must be set")
+      ) {
+        return { error: "onboarding_failed" as const };
+      }
+      return { error: "onboarding_failed" as const };
+    }
+
+    clearPasswordFlow();
     return {};
   }, []);
 
   const resetPasswordForEmail = useCallback(async (email: string) => {
     const normalizedEmail = email.trim().toLowerCase();
     const redirectTo = `${window.location.origin}/set-password`;
-    const { error } = await supabase.auth.resetPasswordForEmail(
-      normalizedEmail,
-      { redirectTo },
-    );
-    if (error) {
-      return { error: error.message };
-    }
-    return {};
+    await supabase.auth.resetPasswordForEmail(normalizedEmail, { redirectTo });
   }, []);
 
   const value = useMemo<SessionContextValue>(
     () => ({
       session,
       isAuthenticated: !!session?.access_token,
+      canAccessApp: canAccessApp(session),
       isBootstrapping,
       signIn,
       signOut,

@@ -1,5 +1,6 @@
 import { getApiUrl } from "@/lib/env";
 import { supabase } from "@/lib/supabase/client";
+import { triggerOnboardingRequired } from "./onboarding-required";
 import { triggerUnauthorized } from "./unauthorized";
 
 export class ApiError extends Error {
@@ -44,6 +45,23 @@ export async function apiFetch<T>(
   if (response.status === 401) {
     triggerUnauthorized();
     throw new ApiError(401, "Not authenticated");
+  }
+
+  if (response.status === 403) {
+    const text = await response.text().catch(() => "");
+    let message = "onboarding_required";
+    if (text) {
+      try {
+        const body = JSON.parse(text) as { error?: string };
+        message = body.error ?? message;
+      } catch {
+        message = text;
+      }
+    }
+    if (message === "onboarding_required") {
+      triggerOnboardingRequired();
+    }
+    throw new ApiError(403, message);
   }
 
   if (!response.ok) {

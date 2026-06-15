@@ -7,6 +7,7 @@ import {
   getAuthCallbackType,
   isPasswordSetupFlow,
 } from "@/lib/auth/auth-flow";
+import { setPasswordFlow } from "@/lib/auth/password-flow";
 import { supabase } from "@/lib/supabase/client";
 
 export const Route = createFileRoute("/auth/callback")({
@@ -52,6 +53,9 @@ function AuthCallbackPage() {
       clearAuthParamsFromUrl();
 
       if (isPasswordSetupFlow(callbackType)) {
+        if (callbackType === "recovery") {
+          setPasswordFlow("recovery");
+        }
         void navigate({ to: "/set-password" });
         return;
       }

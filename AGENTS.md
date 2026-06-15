@@ -40,7 +40,9 @@ If `cargo run` fails with `DATABASE_URL is required` while `.env` is set, the sh
 - Supabase **URL configuration** (Authentication → URL Configuration): add redirect URLs for `/auth/callback` and `/set-password` on production and `http://localhost:5173` for local dev. Set **Site URL** to production origin, or customize the **Invite user** email template to `redirect_to` `/set-password` (dashboard invites default to Site URL).
 - Invite email template example (append redirect): `<a href="{{ .ConfirmationURL }}&redirect_to={{ .SiteURL }}/set-password">Accept invitation</a>`
 - Forgot password on `/login` calls `resetPasswordForEmail` with `redirectTo` → `/set-password`.
-- Invited users are gated until `user_metadata.password_set` is set (`updateUser` on `/set-password`). `requireAuth` redirects incomplete invites to `/set-password`.
+- Invited users are gated until `POST /api/v1/auth/complete-onboarding` succeeds. The API checks `auth.users.encrypted_password` (not forgeable client metadata) and sets `users.onboarding_completed_at`. All other routes return **403 `onboarding_required`** until then. Client `requireAuth` + `canAccessApp` mirror this for UX.
+- Forgot-password always shows a generic success message (no email enumeration). Reset links land on `/set-password` (`sessionStorage` tracks recovery flow when URL `type` is already cleared).
+- **Free tier:** custom auth email templates are disabled when using Supabase default SMTP on projects created after 2026-06-03. Use **Site URL** = `https://<domain>/set-password` instead of editing the invite template.
 - Any valid Supabase Auth JWT is accepted by the API; first request auto-creates `users` + `user_settings`.
 - Default seeded user: `9886a71c-56d5-4cbe-a566-d762f24d0c9e` / `nickph116@gmail.com`.
 - Supabase **JWT signing keys** issue **ES256** access tokens. The Rust API validates them by fetching public keys from `{SUPABASE_URL}/auth/v1/.well-known/jwks.json` — do not use the legacy `SUPABASE_JWT_SECRET`. A 401 with API log `InvalidAlgorithm` or `unsupported jwt algorithm` means JWKS validation is missing or stale — restart the API after key rotation.
