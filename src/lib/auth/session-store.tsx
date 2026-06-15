@@ -17,6 +17,8 @@ import {
   clearPasswordFlow,
   setPasswordFlow,
 } from "@/lib/auth/password-flow";
+import { performSignOut } from "@/lib/auth/sign-out";
+import { clearAppDataCache } from "@/lib/query/query-client";
 import { supabase } from "@/lib/supabase/client";
 
 export type AuthErrorCode =
@@ -72,8 +74,7 @@ export function SessionProvider({ children }: { children: ReactNode }) {
   const [isBootstrapping, setIsBootstrapping] = useState(true);
 
   const signOut = useCallback(async () => {
-    clearPasswordFlow();
-    await supabase.auth.signOut();
+    await performSignOut();
     setSession(null);
   }, []);
 
@@ -90,9 +91,11 @@ export function SessionProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     let mounted = true;
+    let previousUserId: string | null = null;
 
     supabase.auth.getSession().then(({ data: { session: initial } }) => {
       if (mounted) {
+        previousUserId = initial?.user?.id ?? null;
         setSession(initial);
         setIsBootstrapping(false);
       }
@@ -101,6 +104,26 @@ export function SessionProvider({ children }: { children: ReactNode }) {
     const {
       data: { subscription },
     } = supabase.auth.onAuthStateChange((event, nextSession) => {
+      const nextUserId = nextSession?.user?.id ?? null;
+
+      if (event === "SIGNED_OUT") {
+        previousUserId = null;
+        setSession(null);
+        setIsBootstrapping(false);
+        void clearAppDataCache();
+        return;
+      }
+
+      if (
+        event === "SIGNED_IN" &&
+        previousUserId &&
+        nextUserId &&
+        previousUserId !== nextUserId
+      ) {
+        void clearAppDataCache();
+      }
+
+      previousUserId = nextUserId;
       setSession(nextSession);
       setIsBootstrapping(false);
 
@@ -129,6 +152,7 @@ export function SessionProvider({ children }: { children: ReactNode }) {
     if (error) {
       return { error: mapSignInError(error) };
     }
+    await clearAppDataCache();
     return {};
   }, []);
 

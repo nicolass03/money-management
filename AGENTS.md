@@ -74,6 +74,7 @@ If `cargo run` fails with `DATABASE_URL is required` while `.env` is set, the sh
 - Tab visibility refresh: `visibilitychange` in `src/main.tsx` invalidates all queries (parity with iOS `scenePhase == .active`).
 - Do not use `number` for entity/FK IDs in domain types or API clients.
 - Login uses direct `supabase.auth.signInWithPassword` (no BFF proxy). Rate limiting relies on Supabase Auth (the old Next.js IP/email limiter was removed).
+- **Logout / user switch:** `performSignOut()` (`src/lib/auth/sign-out.ts`) clears React Query (`clearAppDataCache`), then `supabase.auth.signOut({ scope: 'local' })` per [Supabase signOut docs](https://supabase.com/docs/reference/javascript/auth-signout). If that errors, purge `sb-*-auth-token` from `localStorage`. `signIn` also clears the query cache so a new user never sees the previous user's cached API data. `onAuthStateChange` clears cache on `SIGNED_OUT` and when `SIGNED_IN` user id changes.
 - Env vars (`.env.example`): `VITE_SUPABASE_URL`, `VITE_SUPABASE_PUBLISHABLE_KEY`, `VITE_API_URL` — all baked at **build time**. Set them in Railway before the first deploy.
 - HTTP security headers for production are set in `nginx/default.conf.template` (CSP, HSTS). Health check: `GET /health`.
 - `server.js` remains for local `npm start` only; Railway serves via **nginx** in Docker.
