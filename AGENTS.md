@@ -8,6 +8,7 @@
 - `exchange_rate_snapshots` is **global** (no `user_id`) — shared FX cache.
 - `user_settings` is keyed by `user_id` (one row per user), not a singleton `id = 1`.
 - **Daily recurring expenses** are charged by an in-process scheduler in the Rust API (`src/jobs/daily_expenses.rs`). There is no HTTP cron route. Multi-replica deploys use a Postgres advisory lock. Set `ENABLE_INTERNAL_CRON=false` to disable.
+- **Daily scheduled income** is materialized by the **same** scheduler (`charge_due_income_for_date`) — one actual `income` row per pay date, mirroring recurring expenses. Income pay schedules are the "planned income"; there is no separate planned-income entity. Web: income entries now show **all** active rows (manual + materialized scheduled) — manual rows get full edit + delete; scheduled rows get **amount-only** edit (`useUpdateIncomeAmount`) + delete (soft-deleted server-side). `filter-income-entries.ts` no longer hides scheduled rows, and the removed `syncScheduledIncome` API helper is gone. `incomeChange` invalidation refreshes income + projections; projections include future schedule occurrences (server-computed).
 - Postgres **RLS** is enabled (migration `20250612130000_row_level_security`). Repos call `connection::user_connection` / `set_user_context` so `app.user_id` is set per request; internal jobs use `admin_connection` for cross-tenant operations like listing all users.
 
 ## Migrations (Diesel)
@@ -45,6 +46,13 @@ If `cargo run` fails with `DATABASE_URL is required` while `.env` is set, the sh
 - Recharts cannot read CSS variables — use `useChartTheme()` from `src/hooks/use-chart-theme.ts`; do not hardcode hex colors in chart components.
 - Focus/hover glows use `--glow-color` (theme-aware); scanlines use `--scanline-color`.
 - Overlay dialogs use `TerminalModal` (`src/components/ui/terminal-modal.tsx`) — portaled, `~/title` header, `esc` close, scrollable body. Example: **mark as paid** (`mark-early-payment-panel.tsx`).
+
+## Localization
+
+- Web localization uses `react-i18next` (`src/lib/i18n/index.ts`) with locale resources under `src/locales/en/*.json` and `src/locales/es/*.json`.
+- Language preference is API-backed in `user_settings.language` (`en` | `es`) and surfaced in Settings (`src/components/settings/language-settings.tsx`).
+- `LanguageProvider` (`src/lib/i18n/language-provider.tsx`) applies the active language to i18n + `document.documentElement.lang`, bootstraps from `localStorage` key `incm-mgmt-language`, and then syncs from `/settings` once authenticated.
+- Keep currency formatting tied to currency code (`src/lib/currency/format.ts`); date formatting follows UI language (`formatDate` in `src/lib/utils.ts`).
 
 ## Vite SPA (TanStack Router + Query)
 

@@ -1,4 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
+import { useTranslation } from "react-i18next";
 import { SavingsPlaceholder } from "@/components/savings/savings-placeholder";
 import { LoadingIndicator } from "@/components/ui/loading-indicator";
 import { useMoneyContext, useSavings } from "@/hooks/use-queries";
@@ -8,11 +9,12 @@ export const Route = createFileRoute("/_app/savings")({
 });
 
 function SavingsPage() {
+  const { t } = useTranslation("common");
   const entries = useSavings();
   const money = useMoneyContext();
 
   if (entries.isLoading || money.isLoading || !money.data) {
-    return <LoadingIndicator label="fetching data" />;
+    return <LoadingIndicator label={t("fetchingData")} />;
   }
 
   return (

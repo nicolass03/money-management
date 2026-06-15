@@ -1,8 +1,9 @@
 "use client";
 
+import { useTranslation } from "react-i18next";
 import { Button } from "@/components/ui/button";
 import {
-  EXPENSE_PERIOD_OPTIONS,
+  getExpensePeriodOptions,
   type ExpensePeriodKey,
 } from "@/lib/expenses/expense-period-range";
 import { cn } from "@/lib/utils";
@@ -18,10 +19,13 @@ export function ExpensePeriodSelector({
   onChange,
   className,
 }: ExpensePeriodSelectorProps) {
+  const { t } = useTranslation("expenses");
+  const options = getExpensePeriodOptions();
+
   return (
     <div className={cn("flex flex-wrap items-center gap-2", className)}>
-      <span className="font-mono text-xs text-muted">period:</span>
-      {EXPENSE_PERIOD_OPTIONS.map((option) => (
+      <span className="font-mono text-xs text-muted">{t("periodLabel")}</span>
+      {options.map((option) => (
         <Button
           key={option.key}
           size="sm"

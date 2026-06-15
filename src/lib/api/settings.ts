@@ -1,5 +1,5 @@
 
-import type { CurrencyCode, UserSettings } from "@/lib/types/domain";
+import type { AppLanguage, CurrencyCode, UserSettings } from "@/lib/types/domain";
 import { apiFetch } from "./client";
 
 export type { UserSettings };
@@ -10,6 +10,7 @@ export async function getUserSettingsFromApi(): Promise<UserSettings> {
 
 export interface PatchSettingsInput {
   displayCurrency?: CurrencyCode;
+  language?: AppLanguage;
   primaryScheduleId?: string | null;
   projectionInitialFreeMoney?: number;
   projectionStartDate?: string | null;

@@ -2,6 +2,7 @@
 
 import { useMemo, useState } from "react";
 import { motion } from "framer-motion";
+import { useTranslation } from "react-i18next";
 import {
   Bar,
   BarChart,
@@ -31,6 +32,7 @@ export function ExpenseCharts({
   displayCurrency,
   rates,
 }: ExpenseChartsProps) {
+  const { t } = useTranslation(["expenses", "common"]);
   const { privacyMode } = usePrivacyMode();
   const chartTheme = useChartTheme();
   const [selectedTags, setSelectedTags] = useState<string[]>([]);
@@ -83,6 +85,8 @@ export function ExpenseCharts({
     );
   }
 
+  const formattedTotal = formatMinorAmount(periodView.totalSpend);
+
   return (
     <motion.div
       initial={{ opacity: 0, y: 12 }}
@@ -90,13 +94,22 @@ export function ExpenseCharts({
       transition={{ duration: 0.4 }}
     >
       <SectionHeader
-        title="expense_analytics"
-        subtitle={`total: ${formatMinorAmount(periodView.totalSpend)} // ${selectedTags.length > 0 ? `filtered by ${selectedTags.length} tag(s)` : "all expenses"}`}
+        title={t("expenses:analyticsTitle")}
+        subtitle={
+          selectedTags.length > 0
+            ? t("expenses:analyticsSubtitleFiltered", {
+                total: formattedTotal,
+                count: selectedTags.length,
+              })
+            : t("expenses:analyticsSubtitleTotal", { total: formattedTotal })
+        }
       />
 
       {allTags.length > 0 && (
         <div className="mb-4 flex flex-wrap items-center gap-2">
-          <span className="font-mono text-xs text-muted">filter:</span>
+          <span className="font-mono text-xs text-muted">
+            {t("expenses:filterLabel")}
+          </span>
           {allTags.map((tag) => {
             const active = selectedTags.includes(tag);
             return (
@@ -121,7 +134,7 @@ export function ExpenseCharts({
               onClick={() => setSelectedTags([])}
               className="font-mono text-xs text-accent hover:text-accent-glow"
             >
-              clear
+              {t("common:clear")}
             </button>
           )}
         </div>
@@ -135,7 +148,9 @@ export function ExpenseCharts({
         />
 
         <Card className="md:col-span-2">
-          <p className="mb-2 font-mono text-xs text-muted">by_tag</p>
+          <p className="mb-2 font-mono text-xs text-muted">
+            {t("expenses:byTag")}
+          </p>
           <ResponsiveContainer width="100%" height={180}>
             <BarChart data={tagData}>
               <XAxis

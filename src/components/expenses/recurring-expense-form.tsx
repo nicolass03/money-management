@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useTranslation } from "react-i18next";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
@@ -40,6 +41,7 @@ export function RecurringExpenseForm({
   displayCurrency,
   rates,
 }: RecurringExpenseFormProps) {
+  const { t } = useTranslation(["expenses", "common"]);
   const isEditing = Boolean(recurring);
   const [name, setName] = useState(recurring?.name ?? "");
   const [tags, setTags] = useState(
@@ -108,14 +110,14 @@ export function RecurringExpenseForm({
     <form onSubmit={handleSubmit} className="space-y-4">
       <div>
         <label htmlFor="expense-name" className="mb-2 block font-mono text-xs text-muted">
-          name:
+          {t("common:labelName")}
         </label>
         <Input
           id="expense-name"
           name="name"
           value={name}
           onChange={(e) => setName(e.target.value)}
-          placeholder="Rent"
+          placeholder={t("expenses:recurringNamePlaceholder")}
           required
         />
       </div>
@@ -124,7 +126,7 @@ export function RecurringExpenseForm({
 
       <div>
         <label htmlFor="expense-anchor" className="mb-2 block font-mono text-xs text-muted">
-          due_anchor:
+          {t("expenses:labelDueAnchor")}
         </label>
         <Input
           id="expense-anchor"
@@ -139,7 +141,7 @@ export function RecurringExpenseForm({
       <div className="grid gap-4 sm:grid-cols-2">
         <div>
           <label htmlFor="expense-amount" className="mb-2 block font-mono text-xs text-muted">
-            amount:
+            {t("common:labelAmount")}
           </label>
           <Input
             id="expense-amount"
@@ -148,14 +150,14 @@ export function RecurringExpenseForm({
             inputMode="decimal"
             value={amount}
             onChange={(e) => setAmount(e.target.value)}
-            placeholder="1200.00"
+            placeholder={t("expenses:recurringAmountPlaceholder")}
             required
           />
         </div>
 
         <div>
           <label htmlFor="expense-currency" className="mb-2 block font-mono text-xs text-muted">
-            currency:
+            {t("common:labelCurrency")}
           </label>
           <select
             id="expense-currency"
@@ -180,7 +182,7 @@ export function RecurringExpenseForm({
           htmlFor="expense-last-payment"
           className="mb-2 block font-mono text-xs text-muted"
         >
-          last_payment_date:
+          {t("expenses:labelLastPaymentDate")}
         </label>
         <Input
           id="expense-last-payment"
@@ -190,13 +192,13 @@ export function RecurringExpenseForm({
           onChange={(e) => setLastPaymentDate(e.target.value)}
         />
         <p className="mt-1 font-mono text-xs text-muted">
-          optional — no charges after this date
+          {t("expenses:lastPaymentHint")}
         </p>
       </div>
 
       <div>
         <label htmlFor="expense-frequency" className="mb-2 block font-mono text-xs text-muted">
-          frequency:
+          {t("expenses:labelFrequency")}
         </label>
         <select
           id="expense-frequency"
@@ -223,12 +225,14 @@ export function RecurringExpenseForm({
           onChange={(e) => setIsSubscription(e.target.checked)}
           className="accent-accent"
         />
-        subscription
+        {t("expenses:subscription")}
       </label>
 
       {previewDates.length > 0 && (
         <div className="rounded border border-border/60 bg-bg/50 px-3 py-2">
-          <p className="font-mono text-xs text-muted">upcoming due dates:</p>
+          <p className="font-mono text-xs text-muted">
+            {t("expenses:upcomingDueDates")}
+          </p>
           <ul className="mt-2 space-y-1">
             {previewDates.map((date) => (
               <li
@@ -261,11 +265,15 @@ export function RecurringExpenseForm({
 
       <div className="flex gap-2">
         <Button type="submit" loading={pending}>
-          {pending ? "saving..." : isEditing ? "update" : "add recurring"}
+          {pending
+            ? t("common:saving")
+            : isEditing
+              ? t("common:update")
+              : t("expenses:submitAddRecurring")}
         </Button>
         {onCancel && (
           <Button type="button" variant="ghost" onClick={onCancel}>
-            cancel
+            {t("common:cancel")}
           </Button>
         )}
       </div>

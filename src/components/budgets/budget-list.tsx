@@ -1,5 +1,6 @@
 "use client";
 
+import { useTranslation } from "react-i18next";
 import type { MoneyDisplayContext } from "@/lib/currency/display";
 import type { BudgetWithTags, ExpenseWithTags } from "@/lib/types/domain";
 import { CardListSkeleton } from "@/components/ui/list-skeletons";
@@ -20,12 +21,12 @@ const GROUP_ORDER = [
   "depleted",
 ] as const;
 
-const GROUP_LABELS: Record<(typeof GROUP_ORDER)[number], string> = {
-  active: "active",
-  upcoming: "upcoming",
-  open: "open-ended",
-  ended: "ended",
-  depleted: "depleted",
+const GROUP_KEYS: Record<(typeof GROUP_ORDER)[number], string> = {
+  active: "groupActive",
+  upcoming: "groupUpcoming",
+  open: "groupOpenEnded",
+  ended: "groupEnded",
+  depleted: "groupDepleted",
 };
 
 export function BudgetList({
@@ -35,14 +36,16 @@ export function BudgetList({
   displayCurrency,
   rates,
 }: BudgetListProps) {
+  const { t } = useTranslation(["budgets", "common"]);
+
   if (loading) {
-    return <CardListSkeleton count={3} label="loading budgets" />;
+    return <CardListSkeleton count={3} label={t("common:loadingBudgets")} />;
   }
 
   if (budgets.length === 0) {
     return (
       <p className="font-mono text-sm text-muted">
-        {"> no budgets yet. add one above."}
+        {t("budgets:emptyList")}
       </p>
     );
   }
@@ -66,7 +69,7 @@ export function BudgetList({
         return (
           <section key={status}>
             <p className="mb-3 font-mono text-xs text-muted">
-              {`// ${GROUP_LABELS[status]}`}
+              {`// ${t(`budgets:${GROUP_KEYS[status]}`)}`}
             </p>
             <div className="space-y-4">
               {items.map((budget) => (

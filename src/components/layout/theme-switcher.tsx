@@ -2,18 +2,25 @@
 
 import { useTheme } from "next-themes";
 import { useEffect, useState } from "react";
+import { useTranslation } from "react-i18next";
 import { Button } from "@/components/ui/button";
 
 const THEME_CYCLE = ["dark", "light", "system"] as const;
 
-function themeLabel(theme: string | undefined, resolvedTheme: string | undefined) {
+function themeLabel(
+  theme: string | undefined,
+  resolvedTheme: string | undefined,
+  t: (key: string, options?: Record<string, string>) => string,
+) {
   if (theme === "system") {
-    return `theme: system (${resolvedTheme ?? "…"})`;
+    return t("themeSystem", { resolved: resolvedTheme ?? "..." });
   }
-  return `theme: ${theme ?? "dark"}`;
+  if (theme === "light") return t("themeLight");
+  return t("themeDark");
 }
 
 export function ThemeSwitcher({ className }: { className?: string }) {
+  const { t } = useTranslation("common");
   const { theme, resolvedTheme, setTheme } = useTheme();
   const [mounted, setMounted] = useState(false);
 
@@ -34,11 +41,11 @@ export function ThemeSwitcher({ className }: { className?: string }) {
       size="sm"
       className={className}
       onClick={cycleTheme}
-      aria-label="Cycle theme: dark, light, or system"
+      aria-label={t("themeAriaLabel")}
       aria-pressed={mounted ? theme === "light" : false}
       disabled={!mounted}
     >
-      {mounted ? themeLabel(theme, resolvedTheme) : "theme: …"}
+      {mounted ? themeLabel(theme, resolvedTheme, t) : t("themeLoading")}
     </Button>
   );
 }

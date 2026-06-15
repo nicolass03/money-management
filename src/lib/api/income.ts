@@ -45,7 +45,3 @@ export async function updateIncome(
 export async function deleteIncome(id: string): Promise<void> {
   await apiFetch(`/api/v1/income/${id}`, { method: "DELETE" });
 }
-
-export async function syncScheduledIncome(): Promise<void> {
-  await apiFetch("/api/v1/income/sync-scheduled", { method: "POST" });
-}

@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useTranslation } from "react-i18next";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -17,6 +18,7 @@ export function ExtraSpentSettings({
   extraSpentLimit,
   displayCurrency,
 }: ExtraSpentSettingsProps) {
+  const { t } = useTranslation(["settings", "common"]);
   const updateLimit = useUpdateExtraSpentLimit();
   const [success, setSuccess] = useState(false);
 
@@ -33,8 +35,8 @@ export function ExtraSpentSettings({
   return (
     <div className="space-y-4">
       <SectionHeader
-        title="extra_spent_limit"
-        subtitle="optimal limit for unplanned spending (expenses not tied to recurring, planned, or budgets)"
+        title={t("settings:extraSpentTitle")}
+        subtitle={t("settings:extraSpentSubtitle")}
       />
 
       <Card>
@@ -44,7 +46,7 @@ export function ExtraSpentSettings({
               htmlFor="extra-spent-limit"
               className="mb-2 block font-mono text-xs text-muted"
             >
-              extra_spent_limit ({CURRENCY_LABELS[displayCurrency]}):
+              {t("settings:extraSpentLabel", { currency: CURRENCY_LABELS[displayCurrency] })}
             </label>
             <Input
               id="extra-spent-limit"
@@ -56,10 +58,10 @@ export function ExtraSpentSettings({
                   ? formatCentsAsDollarsInput(extraSpentLimit)
                   : ""
               }
-              placeholder="no limit"
+              placeholder={t("settings:extraSpentPlaceholder")}
             />
             <p className="mt-2 font-mono text-xs text-muted">
-              {"> leave empty to remove the limit"}
+              {t("settings:extraSpentHint")}
             </p>
           </div>
 
@@ -70,12 +72,12 @@ export function ExtraSpentSettings({
           )}
           {success && (
             <p className="font-mono text-xs text-success">
-              {"> extra spent limit updated"}
+                {t("settings:extraSpentUpdated")}
             </p>
           )}
 
           <Button type="submit" loading={updateLimit.isPending}>
-            {updateLimit.isPending ? "saving..." : "save extra spent limit"}
+            {updateLimit.isPending ? t("common:saving") : t("settings:saveExtraSpentLimit")}
           </Button>
         </form>
       </Card>

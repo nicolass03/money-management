@@ -1,3 +1,4 @@
+import { useTranslation } from "react-i18next";
 import { Link } from "@tanstack/react-router";
 import { Card } from "@/components/ui/card";
 import { ProjectionsTableSkeleton } from "@/components/ui/list-skeletons";
@@ -25,6 +26,7 @@ export function ProjectionsDashboard({
   displayCurrency,
   rates,
 }: ProjectionsDashboardProps) {
+  const { t } = useTranslation("projections");
   const awaitingSettings = settingsLoading;
   const awaitingProjections =
     !settingsLoading && hasSchedule && (projectionsLoading || !primarySchedule);
@@ -32,8 +34,8 @@ export function ProjectionsDashboard({
   return (
     <div>
       <SectionHeader
-        title="projections"
-        subtitle="cash flow by pay period for the next 7 months — planned spend and running free money"
+        title={t("title")}
+        subtitle={t("subtitle")}
         className="mb-6"
       />
 
@@ -45,21 +47,23 @@ export function ProjectionsDashboard({
       ) : !hasSchedule ? (
         <Card>
           <p className="font-mono text-sm text-muted">
-            {"> no primary pay schedule configured."}
+            {t("noSchedule")}
           </p>
           <Link
             to="/settings"
             className="mt-3 inline-block font-mono text-sm text-accent hover:text-accent-glow"
           >
-            configure in ~/settings
+            {t("configureInSettings")}
           </Link>
         </Card>
       ) : (
         <div className="space-y-4">
           {primarySchedule ? (
             <p className="font-mono text-xs text-muted">
-              periods based on {primarySchedule.name} {"//"} displaying in{" "}
-              {displayCurrency.toUpperCase()}
+              {t("scheduleMeta", {
+                name: primarySchedule.name,
+                currency: displayCurrency.toUpperCase(),
+              })}
             </p>
           ) : (
             <Skeleton className="h-3 w-72" />

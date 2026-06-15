@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useTranslation } from "react-i18next";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useAddBudgetExpense } from "@/lib/mutations/budgets";
@@ -16,6 +17,7 @@ function todayIso() {
 }
 
 export function BudgetExpenseForm({ budget, onSuccess }: BudgetExpenseFormProps) {
+  const { t } = useTranslation(["budgets", "common"]);
   const dated = isDatedBudget(budget);
   const today = todayIso();
   const canSpend = !dated || today >= budget.startDate!;
@@ -48,14 +50,14 @@ export function BudgetExpenseForm({ budget, onSuccess }: BudgetExpenseFormProps)
   if (!canSpend) {
     return (
       <p className="font-mono text-xs text-muted">
-        {`> spending unlocks ${budget.startDate}`}
+        {t("budgets:spendingUnlocks", { date: budget.startDate })}
       </p>
     );
   }
 
   if (remaining <= 0) {
     return (
-      <p className="font-mono text-xs text-muted">{"> budget fully spent."}</p>
+      <p className="font-mono text-xs text-muted">{t("budgets:budgetFullySpent")}</p>
     );
   }
 
@@ -67,7 +69,7 @@ export function BudgetExpenseForm({ budget, onSuccess }: BudgetExpenseFormProps)
             htmlFor={`budget-expense-name-${budget.id}`}
             className="mb-2 block font-mono text-xs text-muted"
           >
-            description:
+            {t("budgets:labelDescription")}
           </label>
           <Input
             id={`budget-expense-name-${budget.id}`}
@@ -84,7 +86,7 @@ export function BudgetExpenseForm({ budget, onSuccess }: BudgetExpenseFormProps)
             htmlFor={`budget-expense-amount-${budget.id}`}
             className="mb-2 block font-mono text-xs text-muted"
           >
-            amount:
+            {t("common:labelAmount")}
           </label>
           <Input
             id={`budget-expense-amount-${budget.id}`}
@@ -102,7 +104,7 @@ export function BudgetExpenseForm({ budget, onSuccess }: BudgetExpenseFormProps)
             htmlFor={`budget-expense-date-${budget.id}`}
             className="mb-2 block font-mono text-xs text-muted"
           >
-            date:
+            {t("common:labelDate")}
           </label>
           <Input
             id={`budget-expense-date-${budget.id}`}
@@ -117,7 +119,7 @@ export function BudgetExpenseForm({ budget, onSuccess }: BudgetExpenseFormProps)
       {error && <p className="font-mono text-xs text-danger">{error}</p>}
 
       <Button type="submit" size="sm" loading={addExpense.isPending}>
-        {addExpense.isPending ? "adding..." : "add expense"}
+        {addExpense.isPending ? t("budgets:adding") : t("budgets:submitAddExpense")}
       </Button>
     </form>
   );

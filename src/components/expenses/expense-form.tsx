@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useTranslation } from "react-i18next";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useCreateExpense } from "@/lib/mutations/expenses";
@@ -22,6 +23,7 @@ export function ExpenseForm({
   onCancel,
   onSuccess,
 }: ExpenseFormProps) {
+  const { t } = useTranslation(["expenses", "common"]);
   const [name, setName] = useState("");
   const [tags, setTags] = useState("");
   const [amount, setAmount] = useState("");
@@ -60,13 +62,13 @@ export function ExpenseForm({
     <form onSubmit={handleSubmit} className="space-y-4">
       <div>
         <label htmlFor="oneoff-name" className="mb-2 block font-mono text-xs text-muted">
-          name:
+          {t("common:labelName")}
         </label>
         <Input
           id="oneoff-name"
           value={name}
           onChange={(e) => setName(e.target.value)}
-          placeholder="Groceries"
+          placeholder={t("expenses:namePlaceholder")}
           required
         />
       </div>
@@ -76,7 +78,7 @@ export function ExpenseForm({
       <div className="grid gap-4 sm:grid-cols-2">
         <div>
           <label htmlFor="oneoff-amount" className="mb-2 block font-mono text-xs text-muted">
-            amount:
+            {t("common:labelAmount")}
           </label>
           <Input
             id="oneoff-amount"
@@ -84,14 +86,14 @@ export function ExpenseForm({
             inputMode="decimal"
             value={amount}
             onChange={(e) => setAmount(e.target.value)}
-            placeholder="45.00"
+            placeholder={t("expenses:amountPlaceholder")}
             required
           />
         </div>
 
         <div>
           <label htmlFor="oneoff-currency" className="mb-2 block font-mono text-xs text-muted">
-            currency:
+            {t("common:labelCurrency")}
           </label>
           <select
             id="oneoff-currency"
@@ -112,7 +114,7 @@ export function ExpenseForm({
 
       <div>
         <label htmlFor="oneoff-date" className="mb-2 block font-mono text-xs text-muted">
-          date:
+          {t("common:labelDate")}
         </label>
         <Input
           id="oneoff-date"
@@ -132,18 +134,18 @@ export function ExpenseForm({
           onChange={(e) => setIsSubscription(e.target.checked)}
           className="accent-accent"
         />
-        subscription
+        {t("expenses:subscription")}
       </label>
 
       {error && <p className="font-mono text-xs text-danger">{error}</p>}
 
       <div className="flex gap-2">
         <Button type="submit" loading={createExpense.isPending}>
-          {createExpense.isPending ? "saving..." : "add expense"}
+          {createExpense.isPending ? t("common:saving") : t("expenses:submitAdd")}
         </Button>
         {onCancel && (
           <Button type="button" variant="ghost" onClick={onCancel}>
-            cancel
+            {t("common:cancel")}
           </Button>
         )}
       </div>

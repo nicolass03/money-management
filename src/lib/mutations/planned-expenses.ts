@@ -7,6 +7,7 @@ import {
 import { parseTagNames } from "@/lib/expenses/tag-utils";
 import { invalidateAfter } from "@/lib/query/invalidation";
 import { currencies, type CurrencyCode } from "@/lib/types/constants";
+import { tError } from "@/lib/i18n/errors";
 import { parseDollarsToCents } from "@/lib/utils";
 import { mutationError, type FormResult } from "./types";
 
@@ -37,18 +38,18 @@ function validatePlannedInput(
       };
     } {
   const name = data.name.trim();
-  if (!name) return { error: "name is required" };
+  if (!name) return { error: tError("nameRequired") };
   const tags = parseTagNames(data.tags);
-  if (tags.length === 0) return { error: "at least one tag is required" };
-  if (!/^\d{4}-\d{2}-\d{2}$/.test(data.date)) return { error: "invalid date" };
+  if (tags.length === 0) return { error: tError("tagRequired") };
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(data.date)) return { error: tError("invalidDate") };
   if (options.requireFutureDate && data.date <= todayIso()) {
-    return { error: "date must be in the future" };
+    return { error: tError("dateMustBeFuture") };
   }
   if (!currencies.includes(data.currency as CurrencyCode)) {
-    return { error: "invalid currency" };
+    return { error: tError("invalidCurrency") };
   }
   const amount = parseDollarsToCents(data.amount);
-  if (amount === null || amount <= 0) return { error: "invalid amount" };
+  if (amount === null || amount <= 0) return { error: tError("invalidAmount") };
   return {
     data: {
       name,
@@ -69,7 +70,7 @@ export async function createPlannedExpenseMutation(
     await createPlannedExpense(result.data);
     return { success: true };
   } catch (error) {
-    return mutationError(error, "failed to create planned expense");
+    return mutationError(error, tError("failedCreatePlanned"));
   }
 }
 
@@ -81,10 +82,10 @@ export async function updatePlannedExpenseMutation(
   if ("error" in result) return result;
   try {
     const updated = await updatePlannedExpense(id, result.data);
-    if (!updated) return { error: "planned expense not found" };
+    if (!updated) return { error: tError("plannedExpenseNotFound") };
     return { success: true };
   } catch (error) {
-    return mutationError(error, "failed to update planned expense");
+    return mutationError(error, tError("failedUpdatePlanned"));
   }
 }
 
@@ -93,7 +94,7 @@ export async function deletePlannedExpenseMutation(id: string): Promise<FormResu
     await deletePlannedExpense(id);
     return { success: true };
   } catch (error) {
-    return mutationError(error, "failed to delete planned expense");
+    return mutationError(error, tError("failedDeletePlanned"));
   }
 }
 

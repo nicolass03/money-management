@@ -1,6 +1,8 @@
 import { createFileRoute } from "@tanstack/react-router";
+import { useTranslation } from "react-i18next";
 import { CurrencySettings } from "@/components/settings/currency-settings";
 import { ExtraSpentSettings } from "@/components/settings/extra-spent-settings";
+import { LanguageSettings } from "@/components/settings/language-settings";
 import { ProjectionSettings } from "@/components/settings/projection-settings";
 import { LoadingIndicator } from "@/components/ui/loading-indicator";
 import { SectionHeader } from "@/components/ui/section-header";
@@ -15,21 +17,24 @@ export const Route = createFileRoute("/_app/settings")({
 });
 
 function SettingsPage() {
+  const { t } = useTranslation(["settings", "common"]);
   const schedules = useIncomeSchedules();
   const settings = useSettings();
   const money = useMoneyContext();
 
   if (schedules.isLoading || settings.isLoading || money.isLoading || !settings.data || !money.data) {
-    return <LoadingIndicator label="fetching data" />;
+    return <LoadingIndicator label={t("common:fetchingData")} />;
   }
 
   return (
     <div className="space-y-10">
       <SectionHeader
-        title="settings"
-        subtitle="configure app preferences"
+        title={t("settings:title")}
+        subtitle={t("settings:subtitle")}
         className="mb-6"
       />
+
+      <LanguageSettings language={settings.data.language} />
 
       <CurrencySettings
         displayCurrency={settings.data.displayCurrency}

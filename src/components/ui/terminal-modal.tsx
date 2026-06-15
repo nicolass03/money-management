@@ -1,4 +1,5 @@
 import { useEffect, useId, useRef } from "react";
+import { useTranslation } from "react-i18next";
 import { createPortal } from "react-dom";
 import { AnimatePresence, motion } from "framer-motion";
 import { cn } from "@/lib/utils";
@@ -20,6 +21,7 @@ export function TerminalModal({
   children,
   className,
 }: TerminalModalProps) {
+  const { t } = useTranslation("common");
   const titleId = useId();
   const panelRef = useRef<HTMLDivElement>(null);
 
@@ -56,7 +58,7 @@ export function TerminalModal({
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-6">
           <motion.button
             type="button"
-            aria-label="close modal"
+            aria-label={t("closeModalAria")}
             className="absolute inset-0 bg-bg/80 backdrop-blur-[1px]"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
@@ -99,7 +101,7 @@ export function TerminalModal({
                 onClick={onClose}
                 className="shrink-0 border border-border px-2 py-1 font-mono text-xs text-muted transition-colors hover:border-accent/50 hover:text-text"
               >
-                esc
+                {t("escClose")}
               </button>
             </div>
 

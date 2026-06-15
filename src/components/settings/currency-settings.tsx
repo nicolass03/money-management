@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useTranslation } from "react-i18next";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { SectionHeader } from "@/components/ui/section-header";
@@ -23,6 +24,7 @@ export function CurrencySettings({
   displayCurrency,
   rates,
 }: CurrencySettingsProps) {
+  const { t } = useTranslation(["settings", "common"]);
   const { privacyMode } = usePrivacyMode();
   const updateCurrency = useUpdateDisplayCurrency();
   const refreshRates = useRefreshExchangeRates();
@@ -47,8 +49,8 @@ export function CurrencySettings({
   return (
     <div className="space-y-4">
       <SectionHeader
-        title="currency"
-        subtitle="display amounts in your preferred currency using live exchange rates"
+        title={t("settings:currencyTitle")}
+        subtitle={t("settings:currencySubtitle")}
       />
 
       <Card>
@@ -58,7 +60,7 @@ export function CurrencySettings({
               htmlFor="display-currency"
               className="mb-2 block font-mono text-xs text-muted"
             >
-              display_currency:
+              {t("settings:displayCurrency")}
             </label>
             <select
               id="display-currency"
@@ -83,18 +85,18 @@ export function CurrencySettings({
           )}
           {currencySuccess && (
             <p className="font-mono text-xs text-success">
-              {"> currency updated"}
+              {t("settings:currencyUpdated")}
             </p>
           )}
 
           <Button type="submit" loading={updateCurrency.isPending}>
-            {updateCurrency.isPending ? "saving..." : "save currency"}
+            {updateCurrency.isPending ? t("common:saving") : t("settings:saveCurrency")}
           </Button>
         </form>
 
         <div className="mt-6 border-t border-border pt-4">
           <div className="flex items-center justify-between">
-            <p className="font-mono text-xs text-muted">exchange rates (USD base)</p>
+            <p className="font-mono text-xs text-muted">{t("settings:exchangeRates")}</p>
             <Button
               type="button"
               size="sm"
@@ -102,11 +104,11 @@ export function CurrencySettings({
               loading={refreshRates.isPending}
               onClick={() => refreshRates.mutate()}
             >
-              {refreshRates.isPending ? "refreshing..." : "refresh rates"}
+              {refreshRates.isPending ? t("settings:refreshingRates") : t("settings:refreshRates")}
             </Button>
           </div>
           <p className="mt-1 font-mono text-xs text-muted">
-            last updated {new Date(rates.fetchedAt).toLocaleString()}
+            {t("settings:lastUpdated", { value: new Date(rates.fetchedAt).toLocaleString() })}
           </p>
           <ul className="mt-3 space-y-1">
             {(["EUR", "USD", "COP"] as const).map((code) => (
@@ -130,7 +132,7 @@ export function CurrencySettings({
             ))}
           </ul>
 
-          <p className="mt-4 font-mono text-xs text-muted">preview conversions:</p>
+          <p className="mt-4 font-mono text-xs text-muted">{t("settings:previewConversions")}</p>
           <ul className="mt-2 space-y-1">
             {sampleAmounts.map(({ currency, amount }) => (
               <li

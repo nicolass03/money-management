@@ -1,3 +1,4 @@
+import { useTranslation } from "react-i18next";
 import { Card } from "@/components/ui/card";
 import { usePrivacyMode } from "@/components/layout/privacy-mode";
 import { formatMoney } from "@/lib/currency/format";
@@ -20,6 +21,7 @@ export function ExpensePeriodKpis({
   displayCurrency,
   rates,
 }: ExpensePeriodKpisProps) {
+  const { t } = useTranslation("expenses");
   const { privacyMode } = usePrivacyMode();
 
   function format(amountMinor: number) {
@@ -49,12 +51,12 @@ export function ExpensePeriodKpis({
   return (
     <div className="flex h-full flex-col gap-4 md:col-span-1">
       <Card className="flex flex-1 flex-col justify-center animate-glow-pulse">
-        <p className="mb-2 font-mono text-xs text-muted">total_spent</p>
+        <p className="mb-2 font-mono text-xs text-muted">{t("totalSpent")}</p>
         <p className="font-mono text-2xl text-text">{format(actualSpend)}</p>
       </Card>
 
       <Card className="flex flex-1 flex-col justify-center">
-        <p className="mb-2 font-mono text-xs text-muted">extra_spent</p>
+        <p className="mb-2 font-mono text-xs text-muted">{t("extraSpent")}</p>
         <div className="flex flex-wrap items-baseline gap-2">
           <p className={cn("font-mono text-2xl", extraColor)}>
             {format(extraSpent)}
@@ -62,7 +64,7 @@ export function ExpensePeriodKpis({
           {showLimit && (
             <p className="font-mono text-xs text-muted">
               {"/ "}
-              {format(extraSpentLimit!)} limit
+              {format(extraSpentLimit!)} {t("limitSuffix")}
             </p>
           )}
         </div>

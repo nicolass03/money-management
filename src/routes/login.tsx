@@ -1,6 +1,7 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useEffect, useRef, useState } from "react";
 import { motion } from "framer-motion";
+import { useTranslation } from "react-i18next";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card } from "@/components/ui/card";
@@ -22,6 +23,7 @@ export const Route = createFileRoute("/login")({
 });
 
 function LoginPage() {
+  const { t } = useTranslation(["auth", "common"]);
   const navigate = useNavigate();
   const { signIn, isBootstrapping } = useSession();
   const emailRef = useRef<HTMLInputElement>(null);
@@ -50,7 +52,7 @@ function LoginPage() {
 
     const result = await signIn(email, password);
     if (result.error) {
-      setError("$ auth failed: invalid credentials");
+      setError(t("auth:authFailed"));
       setLoading(false);
       return;
     }
@@ -67,7 +69,7 @@ function LoginPage() {
   if (isBootstrapping) {
     return (
       <div className="flex min-h-screen items-center justify-center bg-bg">
-        <LoadingIndicator label="authenticating" />
+        <LoadingIndicator label={t("common:authenticating")} />
       </div>
     );
   }
@@ -99,7 +101,7 @@ function LoginPage() {
             <div className="absolute inset-0 z-10 flex items-center justify-center border border-accent/20 bg-surface/90">
               <LoadingIndicator
                 variant="inline"
-                label="authenticating"
+                label={t("common:authenticating")}
                 className="text-sm text-text"
               />
             </div>
@@ -111,7 +113,7 @@ function LoginPage() {
                 htmlFor="email"
                 className="mb-2 block font-mono text-xs text-muted"
               >
-                enter email:
+                {t("auth:enterEmail")}
               </label>
               <Input
                 ref={emailRef}
@@ -130,7 +132,7 @@ function LoginPage() {
                 htmlFor="password"
                 className="mb-2 block font-mono text-xs text-muted"
               >
-                enter password:
+                {t("auth:enterPassword")}
               </label>
               <Input
                 ref={passwordRef}
@@ -151,7 +153,7 @@ function LoginPage() {
                 onChange={(e) => setRememberMe(e.target.checked)}
                 className="size-3.5 accent-accent"
               />
-              remember me
+              {t("auth:rememberMe")}
             </label>
 
             {error && (
@@ -165,7 +167,7 @@ function LoginPage() {
             )}
 
             <Button type="submit" className="w-full" loading={loading}>
-              {loading ? "authenticating..." : "authenticate"}
+              {loading ? t("auth:authenticating") : t("auth:authenticate")}
             </Button>
           </form>
         </Card>

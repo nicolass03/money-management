@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { Link } from "@tanstack/react-router";
+import { useTranslation } from "react-i18next";
 import { Button } from "@/components/ui/button";
 import { SectionHeader } from "@/components/ui/section-header";
 import { CurrentPeriodExpenses } from "./current-period-expenses";
@@ -19,6 +20,7 @@ export function ExpenseDashboard({
   displayCurrency,
   rates,
 }: ExpenseDashboardProps) {
+  const { t } = useTranslation(["expenses", "common"]);
   const [periodKey, setPeriodKey] = useState<ExpensePeriodKey>("last-period");
 
   const periodViewQuery = useExpensePeriodView(periodKey);
@@ -31,24 +33,24 @@ export function ExpenseDashboard({
     <div>
       <div className="mb-6 flex items-center justify-between gap-4">
         <SectionHeader
-          title="expenses"
-          subtitle="analytics and spend by selected period"
+          title={t("expenses:title")}
+          subtitle={t("expenses:subtitle")}
           className="mb-0"
         />
         <div className="flex shrink-0 items-center gap-2">
           <Link to="/expenses/recurring">
             <Button size="sm" variant="ghost">
-              recurring
+              {t("expenses:navRecurring")}
             </Button>
           </Link>
           <Link to="/expenses/planned">
             <Button size="sm" variant="ghost">
-              one-time
+              {t("expenses:navOneTime")}
             </Button>
           </Link>
           <Link to="/budgets">
             <Button size="sm" variant="ghost">
-              budgets
+              {t("expenses:navBudgets")}
             </Button>
           </Link>
         </div>

@@ -1,6 +1,7 @@
 "use client";
 
 import { motion } from "framer-motion";
+import { useTranslation } from "react-i18next";
 import { cn } from "@/lib/utils";
 
 interface LoadingIndicatorProps {
@@ -22,10 +23,13 @@ export function TerminalSpinner({ className }: { className?: string }) {
 }
 
 export function LoadingIndicator({
-  label = "loading",
+  label,
   variant = "page",
   className,
 }: LoadingIndicatorProps) {
+  const { t } = useTranslation("common");
+  const resolvedLabel = label ?? t("loading");
+
   if (variant === "inline") {
     return (
       <span
@@ -34,7 +38,7 @@ export function LoadingIndicator({
         aria-live="polite"
       >
         <TerminalSpinner />
-        <span>{label}</span>
+        <span>{resolvedLabel}</span>
         <span className="animate-blink text-accent" aria-hidden>
           _
         </span>
@@ -50,7 +54,7 @@ export function LoadingIndicator({
       )}
       role="status"
       aria-live="polite"
-      aria-label={label}
+      aria-label={resolvedLabel}
     >
       <motion.div
         initial={{ opacity: 0, y: 4 }}
@@ -59,7 +63,7 @@ export function LoadingIndicator({
         className="font-mono text-sm"
       >
         <span className="text-accent">{"> "}</span>
-        <span className="text-muted">{label}</span>
+        <span className="text-muted">{resolvedLabel}</span>
         <span className="animate-blink text-accent-glow">_</span>
       </motion.div>
 
@@ -81,7 +85,7 @@ export function LoadingIndicator({
           />
         </div>
         <p className="mt-2 font-mono text-[10px] text-muted">
-          {"// please wait..."}
+          {t("pleaseWait")}
         </p>
       </motion.div>
     </div>

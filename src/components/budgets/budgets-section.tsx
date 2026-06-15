@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useTranslation } from "react-i18next";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
@@ -28,6 +29,7 @@ export function BudgetsSection({
   displayCurrency,
   rates,
 }: BudgetsSectionProps) {
+  const { t } = useTranslation(["budgets", "common"]);
   const [showAdd, setShowAdd] = useState(false);
   const ctx = { displayCurrency, rates };
   const listLoading = budgetsLoading || expensesLoading;
@@ -41,8 +43,8 @@ export function BudgetsSection({
     <section>
       <div className="mb-4 flex flex-wrap items-center justify-between gap-4">
         <SectionHeader
-          title="budgets"
-          subtitle="spending envelopes for trips, projects, and goals"
+          title={t("budgets:title")}
+          subtitle={t("budgets:subtitle")}
           className="mb-0"
         />
         <div className="flex shrink-0 items-center gap-3">
@@ -59,7 +61,7 @@ export function BudgetsSection({
                     rates,
                   )}
                 />
-                total allocated
+                {t("budgets:badgeTotalAllocated")}
               </Badge>
             )
           )}
@@ -69,7 +71,7 @@ export function BudgetsSection({
               variant={showAdd ? "ghost" : "primary"}
               onClick={() => setShowAdd((open) => !open)}
             >
-              {showAdd ? "cancel" : "+ add budget"}
+              {showAdd ? t("common:cancel") : t("budgets:addBudget")}
             </Button>
           )}
         </div>
@@ -78,8 +80,7 @@ export function BudgetsSection({
       {showAdd && !listLoading && (
         <Card className="mb-4">
           <p className="mb-4 font-mono text-xs text-muted">
-            set a total and optional date range — dated budgets reserve cash on
-            projections
+            {t("budgets:formHint")}
           </p>
           <BudgetForm
             displayCurrency={displayCurrency}

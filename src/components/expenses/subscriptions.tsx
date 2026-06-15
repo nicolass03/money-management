@@ -1,3 +1,4 @@
+import { useTranslation } from "react-i18next";
 import { MoneyText } from "@/components/layout/privacy-mode";
 import { Badge } from "@/components/ui/badge";
 import { Card } from "@/components/ui/card";
@@ -19,6 +20,7 @@ export function Subscriptions({
   displayCurrency,
   rates,
 }: SubscriptionsProps) {
+  const { t } = useTranslation(["expenses", "common"]);
   const ctx = { displayCurrency, rates };
   const total = subscriptions.reduce(
     (sum, s) => sum + toDisplayAmount(s.amount, s.currency, ctx),
@@ -29,22 +31,22 @@ export function Subscriptions({
     <section className="mt-8">
       <div className="mb-4 flex items-center justify-between">
         <SectionHeader
-          title="subscriptions"
-          subtitle="recurring monthly charges"
+          title={t("expenses:subscriptionsTitle")}
+          subtitle={t("expenses:subscriptionsSubtitle")}
           className="mb-0"
         />
         <Badge variant="accent">
           <MoneyText
             value={formatMoney(total, displayCurrency, displayCurrency, rates)}
           />
-          /mo
+          {t("common:perMonth")}
         </Badge>
       </div>
 
       <Card>
         {subscriptions.length === 0 ? (
           <p className="font-mono text-sm text-muted">
-            {"> no subscriptions yet."}
+            {t("expenses:emptySubscriptions")}
           </p>
         ) : (
           <div className="divide-y divide-border">
@@ -57,7 +59,9 @@ export function Subscriptions({
                   <div className="flex items-center gap-2">
                     <p className="font-mono text-sm text-text">{sub.name}</p>
                     {sub.isSubscription && (
-                      <Badge variant="default">subscription</Badge>
+                      <Badge variant="default">
+                        {t("expenses:subscription")}
+                      </Badge>
                     )}
                   </div>
                   <p className="font-mono text-xs text-muted">

@@ -1,5 +1,6 @@
 import { createFileRoute, Outlet, useNavigate } from "@tanstack/react-router";
 import { useEffect } from "react";
+import { useTranslation } from "react-i18next";
 import { AppShell } from "@/components/layout/app-shell";
 import { LoadingIndicator } from "@/components/ui/loading-indicator";
 import { requireAuth } from "@/lib/auth/route-guards";
@@ -14,9 +15,10 @@ export const Route = createFileRoute("/_app")({
 });
 
 function AuthPending() {
+  const { t } = useTranslation("common");
   return (
     <div className="flex min-h-screen items-center justify-center bg-bg">
-      <LoadingIndicator label="authenticating" />
+      <LoadingIndicator label={t("authenticating")} />
     </div>
   );
 }

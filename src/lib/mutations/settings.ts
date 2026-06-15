@@ -1,8 +1,10 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { getMoneyContext } from "@/lib/api/money-context";
 import { patchSettings } from "@/lib/api/settings";
+import { tError } from "@/lib/i18n/errors";
 import { invalidateAfter } from "@/lib/query/invalidation";
 import { currencies, type CurrencyCode } from "@/lib/types/constants";
+import type { AppLanguage } from "@/lib/types/domain";
 import { parseDollarsToCents, parseSignedDollarsToCents } from "@/lib/utils";
 import { mutationError, type FormResult } from "./types";
 
@@ -10,13 +12,25 @@ export async function updateDisplayCurrencyMutation(
   displayCurrency: string,
 ): Promise<FormResult> {
   if (!currencies.includes(displayCurrency as CurrencyCode)) {
-    return { error: "invalid currency" };
+    return { error: tError("invalidCurrency") };
   }
   try {
     await patchSettings({ displayCurrency: displayCurrency as CurrencyCode });
     return { success: true };
   } catch (error) {
-    return mutationError(error, "failed to update currency");
+    return mutationError(error, tError("failedUpdateCurrency"));
+  }
+}
+
+export async function updateLanguageMutation(language: AppLanguage): Promise<FormResult> {
+  if (language !== "en" && language !== "es") {
+    return { error: tError("invalidLanguage") };
+  }
+  try {
+    await patchSettings({ language });
+    return { success: true };
+  } catch (error) {
+    return mutationError(error, tError("failedUpdateLanguage"));
   }
 }
 
@@ -35,10 +49,10 @@ export async function updateProjectionSettingsMutation(
   const projectionStartDate = startDateRaw || null;
 
   if (initialFreeMoney === null) {
-    return { error: "invalid initial free money amount" };
+    return { error: tError("invalidInitialFreeMoneyAmount") };
   }
   if (projectionStartDate && !/^\d{4}-\d{2}-\d{2}$/.test(projectionStartDate)) {
-    return { error: "invalid projection start date" };
+    return { error: tError("invalidProjectionStartDate") };
   }
 
   try {
@@ -50,7 +64,7 @@ export async function updateProjectionSettingsMutation(
       });
     } else {
       const id = raw.trim();
-      if (!id) return { error: "invalid schedule" };
+      if (!id) return { error: tError("invalidSchedule") };
       await patchSettings({
         primaryScheduleId: id,
         projectionInitialFreeMoney: initialFreeMoney,
@@ -59,7 +73,7 @@ export async function updateProjectionSettingsMutation(
     }
     return { success: true };
   } catch (error) {
-    return mutationError(error, "failed to update projection settings");
+    return mutationError(error, tError("failedUpdateProjectionSettings"));
   }
 }
 
@@ -74,20 +88,20 @@ export async function updateExtraSpentLimitMutation(
       await patchSettings({ extraSpentLimit: null });
       return { success: true };
     } catch (error) {
-      return mutationError(error, "failed to update extra spent limit");
+      return mutationError(error, tError("failedUpdateExtraSpentLimit"));
     }
   }
 
   const limit = parseDollarsToCents(trimmed);
   if (limit === null || limit <= 0) {
-    return { error: "invalid extra spent limit" };
+    return { error: tError("invalidExtraSpentLimit") };
   }
 
   try {
     await patchSettings({ extraSpentLimit: limit });
     return { success: true };
   } catch (error) {
-    return mutationError(error, "failed to update extra spent limit");
+    return mutationError(error, tError("failedUpdateExtraSpentLimit"));
   }
 }
 
@@ -96,8 +110,18 @@ export async function refreshExchangeRatesMutation(): Promise<FormResult> {
     await getMoneyContext({ forceRefresh: true });
     return { success: true };
   } catch (error) {
-    return mutationError(error, "failed to refresh exchange rates");
+    return mutationError(error, tError("failedRefreshExchangeRates"));
   }
+}
+
+export function useUpdateLanguage() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: updateLanguageMutation,
+    onSuccess: (result) => {
+      if (result.success) void invalidateAfter(queryClient, "settingsChange");
+    },
+  });
 }
 
 export function useUpdateDisplayCurrency() {

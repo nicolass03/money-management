@@ -1,3 +1,4 @@
+import { useTranslation } from "react-i18next";
 import { MoneyText } from "@/components/layout/privacy-mode";
 import { Badge } from "@/components/ui/badge";
 import { Card } from "@/components/ui/card";
@@ -17,6 +18,7 @@ export function SavingsPlaceholder({
   displayCurrency,
   rates,
 }: SavingsPlaceholderProps) {
+  const { t } = useTranslation("savings");
   const total = entries.reduce(
     (sum, entry) =>
       sum + convertAmount(entry.amount, entry.currency, displayCurrency, rates),
@@ -27,8 +29,8 @@ export function SavingsPlaceholder({
     <div>
       <div className="mb-6 flex items-center justify-between">
         <SectionHeader
-          title="savings"
-          subtitle="track contributions and goals"
+          title={t("title")}
+          subtitle={t("subtitle")}
           className="mb-0"
         />
         {entries.length > 0 && (
@@ -43,7 +45,7 @@ export function SavingsPlaceholder({
       <Card>
         {entries.length === 0 ? (
           <p className="font-mono text-sm text-muted">
-            {"> no entries yet. run add-entry soon."}
+            {t("emptyEntries")}
           </p>
         ) : (
           <div className="divide-y divide-border">

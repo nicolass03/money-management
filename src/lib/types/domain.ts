@@ -5,12 +5,14 @@ import type {
 } from "./constants";
 
 export type { CurrencyCode, IncomeSource, PayFrequency };
+export type AppLanguage = "en" | "es";
 
 export type { PayPeriod } from "@/lib/income/pay-periods";
 
 export interface UserSettings {
   id: string;
   displayCurrency: CurrencyCode;
+  language: AppLanguage;
   primaryScheduleId: string | null;
   primarySchedule?: IncomePaySchedule | null;
   projectionInitialFreeMoney: number;

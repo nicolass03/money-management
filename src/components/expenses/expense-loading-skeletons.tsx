@@ -1,9 +1,12 @@
+import { useTranslation } from "react-i18next";
 import { Card } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 
 export function ExpenseChartsSkeleton() {
+  const { t } = useTranslation("common");
+
   return (
-    <section aria-busy="true" aria-label="loading charts">
+    <section aria-busy="true" aria-label={t("loadingCharts")}>
       <div className="mb-4">
         <Skeleton className="mb-2 h-5 w-40" />
         <Skeleton className="h-3 w-64" />
@@ -44,8 +47,10 @@ export function ExpenseChartsSkeleton() {
 }
 
 export function ExpensePeriodListSkeleton({ rows = 4 }: { rows?: number }) {
+  const { t } = useTranslation("common");
+
   return (
-    <div className="divide-y divide-border" aria-busy="true" aria-label="loading period">
+    <div className="divide-y divide-border" aria-busy="true" aria-label={t("loadingPeriod")}>
       {Array.from({ length: rows }, (_, index) => (
         <div
           key={index}
@@ -63,8 +68,10 @@ export function ExpensePeriodListSkeleton({ rows = 4 }: { rows?: number }) {
 }
 
 export function EarlyPaymentPanelSkeleton() {
+  const { t } = useTranslation("common");
+
   return (
-    <Card className="mt-4 overflow-hidden p-0" aria-busy="true" aria-label="loading upcoming payments">
+    <Card className="mt-4 overflow-hidden p-0" aria-busy="true" aria-label={t("loadingUpcomingPayments")}>
       <div className="flex items-center justify-between gap-4 px-4 py-3">
         <Skeleton className="h-4 w-28" />
         <div className="flex items-center gap-2">

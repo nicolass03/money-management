@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useTranslation } from "react-i18next";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
@@ -9,28 +10,27 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { MoneyText } from "@/components/layout/privacy-mode";
 import { formatMoney } from "@/lib/currency/format";
 import { toDisplayAmount, type MoneyDisplayContext } from "@/lib/currency/display";
-import type { Income, IncomePaySchedule } from "@/lib/types/domain";
+import type { Income } from "@/lib/types/domain";
 import { filterIncomeEntriesForDisplay } from "@/lib/income/filter-income-entries";
 import { IncomeEntryList } from "./income-entry-list";
 import { IncomeForm } from "./income-form";
 
 interface IncomeEntriesProps extends MoneyDisplayContext {
   entries: Income[];
-  schedules: IncomePaySchedule[];
   loading?: boolean;
 }
 
 export function IncomeEntries({
   entries,
-  schedules,
   loading = false,
   displayCurrency,
   rates,
 }: IncomeEntriesProps) {
+  const { t } = useTranslation(["income", "common"]);
   const [showAdd, setShowAdd] = useState(false);
   const ctx = { displayCurrency, rates };
   const today = new Date().toISOString().slice(0, 10);
-  const visibleEntries = filterIncomeEntriesForDisplay(entries, schedules, today);
+  const visibleEntries = filterIncomeEntriesForDisplay(entries);
 
   const total = visibleEntries.reduce(
     (sum, entry) => sum + toDisplayAmount(entry.amount, entry.currency, ctx),
@@ -41,8 +41,8 @@ export function IncomeEntries({
     <section className="mt-8">
       <div className="mb-4 flex flex-wrap items-center justify-between gap-4">
         <SectionHeader
-          title="income_entries"
-          subtitle="manual earnings and the next scheduled pay per pay schedule"
+          title={t("income:entriesTitle")}
+          subtitle={t("income:entriesSubtitle")}
           className="mb-0"
         />
         <div className="flex shrink-0 items-center gap-3">
@@ -63,7 +63,7 @@ export function IncomeEntries({
               variant={showAdd ? "ghost" : "primary"}
               onClick={() => setShowAdd((open) => !open)}
             >
-              {showAdd ? "cancel" : "+ add income"}
+              {showAdd ? t("common:cancel") : t("income:addIncome")}
             </Button>
           )}
         </div>

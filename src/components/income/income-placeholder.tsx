@@ -1,3 +1,4 @@
+import { useTranslation } from "react-i18next";
 import { MoneyText } from "@/components/layout/privacy-mode";
 import { Badge } from "@/components/ui/badge";
 import { Card } from "@/components/ui/card";
@@ -10,14 +11,15 @@ interface IncomePlaceholderProps {
 }
 
 export function IncomePlaceholder({ entries }: IncomePlaceholderProps) {
+  const { t } = useTranslation("income");
   const total = entries.reduce((sum, e) => sum + e.amount, 0);
 
   return (
     <div>
       <div className="mb-6 flex items-center justify-between">
         <SectionHeader
-          title="income"
-          subtitle="track earnings and sources"
+          title={t("title")}
+          subtitle={t("subtitlePlaceholder")}
           className="mb-0"
         />
         {entries.length > 0 && (
@@ -30,7 +32,7 @@ export function IncomePlaceholder({ entries }: IncomePlaceholderProps) {
       <Card>
         {entries.length === 0 ? (
           <p className="font-mono text-sm text-muted">
-            {"> no entries yet. run add-entry soon."}
+            {t("emptyEntriesPlaceholder")}
           </p>
         ) : (
           <div className="divide-y divide-border">

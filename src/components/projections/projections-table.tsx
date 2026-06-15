@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useTranslation } from "react-i18next";
 import { Badge } from "@/components/ui/badge";
 import { Card } from "@/components/ui/card";
 import { usePrivacyMode } from "@/components/layout/privacy-mode";
@@ -25,6 +26,7 @@ export function ProjectionsTable({
   displayCurrency,
   rates,
 }: ProjectionsTableProps) {
+  const { t } = useTranslation(["projections", "common"]);
   const { privacyMode } = usePrivacyMode();
   const [expandedPayDate, setExpandedPayDate] = useState<string | null>(null);
 
@@ -45,11 +47,11 @@ export function ProjectionsTable({
   return (
     <Card className="overflow-hidden p-0">
       <div className="grid grid-cols-[1fr_auto_auto_auto_auto] gap-4 border-b border-border px-4 py-3 font-mono text-xs text-muted">
-        <span>pay date</span>
-        <span className="text-right">income</span>
-        <span className="text-right">planned spend</span>
-        <span className="text-right">free</span>
-        <span className="text-right">cumulative</span>
+        <span>{t("projections:colPayDate")}</span>
+        <span className="text-right">{t("projections:colIncome")}</span>
+        <span className="text-right">{t("projections:colPlannedSpend")}</span>
+        <span className="text-right">{t("projections:colFree")}</span>
+        <span className="text-right">{t("projections:colCumulative")}</span>
       </div>
 
       <div className="divide-y divide-border">
@@ -77,7 +79,9 @@ export function ProjectionsTable({
                       {formatDate(row.payDate)}
                     </p>
                     <Badge variant={row.isPast ? "default" : "accent"}>
-                      {row.isPast ? "actual" : "projected"}
+                      {row.isPast
+                        ? t("projections:badgeActual")
+                        : t("projections:badgeProjected")}
                     </Badge>
                   </div>
                   <p className="mt-1 pl-5 font-mono text-xs text-muted">
@@ -114,12 +118,12 @@ export function ProjectionsTable({
                 <div className="border-t border-border/60 bg-bg/40 px-4 py-3 pl-10">
                   {row.expenseItems.length === 0 ? (
                     <p className="font-mono text-xs text-muted">
-                      {"> no expenses in this period"}
+                      {t("projections:emptyPeriodExpenses")}
                     </p>
                   ) : (
                     <div className="space-y-2">
                       <p className="font-mono text-xs text-muted">
-                        expenses in period:
+                        {t("projections:expensesInPeriod")}
                       </p>
                       {row.expenseItems.map((item) => (
                         <div
@@ -132,10 +136,12 @@ export function ProjectionsTable({
                               {formatDate(item.date)} {"//"}{" "}
                               {item.tags.length > 0
                                 ? item.tags.join(", ")
-                                : "untagged"}
-                              {item.budgetId != null ? " // budget" : ""}
-                              {item.isSubscription ? " // subscription" : ""}
-                              {item.projected ? " // projected" : " // actual"}
+                                : t("common:untagged")}
+                              {item.budgetId != null ? ` ${t("projections:metaBudget")}` : ""}
+                              {item.isSubscription ? ` ${t("projections:metaSubscription")}` : ""}
+                              {item.projected
+                                ? ` ${t("projections:metaProjected")}`
+                                : ` ${t("projections:metaActual")}`}
                             </p>
                           </div>
                           <div className="text-right">

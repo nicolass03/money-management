@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useTranslation } from "react-i18next";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useCreateIncome, useUpdateIncome } from "@/lib/mutations/income";
@@ -19,6 +20,7 @@ export function IncomeForm({
   onCancel,
   onSuccess,
 }: IncomeFormProps) {
+  const { t } = useTranslation(["income", "common"]);
   const isEditing = Boolean(entry);
   const [name, setName] = useState(entry?.name ?? "");
   const [amount, setAmount] = useState(
@@ -63,13 +65,13 @@ export function IncomeForm({
           htmlFor="income-name"
           className="mb-2 block font-mono text-xs text-muted"
         >
-          name:
+          {t("common:labelName")}
         </label>
         <Input
           id="income-name"
           value={name}
           onChange={(e) => setName(e.target.value)}
-          placeholder="Freelance payment"
+          placeholder={t("income:incomeNamePlaceholder")}
           required
         />
       </div>
@@ -80,7 +82,7 @@ export function IncomeForm({
             htmlFor="income-amount"
             className="mb-2 block font-mono text-xs text-muted"
           >
-            amount:
+            {t("common:labelAmount")}
           </label>
           <Input
             id="income-amount"
@@ -88,7 +90,7 @@ export function IncomeForm({
             inputMode="decimal"
             value={amount}
             onChange={(e) => setAmount(e.target.value)}
-            placeholder="1500.00"
+            placeholder={t("income:incomeAmountPlaceholder")}
             required
           />
         </div>
@@ -98,7 +100,7 @@ export function IncomeForm({
             htmlFor="income-currency"
             className="mb-2 block font-mono text-xs text-muted"
           >
-            currency:
+            {t("common:labelCurrency")}
           </label>
           <select
             id="income-currency"
@@ -122,7 +124,7 @@ export function IncomeForm({
           htmlFor="income-date"
           className="mb-2 block font-mono text-xs text-muted"
         >
-          date:
+          {t("common:labelDate")}
         </label>
         <Input
           id="income-date"
@@ -137,11 +139,15 @@ export function IncomeForm({
 
       <div className="flex gap-2">
         <Button type="submit" loading={pending}>
-          {pending ? "saving..." : isEditing ? "update" : "add income"}
+          {pending
+            ? t("common:saving")
+            : isEditing
+              ? t("common:update")
+              : t("income:submitAddIncome")}
         </Button>
         {onCancel && (
           <Button type="button" variant="ghost" onClick={onCancel}>
-            cancel
+            {t("common:cancel")}
           </Button>
         )}
       </div>

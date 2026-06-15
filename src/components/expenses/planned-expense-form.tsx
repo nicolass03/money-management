@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useTranslation } from "react-i18next";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
@@ -34,6 +35,7 @@ export function PlannedExpenseForm({
   displayCurrency,
   rates,
 }: PlannedExpenseFormProps) {
+  const { t } = useTranslation(["expenses", "common"]);
   const isEditing = Boolean(planned);
   const [name, setName] = useState(planned?.name ?? "");
   const [tags, setTags] = useState(
@@ -73,14 +75,14 @@ export function PlannedExpenseForm({
     <form onSubmit={handleSubmit} className="space-y-4">
       <div>
         <label htmlFor="planned-name" className="mb-2 block font-mono text-xs text-muted">
-          name:
+          {t("common:labelName")}
         </label>
         <Input
           id="planned-name"
           name="name"
           value={name}
           onChange={(e) => setName(e.target.value)}
-          placeholder="Car repair"
+          placeholder={t("expenses:plannedNamePlaceholder")}
           required
         />
       </div>
@@ -89,7 +91,7 @@ export function PlannedExpenseForm({
 
       <div>
         <label htmlFor="planned-date" className="mb-2 block font-mono text-xs text-muted">
-          date:
+          {t("common:labelDate")}
         </label>
         <Input
           id="planned-date"
@@ -101,7 +103,7 @@ export function PlannedExpenseForm({
         />
         {!isEditing && (
           <p className="mt-1 font-mono text-xs text-muted">
-            must be a future date
+            {t("expenses:futureDateHint")}
           </p>
         )}
       </div>
@@ -109,7 +111,7 @@ export function PlannedExpenseForm({
       <div className="grid gap-4 sm:grid-cols-2">
         <div>
           <label htmlFor="planned-amount" className="mb-2 block font-mono text-xs text-muted">
-            amount:
+            {t("common:labelAmount")}
           </label>
           <Input
             id="planned-amount"
@@ -118,14 +120,14 @@ export function PlannedExpenseForm({
             inputMode="decimal"
             value={amount}
             onChange={(e) => setAmount(e.target.value)}
-            placeholder="500.00"
+            placeholder={t("expenses:plannedAmountPlaceholder")}
             required
           />
         </div>
 
         <div>
           <label htmlFor="planned-currency" className="mb-2 block font-mono text-xs text-muted">
-            currency:
+            {t("common:labelCurrency")}
           </label>
           <select
             id="planned-currency"
@@ -147,7 +149,9 @@ export function PlannedExpenseForm({
 
       {date && previewAmount !== null && (
         <div className="rounded border border-border/60 bg-bg/50 px-3 py-2">
-          <p className="font-mono text-xs text-muted">planned charge:</p>
+          <p className="font-mono text-xs text-muted">
+            {t("expenses:plannedChargePreview")}
+          </p>
           <div className="mt-2 flex items-center justify-between font-mono text-xs text-text">
             <span>{formatDate(date)}</span>
             <ExpenseAmount
@@ -164,11 +168,15 @@ export function PlannedExpenseForm({
 
       <div className="flex gap-2">
         <Button type="submit" loading={pending}>
-          {pending ? "saving..." : isEditing ? "update" : "add planned"}
+          {pending
+            ? t("common:saving")
+            : isEditing
+              ? t("common:update")
+              : t("expenses:submitAddPlanned")}
         </Button>
         {onCancel && (
           <Button type="button" variant="ghost" onClick={onCancel}>
-            cancel
+            {t("common:cancel")}
           </Button>
         )}
       </div>

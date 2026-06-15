@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useTranslation } from "react-i18next";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { cn } from "@/lib/utils";
@@ -33,6 +34,7 @@ export function IncomeScheduleForm({
   displayCurrency,
   rates,
 }: IncomeScheduleFormProps) {
+  const { t } = useTranslation(["income", "common"]);
   const isEditing = Boolean(schedule);
   const [name, setName] = useState(schedule?.name ?? "");
   const [anchorDate, setAnchorDate] = useState(schedule?.anchorDate ?? "");
@@ -78,13 +80,13 @@ export function IncomeScheduleForm({
           htmlFor="schedule-name"
           className="mb-2 block font-mono text-xs text-muted"
         >
-          name:
+          {t("common:labelName")}
         </label>
         <Input
           id="schedule-name"
           value={name}
           onChange={(e) => setName(e.target.value)}
-          placeholder="Salary"
+          placeholder={t("income:namePlaceholder")}
           required
         />
       </div>
@@ -94,7 +96,7 @@ export function IncomeScheduleForm({
           htmlFor="schedule-anchor"
           className="mb-2 block font-mono text-xs text-muted"
         >
-          pay_anchor:
+          {t("income:labelPayAnchor")}
         </label>
         <Input
           id="schedule-anchor"
@@ -111,7 +113,7 @@ export function IncomeScheduleForm({
             htmlFor="schedule-amount"
             className="mb-2 block font-mono text-xs text-muted"
           >
-            amount_per_pay:
+            {t("income:labelAmountPerPay")}
           </label>
           <Input
             id="schedule-amount"
@@ -119,7 +121,7 @@ export function IncomeScheduleForm({
             inputMode="decimal"
             value={amount}
             onChange={(e) => setAmount(e.target.value)}
-            placeholder="4500.00"
+            placeholder={t("income:amountPlaceholder")}
             required
           />
         </div>
@@ -129,7 +131,7 @@ export function IncomeScheduleForm({
             htmlFor="schedule-currency"
             className="mb-2 block font-mono text-xs text-muted"
           >
-            currency:
+            {t("common:labelCurrency")}
           </label>
           <select
             id="schedule-currency"
@@ -153,7 +155,7 @@ export function IncomeScheduleForm({
           htmlFor="schedule-frequency"
           className="mb-2 block font-mono text-xs text-muted"
         >
-          frequency:
+          {t("income:labelFrequency")}
         </label>
         <select
           id="schedule-frequency"
@@ -163,14 +165,14 @@ export function IncomeScheduleForm({
             "w-full border border-border bg-surface px-3 py-2 font-mono text-sm text-text outline-none transition-colors focus:border-accent focus:shadow-[0_0_8px_var(--glow-color)]",
           )}
         >
-          <option value="biweekly">every 2 weeks</option>
-          <option value="monthly">monthly</option>
+          <option value="biweekly">{t("common:frequencyBiweekly")}</option>
+          <option value="monthly">{t("common:frequencyMonthly")}</option>
         </select>
       </div>
 
       {previewDates.length > 0 && (
         <div className="rounded border border-border/60 bg-bg/50 px-3 py-2">
-          <p className="font-mono text-xs text-muted">upcoming pay dates:</p>
+          <p className="font-mono text-xs text-muted">{t("income:upcomingPayDates")}</p>
           <ul className="mt-2 space-y-1">
             {previewDates.map((date) => (
               <li
@@ -204,11 +206,15 @@ export function IncomeScheduleForm({
 
       <div className="flex gap-2">
         <Button type="submit" loading={pending}>
-          {pending ? "saving..." : isEditing ? "update" : "add schedule"}
+          {pending
+            ? t("common:saving")
+            : isEditing
+              ? t("common:update")
+              : t("income:submitAddSchedule")}
         </Button>
         {onCancel && (
           <Button type="button" variant="ghost" onClick={onCancel}>
-            cancel
+            {t("common:cancel")}
           </Button>
         )}
       </div>

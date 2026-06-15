@@ -1,4 +1,5 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
+import { useTranslation } from "react-i18next";
 import { RecurringExpenses } from "@/components/expenses/recurring-expenses";
 import { LoadingIndicator } from "@/components/ui/loading-indicator";
 import {
@@ -12,12 +13,13 @@ export const Route = createFileRoute("/_app/expenses/recurring")({
 });
 
 function RecurringExpensesPage() {
+  const { t } = useTranslation(["expenses", "common"]);
   const recurring = useRecurringExpenses();
   const tags = useTags();
   const money = useMoneyContext();
 
   if (recurring.isLoading || tags.isLoading || money.isLoading || !money.data) {
-    return <LoadingIndicator label="fetching data" />;
+    return <LoadingIndicator label={t("common:fetchingData")} />;
   }
 
   return (
@@ -26,7 +28,7 @@ function RecurringExpensesPage() {
         to="/expenses"
         className="mb-6 inline-block font-mono text-sm text-accent hover:text-accent-glow"
       >
-        {"< back to ~/expenses"}
+        {t("expenses:backToExpenses")}
       </Link>
 
       <RecurringExpenses

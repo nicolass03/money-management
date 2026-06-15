@@ -7,6 +7,7 @@ import {
 } from "@/lib/api/income";
 import { invalidateAfter } from "@/lib/query/invalidation";
 import { currencies, type CurrencyCode } from "@/lib/types/constants";
+import { tError } from "@/lib/i18n/errors";
 import { parseDollarsToCents } from "@/lib/utils";
 import { mutationError, type FormResult } from "./types";
 
@@ -28,13 +29,13 @@ function validateIncomeInput(data: IncomeInput):
       };
     } {
   const name = data.name.trim();
-  if (!name) return { error: "name is required" };
-  if (!/^\d{4}-\d{2}-\d{2}$/.test(data.date)) return { error: "invalid date" };
+  if (!name) return { error: tError("nameRequired") };
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(data.date)) return { error: tError("invalidDate") };
   if (!currencies.includes(data.currency as CurrencyCode)) {
-    return { error: "invalid currency" };
+    return { error: tError("invalidCurrency") };
   }
   const amount = parseDollarsToCents(data.amount);
-  if (amount === null || amount <= 0) return { error: "invalid amount" };
+  if (amount === null || amount <= 0) return { error: tError("invalidAmount") };
   return {
     data: {
       name,
@@ -56,7 +57,7 @@ export async function createIncomeMutation(input: IncomeInput): Promise<FormResu
     await createIncome(result.data);
     return { success: true };
   } catch (error) {
-    return mutationError(error, "failed to create income");
+    return mutationError(error, tError("failedCreateIncome"));
   }
 }
 
@@ -65,32 +66,56 @@ export async function updateIncomeMutation(
   input: IncomeInput,
 ): Promise<FormResult> {
   const existing = await getIncomeById(id);
-  if (!existing) return { error: "income not found" };
+  if (!existing) return { error: tError("incomeNotFound") };
   if (!isManualIncome(existing)) {
-    return { error: "scheduled income cannot be edited here" };
+    return { error: tError("scheduledIncomeNotEditable") };
   }
   const result = validateIncomeInput(input);
   if ("error" in result) return result;
   try {
     const updated = await updateIncome(id, result.data);
-    if (!updated) return { error: "income not found" };
+    if (!updated) return { error: tError("incomeNotFound") };
     return { success: true };
   } catch (error) {
-    return mutationError(error, "failed to update income");
+    return mutationError(error, tError("failedUpdateIncome"));
+  }
+}
+
+/**
+ * Amount-only edit for a materialized scheduled income row (parity with editing a
+ * recurring expense's amount). Schedule-owned name/date/currency are sent unchanged; the
+ * API applies just the amount override for scheduled rows.
+ */
+export async function updateIncomeAmountMutation(
+  id: string,
+  amount: string,
+): Promise<FormResult> {
+  const existing = await getIncomeById(id);
+  if (!existing) return { error: tError("incomeNotFound") };
+  const result = validateIncomeInput({
+    name: existing.name,
+    amount,
+    currency: existing.currency,
+    date: existing.date,
+  });
+  if ("error" in result) return result;
+  try {
+    const updated = await updateIncome(id, result.data);
+    if (!updated) return { error: tError("incomeNotFound") };
+    return { success: true };
+  } catch (error) {
+    return mutationError(error, tError("failedUpdateIncome"));
   }
 }
 
 export async function deleteIncomeMutation(id: string): Promise<FormResult> {
-  const existing = await getIncomeById(id);
-  if (!existing) return { error: "income not found" };
-  if (!isManualIncome(existing)) {
-    return { error: "scheduled income cannot be deleted here" };
-  }
+  // Manual income is hard-deleted; materialized scheduled income is soft-deleted
+  // (tombstoned) server-side so the cron does not resurrect it.
   try {
     await deleteIncome(id);
     return { success: true };
   } catch (error) {
-    return mutationError(error, "failed to delete income");
+    return mutationError(error, tError("failedDeleteIncome"));
   }
 }
 
@@ -109,6 +134,17 @@ export function useUpdateIncome() {
   return useMutation({
     mutationFn: ({ id, input }: { id: string; input: IncomeInput }) =>
       updateIncomeMutation(id, input),
+    onSuccess: (result) => {
+      if (result.success) void invalidateAfter(queryClient, "incomeChange");
+    },
+  });
+}
+
+export function useUpdateIncomeAmount() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: ({ id, amount }: { id: string; amount: string }) =>
+      updateIncomeAmountMutation(id, amount),
     onSuccess: (result) => {
       if (result.success) void invalidateAfter(queryClient, "incomeChange");
     },

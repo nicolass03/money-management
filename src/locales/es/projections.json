@@ -1,0 +1,20 @@
+{
+  "title": "proyecciones",
+  "subtitle": "flujo de caja por periodo de pago para los próximos 7 meses — gasto planificado y dinero libre acumulado",
+  "noSchedule": "> no hay calendario de pago principal configurado.",
+  "configureInSettings": "configura en ~/configuración",
+  "scheduleMeta": "periodos basados en {{name}} // mostrando en {{currency}}",
+  "colPayDate": "fecha de pago",
+  "colIncome": "ingresos",
+  "colPlannedSpend": "gasto planificado",
+  "colFree": "libre",
+  "colCumulative": "acumulado",
+  "badgeActual": "real",
+  "badgeProjected": "proyectado",
+  "emptyPeriodExpenses": "> no hay gastos en este periodo",
+  "expensesInPeriod": "gastos en el periodo:",
+  "metaBudget": "// presupuesto",
+  "metaSubscription": "// suscripción",
+  "metaProjected": "// proyectado",
+  "metaActual": "// real"
+}

@@ -1,3 +1,4 @@
+import i18n from "@/lib/i18n";
 import type { PayFrequency } from "@/lib/types/constants";
 import type { IncomePaySchedule, RecurringExpense } from "@/lib/types/domain";
 
@@ -369,13 +370,15 @@ export function getProjectionPeriods(
   );
 }
 
-const frequencyLabels: Record<PayFrequency, string> = {
-  weekly: "weekly",
-  biweekly: "every 2 weeks",
-  monthly: "monthly",
-  yearly: "yearly",
+import i18n from "@/lib/i18n";
+
+const frequencyKeys: Record<PayFrequency, string> = {
+  weekly: "frequencyWeekly",
+  biweekly: "frequencyBiweekly",
+  monthly: "frequencyMonthly",
+  yearly: "frequencyYearly",
 };
 
 export function formatFrequency(frequency: PayFrequency): string {
-  return frequencyLabels[frequency];
+  return i18n.t(`common:${frequencyKeys[frequency]}`);
 }

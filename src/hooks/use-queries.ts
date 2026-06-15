@@ -18,10 +18,11 @@ import { ApiError } from "@/lib/api/client";
 import { queryKeys } from "@/lib/query/query-keys";
 import type { ExpensePeriodKey } from "@/lib/types/domain";
 
-export function useSettings() {
+export function useSettings(enabled = true) {
   return useQuery({
     queryKey: queryKeys.settings(),
     queryFn: getUserSettingsFromApi,
+    enabled,
   });
 }
 

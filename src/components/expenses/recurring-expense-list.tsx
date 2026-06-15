@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useTransition } from "react";
+import { useTranslation } from "react-i18next";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
@@ -28,6 +29,7 @@ export function RecurringExpenseList({
   displayCurrency,
   rates,
 }: RecurringExpenseListProps) {
+  const { t } = useTranslation(["expenses", "common"]);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [pending, startTransition] = useTransition();
   const deleteRecurring = useDeleteRecurringExpense();
@@ -44,7 +46,7 @@ export function RecurringExpenseList({
   if (recurringExpenses.length === 0) {
     return (
       <p className="font-mono text-sm text-muted">
-        {"> no recurring expenses yet. add one above."}
+        {t("expenses:recurringEmptyList")}
       </p>
     );
   }
@@ -75,16 +77,23 @@ export function RecurringExpenseList({
                 <div className="flex items-center gap-2">
                   <p className="font-mono text-sm text-text">{recurring.name}</p>
                   {recurring.isSubscription && (
-                    <Badge variant="default">subscription</Badge>
+                    <Badge variant="default">
+                      {t("expenses:subscription")}
+                    </Badge>
                   )}
                 </div>
                 <p className="mt-1 font-mono text-xs text-muted">
-                  anchor {formatDate(recurring.anchorDate)} {"//"}{" "}
-                  {formatFrequency(recurring.frequency)}
+                  {t("expenses:metaAnchor", {
+                    date: formatDate(recurring.anchorDate),
+                    frequency: formatFrequency(recurring.frequency),
+                  })}
                   {recurring.lastPaymentDate && (
                     <>
                       {" "}
-                      {"//"} ends {formatDate(recurring.lastPaymentDate)}
+                      {"//"}{" "}
+                      {t("expenses:metaEnds", {
+                        date: formatDate(recurring.lastPaymentDate),
+                      })}
                     </>
                   )}{" "}
                   {"//"} <TagList tags={recurring.tags} /> {"//"}{" "}
@@ -104,10 +113,12 @@ export function RecurringExpenseList({
             </div>
 
             <div className="mt-4 border-t border-border pt-3">
-              <p className="font-mono text-xs text-muted">next due dates:</p>
+              <p className="font-mono text-xs text-muted">
+                {t("expenses:nextDueDates")}
+              </p>
               {upcoming.length === 0 && (
                 <p className="mt-2 font-mono text-xs text-muted">
-                  {"> no upcoming charges"}
+                  {t("expenses:noUpcomingCharges")}
                 </p>
               )}
               <ul className="mt-2 space-y-1">
@@ -135,7 +146,7 @@ export function RecurringExpenseList({
                 variant="ghost"
                 onClick={() => setEditingId(recurring.id)}
               >
-                edit
+                {t("common:edit")}
               </Button>
               <Button
                 size="sm"
@@ -143,7 +154,7 @@ export function RecurringExpenseList({
                 loading={pending}
                 onClick={() => handleDelete(recurring.id)}
               >
-                {pending ? "deleting..." : "delete"}
+                {pending ? t("common:deleting") : t("common:delete")}
               </Button>
             </div>
           </Card>

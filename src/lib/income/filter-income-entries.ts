@@ -1,38 +1,17 @@
-import type { Income, IncomePaySchedule } from "@/lib/types/domain";
-import { getUpcomingPayDates, scheduleToInput } from "@/lib/income/pay-periods";
+import type { Income } from "@/lib/types/domain";
 
 export function isManualIncome(entry: Income): boolean {
   return entry.source !== "scheduled" && entry.scheduleId == null;
 }
 
-export function filterIncomeEntriesForDisplay(
-  entries: Income[],
-  schedules: IncomePaySchedule[],
-  today = new Date().toISOString().slice(0, 10),
-): Income[] {
-  const manual = entries.filter(isManualIncome);
-
-  const scheduledByKey = new Map<string, Income>();
-  for (const entry of entries) {
-    if (entry.scheduleId != null && entry.source === "scheduled") {
-      scheduledByKey.set(`${entry.scheduleId}:${entry.date}`, entry);
-    }
-  }
-
-  const nextScheduled: Income[] = [];
-  for (const schedule of schedules) {
-    const [nextDate] = getUpcomingPayDates(scheduleToInput(schedule), 1, today);
-    if (!nextDate) {
-      continue;
-    }
-
-    const entry = scheduledByKey.get(`${schedule.id}:${nextDate}`);
-    if (entry) {
-      nextScheduled.push(entry);
-    }
-  }
-
-  return [...manual, ...nextScheduled].sort((a, b) => {
+/**
+ * Income entries for display. Scheduled income is now materialized by the daily cron
+ * (one actual row per pay date), so every returned row — manual or scheduled — is a real
+ * registry the user can edit/delete. Deleted scheduled rows are tombstoned server-side and
+ * never reach the client, so no client-side filtering is required beyond sorting.
+ */
+export function filterIncomeEntriesForDisplay(entries: Income[]): Income[] {
+  return [...entries].sort((a, b) => {
     if (a.date !== b.date) {
       return b.date.localeCompare(a.date);
     }

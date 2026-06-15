@@ -12,6 +12,7 @@ import {
   type CurrencyCode,
   type PayFrequency,
 } from "@/lib/types/constants";
+import { tError } from "@/lib/i18n/errors";
 import { parseDollarsToCents } from "@/lib/utils";
 import { mutationError, type FormResult } from "./types";
 
@@ -46,26 +47,26 @@ function validateRecurringInput(data: RecurringInput):
       };
     } {
   const name = data.name.trim();
-  if (!name) return { error: "name is required" };
+  if (!name) return { error: tError("nameRequired") };
   const tags = parseTagNames(data.tags);
-  if (tags.length === 0) return { error: "at least one tag is required" };
+  if (tags.length === 0) return { error: tError("tagRequired") };
   if (!/^\d{4}-\d{2}-\d{2}$/.test(data.anchorDate)) {
-    return { error: "invalid anchor date" };
+    return { error: tError("invalidAnchorDate") };
   }
   if (!payFrequencies.includes(data.frequency as PayFrequency)) {
-    return { error: "invalid frequency" };
+    return { error: tError("invalidFrequency") };
   }
   if (!currencies.includes(data.currency as CurrencyCode)) {
-    return { error: "invalid currency" };
+    return { error: tError("invalidCurrency") };
   }
   const amount = parseDollarsToCents(data.amount);
-  if (amount === null || amount <= 0) return { error: "invalid amount" };
+  if (amount === null || amount <= 0) return { error: tError("invalidAmount") };
   const lastPaymentDate = parseLastPaymentDate(data.lastPaymentDate);
   if (lastPaymentDate && !/^\d{4}-\d{2}-\d{2}$/.test(lastPaymentDate)) {
-    return { error: "invalid last payment date" };
+    return { error: tError("invalidLastPaymentDate") };
   }
   if (lastPaymentDate && lastPaymentDate < data.anchorDate) {
-    return { error: "last payment date must be on or after anchor date" };
+    return { error: tError("lastPaymentBeforeAnchor") };
   }
   return {
     data: {
@@ -90,7 +91,7 @@ export async function createRecurringExpenseMutation(
     await createRecurringExpense(result.data);
     return { success: true };
   } catch (error) {
-    return mutationError(error, "failed to create recurring expense");
+    return mutationError(error, tError("failedCreateRecurring"));
   }
 }
 
@@ -102,10 +103,10 @@ export async function updateRecurringExpenseMutation(
   if ("error" in result) return result;
   try {
     const updated = await updateRecurringExpense(id, result.data);
-    if (!updated) return { error: "recurring expense not found" };
+    if (!updated) return { error: tError("recurringExpenseNotFound") };
     return { success: true };
   } catch (error) {
-    return mutationError(error, "failed to update recurring expense");
+    return mutationError(error, tError("failedUpdateRecurring"));
   }
 }
 
@@ -114,7 +115,7 @@ export async function deleteRecurringExpenseMutation(id: string): Promise<FormRe
     await deleteRecurringExpense(id);
     return { success: true };
   } catch (error) {
-    return mutationError(error, "failed to delete recurring expense");
+    return mutationError(error, tError("failedDeleteRecurring"));
   }
 }
 

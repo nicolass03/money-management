@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useTransition } from "react";
+import { useTranslation } from "react-i18next";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
@@ -29,6 +30,7 @@ export function IncomeScheduleList({
   displayCurrency,
   rates,
 }: IncomeScheduleListProps) {
+  const { t } = useTranslation(["income", "common"]);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [pending, startTransition] = useTransition();
   const deleteScheduleMutation = useDeleteSchedule();
@@ -43,13 +45,13 @@ export function IncomeScheduleList({
   }
 
   if (loading) {
-    return <CardListSkeleton count={2} label="loading pay schedules" />;
+    return <CardListSkeleton count={2} label={t("income:loadingPaySchedules")} />;
   }
 
   if (schedules.length === 0) {
     return (
       <p className="font-mono text-sm text-muted">
-        {"> no pay schedules yet. add one above."}
+        {t("income:emptySchedules")}
       </p>
     );
   }
@@ -79,8 +81,8 @@ export function IncomeScheduleList({
               <div>
                 <p className="font-mono text-sm text-text">{schedule.name}</p>
                 <p className="mt-1 font-mono text-xs text-muted">
-                  anchor {formatDate(schedule.anchorDate)} {"//"}{" "}
-                  {formatFrequency(schedule.frequency)} {"//"}{" "}
+                  {t("income:metaAnchor", { date: formatDate(schedule.anchorDate) })}{" "}
+                  {"//"} {formatFrequency(schedule.frequency)} {"//"}{" "}
                   {schedule.currency.toUpperCase()}
                 </p>
               </div>
@@ -97,7 +99,7 @@ export function IncomeScheduleList({
             </div>
 
             <div className="mt-4 border-t border-border pt-3">
-              <p className="font-mono text-xs text-muted">next pay dates:</p>
+              <p className="font-mono text-xs text-muted">{t("income:nextPayDates")}</p>
               <ul className="mt-2 space-y-1">
                 {upcoming.map((date) => (
                   <li
@@ -125,7 +127,7 @@ export function IncomeScheduleList({
                 variant="ghost"
                 onClick={() => setEditingId(schedule.id)}
               >
-                edit
+                {t("common:edit")}
               </Button>
               <Button
                 size="sm"
@@ -133,7 +135,7 @@ export function IncomeScheduleList({
                 loading={pending}
                 onClick={() => handleDelete(schedule.id)}
               >
-                {pending ? "deleting..." : "delete"}
+                {pending ? t("common:deleting") : t("common:delete")}
               </Button>
             </div>
           </Card>

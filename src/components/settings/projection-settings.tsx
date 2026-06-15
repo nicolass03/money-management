@@ -1,5 +1,6 @@
 import { Link } from "@tanstack/react-router";
 import { useState } from "react";
+import { useTranslation } from "react-i18next";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -25,6 +26,7 @@ export function ProjectionSettings({
   projectionStartDate,
   displayCurrency,
 }: ProjectionSettingsProps) {
+  const { t } = useTranslation(["settings", "common"]);
   const updateSettings = useUpdateProjectionSettings();
   const [success, setSuccess] = useState(false);
 
@@ -43,18 +45,18 @@ export function ProjectionSettings({
   return (
     <div className="space-y-4">
       <SectionHeader
-        title="projections"
-        subtitle="choose pay periods, starting date, and opening free cash balance for projections"
+        title={t("settings:projectionsTitle")}
+        subtitle={t("settings:projectionsSubtitle")}
       />
 
       <Card>
         {schedules.length === 0 ? (
           <p className="font-mono text-sm text-muted">
-            {"> add an income pay schedule on "}
+            {t("settings:addScheduleFirstPrefix")}
             <Link to="/income" className="text-accent hover:text-accent-glow">
               ~/income
             </Link>
-            {" first."}
+            {t("settings:addScheduleFirstSuffix")}
           </p>
         ) : (
           <form onSubmit={handleSubmit} className="space-y-4">
@@ -63,7 +65,7 @@ export function ProjectionSettings({
                 htmlFor="primary-schedule"
                 className="mb-2 block font-mono text-xs text-muted"
               >
-                primary_schedule:
+                {t("settings:primarySchedule")}
               </label>
               <select
                 id="primary-schedule"
@@ -73,7 +75,7 @@ export function ProjectionSettings({
                   "w-full border border-border bg-surface px-3 py-2 font-mono text-sm text-text outline-none transition-colors focus:border-accent",
                 )}
               >
-                <option value="">select a schedule</option>
+                <option value="">{t("settings:selectSchedule")}</option>
                 {schedules.map((schedule) => (
                   <option key={schedule.id} value={schedule.id}>
                     {schedule.name} ({formatFrequency(schedule.frequency)})
@@ -87,7 +89,7 @@ export function ProjectionSettings({
                 htmlFor="projection-start-date"
                 className="mb-2 block font-mono text-xs text-muted"
               >
-                projection_start_date:
+                {t("settings:projectionStartDate")}
               </label>
               <Input
                 id="projection-start-date"
@@ -96,7 +98,7 @@ export function ProjectionSettings({
                 defaultValue={projectionStartDate ?? ""}
               />
               <p className="mt-2 font-mono text-xs text-muted">
-                {"> projections begin on this date; only the opening balance applies until the next pay date (no income in that window)"}
+                {t("settings:projectionStartDateHint")}
               </p>
             </div>
 
@@ -105,7 +107,7 @@ export function ProjectionSettings({
                 htmlFor="initial-free-money"
                 className="mb-2 block font-mono text-xs text-muted"
               >
-                initial_free_money ({CURRENCY_LABELS[displayCurrency]}):
+                {t("settings:initialFreeMoney", { currency: CURRENCY_LABELS[displayCurrency] })}
               </label>
               <Input
                 id="initial-free-money"
@@ -116,7 +118,7 @@ export function ProjectionSettings({
                 placeholder="0.00"
               />
               <p className="mt-2 font-mono text-xs text-muted">
-                {"> free cash balance on the projection start date"}
+                {t("settings:initialFreeMoneyHint")}
               </p>
             </div>
 
@@ -127,12 +129,12 @@ export function ProjectionSettings({
             )}
             {success && (
               <p className="font-mono text-xs text-success">
-                {"> projection settings updated"}
+                {t("settings:projectionUpdated")}
               </p>
             )}
 
             <Button type="submit" loading={updateSettings.isPending}>
-              {updateSettings.isPending ? "saving..." : "save projection settings"}
+              {updateSettings.isPending ? t("common:saving") : t("settings:saveProjectionSettings")}
             </Button>
           </form>
         )}

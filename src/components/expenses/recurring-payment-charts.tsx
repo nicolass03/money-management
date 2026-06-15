@@ -2,6 +2,7 @@
 
 import { useMemo, useState } from "react";
 import { motion } from "framer-motion";
+import { useTranslation } from "react-i18next";
 import {
   Bar,
   BarChart,
@@ -82,12 +83,14 @@ function KpiCard({
   amountMinor,
   displayCurrency,
   rates,
+  perMonthLabel,
   className,
 }: {
   label: string;
   amountMinor: number;
   displayCurrency: MoneyDisplayContext["displayCurrency"];
   rates: MoneyDisplayContext["rates"];
+  perMonthLabel: string;
   className?: string;
 }) {
   return (
@@ -102,7 +105,7 @@ function KpiCard({
             rates,
           )}
         />
-        <span className="text-sm text-muted">/mo</span>
+        <span className="text-sm text-muted">{perMonthLabel}</span>
       </p>
     </Card>
   );
@@ -114,6 +117,7 @@ export function RecurringPaymentCharts({
   displayCurrency,
   rates,
 }: RecurringPaymentChartsProps) {
+  const { t } = useTranslation(["expenses", "common"]);
   const { privacyMode } = usePrivacyMode();
   const chartTheme = useChartTheme();
   const [selectedTags, setSelectedTags] = useState<string[]>([]);
@@ -180,12 +184,12 @@ export function RecurringPaymentCharts({
   if (activeRecurring.length === 0) {
     return (
       <Card className="mb-4">
-        <p className="font-mono text-sm text-muted">
-          {"> no recurring payments yet."}
-        </p>
+        <p className="font-mono text-sm text-muted">{t("expenses:emptyCharts")}</p>
       </Card>
     );
   }
+
+  const formattedTotal = formatChartValue(total / minorDivisor);
 
   return (
     <motion.div
@@ -195,13 +199,22 @@ export function RecurringPaymentCharts({
       transition={{ duration: 0.4 }}
     >
       <SectionHeader
-        title="monthly_distribution"
-        subtitle={`total: ${formatChartValue(total / minorDivisor)}/mo // ${selectedTags.length > 0 ? `filtered by ${selectedTags.length} tag(s)` : "all recurring"}`}
+        title={t("expenses:monthlyDistributionTitle")}
+        subtitle={
+          selectedTags.length > 0
+            ? t("expenses:monthlySubtitleFiltered", {
+                total: formattedTotal,
+                count: selectedTags.length,
+              })
+            : t("expenses:monthlySubtitleTotal", { total: formattedTotal })
+        }
       />
 
       {allTags.length > 0 && (
         <div className="mb-4 flex flex-wrap items-center gap-2">
-          <span className="font-mono text-xs text-muted">filter:</span>
+          <span className="font-mono text-xs text-muted">
+            {t("expenses:filterLabel")}
+          </span>
           {allTags.map((tag) => {
             const active = selectedTags.includes(tag);
             return (
@@ -226,7 +239,7 @@ export function RecurringPaymentCharts({
               onClick={() => setSelectedTags([])}
               className="font-mono text-xs text-accent hover:text-accent-glow"
             >
-              clear
+              {t("common:clear")}
             </button>
           )}
         </div>
@@ -235,23 +248,27 @@ export function RecurringPaymentCharts({
       <div className="grid gap-4 md:grid-cols-3 md:items-stretch">
         <div className="flex h-full flex-col gap-4 md:col-span-1">
           <KpiCard
-            label="subscriptions"
+            label={t("expenses:kpiSubscriptions")}
             amountMinor={subscriptionsMonthly}
             displayCurrency={displayCurrency}
             rates={rates}
+            perMonthLabel={t("common:perMonth")}
             className="flex flex-1 flex-col justify-center"
           />
           <KpiCard
-            label="debts"
+            label={t("expenses:kpiDebts")}
             amountMinor={debtsMonthly}
             displayCurrency={displayCurrency}
             rates={rates}
+            perMonthLabel={t("common:perMonth")}
             className="flex flex-1 flex-col justify-center"
           />
         </div>
 
         <Card className="flex h-full flex-col md:col-span-2">
-          <p className="mb-2 font-mono text-xs text-muted">by_tag</p>
+          <p className="mb-2 font-mono text-xs text-muted">
+            {t("expenses:byTag")}
+          </p>
           <div className="min-h-[180px] flex-1">
           <ResponsiveContainer width="100%" height="100%">
             <BarChart data={tagData}>

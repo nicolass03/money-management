@@ -1,5 +1,6 @@
 import { useEffect, useState, useTransition } from "react";
 import { Link } from "@tanstack/react-router";
+import { Trans, useTranslation } from "react-i18next";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
@@ -13,6 +14,7 @@ import { usePrivacyMode } from "@/components/layout/privacy-mode";
 import { formatMoney } from "@/lib/currency/format";
 import { maskNumericValue } from "@/lib/privacy/mask";
 import type { MoneyDisplayContext } from "@/lib/currency/display";
+import type { TFunction } from "i18next";
 import { formatProjectionExpenseAmount } from "@/lib/currency/expense-display";
 import { ExpenseAmount } from "./expense-amount";
 import type {
@@ -42,24 +44,28 @@ interface CurrentPeriodExpensesProps extends MoneyDisplayContext {
   upcomingLoading?: boolean;
 }
 
-function periodSectionTitle(periodKey: ExpensePeriodKey): string {
+function periodSectionTitle(
+  periodKey: ExpensePeriodKey,
+  t: TFunction<["expenses", "common"]>,
+): string {
   if (periodKey === "last-period") {
-    return "current_period";
+    return t("expenses:sectionCurrentPeriod");
   }
   if (periodKey === "last-month") {
-    return "last_month";
+    return t("expenses:sectionLastMonth");
   }
-  return "last_3_months";
+  return t("expenses:sectionLast3Months");
 }
 
 function periodSectionSubtitle(
   periodView: ExpensePeriodView | null,
   periodKey: ExpensePeriodKey,
+  t: TFunction<["expenses", "common"]>,
 ): string {
   if (!periodView) {
     return periodKey === "last-period"
-      ? "actual expenses in the active pay period"
-      : "actual expenses in the selected range";
+      ? t("expenses:subtitlePayPeriodDefault")
+      : t("expenses:subtitleRangeDefault");
   }
 
   const range = formatPeriodRange(
@@ -68,10 +74,13 @@ function periodSectionSubtitle(
   );
 
   if (periodView.isPayPeriod) {
-    return `${range} // payday ${formatDate(periodView.period.payDate)}`;
+    return t("expenses:subtitlePayday", {
+      range,
+      date: formatDate(periodView.period.payDate),
+    });
   }
 
-  return `${range} // actual expenses`;
+  return t("expenses:subtitleActualExpenses", { range });
 }
 
 function formatPeriodRange(startDate: string, endDate: string): string {
@@ -91,6 +100,7 @@ function ExpenseAmountEditor({
   rates: MoneyDisplayContext["rates"];
   onDone: () => void;
 }) {
+  const { t } = useTranslation("common");
   const [amount, setAmount] = useState(formatCentsAsDollarsInput(initialAmount));
   const [error, setError] = useState<string | null>(null);
   const [pending, startTransition] = useTransition();
@@ -119,10 +129,10 @@ function ExpenseAmountEditor({
         className="h-8 w-24 px-2 text-right"
       />
       <Button size="sm" loading={pending} onClick={handleSave}>
-        {pending ? "saving..." : "save"}
+        {pending ? t("saving") : t("save")}
       </Button>
       <Button size="sm" variant="ghost" onClick={onDone}>
-        cancel
+        {t("cancel")}
       </Button>
       {error && (
         <span className="font-mono text-xs text-danger">{error}</span>
@@ -146,7 +156,6 @@ function ExpenseRow({
   item,
   editingId,
   setEditingId,
-  formatDisplay,
   displayCurrency,
   rates,
   onDelete,
@@ -155,12 +164,13 @@ function ExpenseRow({
   item: ProjectionExpenseItem;
   editingId: string | null;
   setEditingId: (id: string | null) => void;
-  formatDisplay: (amount: number) => string;
   displayCurrency: CurrencyCode;
   rates: MoneyDisplayContext["rates"];
   onDelete: (id: string) => void;
   deletePending: boolean;
 }) {
+  const { t } = useTranslation(["expenses", "common"]);
+
   const key =
     item.id ??
     (item.budgetId != null
@@ -168,6 +178,35 @@ function ExpenseRow({
       : `proj-${item.recurringId}-${item.date}`);
   const canEdit =
     item.id != null && !item.projected && !item.isBudgetSummary;
+
+  function rowMetaSuffix() {
+    if (item.isBudgetSummary) {
+      return t("expenses:rowSuffixBudget");
+    }
+    if (item.projected) {
+      return t("expenses:rowSuffixDue");
+    }
+    if (item.budgetId != null) {
+      return t("expenses:rowSuffixFromBudget");
+    }
+    return null;
+  }
+
+  function rowMetaPrefix() {
+    if (item.isBudgetSummary) {
+      return t("expenses:rowBudgetTracking");
+    }
+    if (item.projected) {
+      return t("expenses:rowDue", { date: formatDate(dueDate(item)) });
+    }
+    if (item.scheduledDate) {
+      return t("expenses:rowPaidDue", {
+        paid: formatDate(item.date),
+        due: formatDate(item.scheduledDate),
+      });
+    }
+    return t("expenses:rowPaid", { date: formatDate(item.date) });
+  }
 
   return (
     <div
@@ -187,31 +226,18 @@ function ExpenseRow({
             <p className="font-mono text-sm text-text">{item.name}</p>
           )}
           {item.isBudgetSummary && (
-            <Badge variant="accent">budget</Badge>
+            <Badge variant="accent">{t("expenses:badgeBudget")}</Badge>
           )}
           {item.isSubscription && (
-            <Badge variant="default">subscription</Badge>
+            <Badge variant="default">{t("expenses:badgeSubscription")}</Badge>
           )}
           {isExtraExpense(item) && (
-            <Badge variant="warning">extra</Badge>
+            <Badge variant="warning">{t("expenses:badgeExtra")}</Badge>
           )}
         </div>
         <p className="font-mono text-xs text-muted">
-          {item.isBudgetSummary
-            ? `budget tracking // `
-            : item.projected
-              ? `due ${formatDate(dueDate(item))}`
-              : item.scheduledDate
-                ? `paid ${formatDate(item.date)} // due ${formatDate(item.scheduledDate)}`
-                : `paid ${formatDate(item.date)}`}{" "}
-          {"//"} <TagList tags={item.tags} />
-          {item.isBudgetSummary
-            ? " // budget"
-            : item.projected
-              ? " // due"
-              : item.budgetId != null
-                ? " // from budget"
-                : null}
+          {rowMetaPrefix()} {"//"} <TagList tags={item.tags} />
+          {rowMetaSuffix() != null && <> {rowMetaSuffix()}</>}
         </p>
       </div>
       <div className="text-right">
@@ -242,7 +268,7 @@ function ExpenseRow({
                     className={cn("h-7 px-2 text-xs")}
                     onClick={() => setEditingId(item.id!)}
                   >
-                    edit
+                    {t("common:edit")}
                   </Button>
                   <Button
                     size="sm"
@@ -251,7 +277,7 @@ function ExpenseRow({
                     loading={deletePending}
                     onClick={() => onDelete(item.id!)}
                   >
-                    {deletePending ? "deleting..." : "delete"}
+                    {deletePending ? t("common:deleting") : t("common:delete")}
                   </Button>
                 </>
               )}
@@ -281,6 +307,7 @@ export function CurrentPeriodExpenses({
   displayCurrency,
   rates,
 }: CurrentPeriodExpensesProps) {
+  const { t } = useTranslation(["expenses", "common"]);
   const { privacyMode } = usePrivacyMode();
   const [showAdd, setShowAdd] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
@@ -323,12 +350,12 @@ export function CurrentPeriodExpenses({
     <section className="mt-8">
       <div className="mb-4 flex flex-wrap items-center justify-between gap-4">
         <SectionHeader
-          title={periodSectionTitle(periodKey)}
+          title={periodSectionTitle(periodKey, t)}
           subtitle={
             periodLoading ? (
               <Skeleton className="h-3 w-56" />
             ) : (
-              periodSectionSubtitle(periodView, periodKey)
+              periodSectionSubtitle(periodView, periodKey, t)
             )
           }
           className="mb-0"
@@ -347,7 +374,7 @@ export function CurrentPeriodExpenses({
               variant={showAdd ? "ghost" : "primary"}
               onClick={() => setShowAdd((open) => !open)}
             >
-              {showAdd ? "cancel" : "+ add expense"}
+              {showAdd ? t("common:cancel") : t("expenses:addExpense")}
             </Button>
           )}
         </div>
@@ -370,19 +397,20 @@ export function CurrentPeriodExpenses({
           <ExpensePeriodListSkeleton />
         ) : periodKey === "last-period" && !primarySchedule ? (
           <p className="font-mono text-sm text-muted">
-            {"> set a primary pay schedule in "}
-            <Link
-              to="/settings"
-              className="text-accent hover:text-accent-glow"
-            >
-              ~/settings
-            </Link>
-            {" to define the current period."}
+            <Trans
+              i18nKey="expenses:noScheduleHint"
+              components={{
+                link: (
+                  <Link
+                    to="/settings"
+                    className="text-accent hover:text-accent-glow"
+                  />
+                ),
+              }}
+            />
           </p>
         ) : listItems.length === 0 ? (
-          <p className="font-mono text-sm text-muted">
-            {"> no expenses in this period."}
-          </p>
+          <p className="font-mono text-sm text-muted">{t("expenses:emptyPeriod")}</p>
         ) : (
           <div className="divide-y divide-border">
             {listItems.map((item) => (
@@ -391,7 +419,6 @@ export function CurrentPeriodExpenses({
                 item={item}
                 editingId={editingId}
                 setEditingId={setEditingId}
-                formatDisplay={formatDisplay}
                 displayCurrency={displayCurrency}
                 rates={rates}
                 onDelete={handleDelete}

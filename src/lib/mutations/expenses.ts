@@ -20,6 +20,7 @@ import {
 } from "@/lib/income/pay-periods";
 import { invalidateAfter } from "@/lib/query/invalidation";
 import { currencies, type CurrencyCode } from "@/lib/types/constants";
+import { tError } from "@/lib/i18n/errors";
 import { parseDollarsToCents } from "@/lib/utils";
 import { mutationError, type FormResult } from "./types";
 
@@ -54,15 +55,15 @@ function validateExpenseInput(data: ExpenseInput):
       };
     } {
   const name = data.name.trim();
-  if (!name) return { error: "name is required" };
+  if (!name) return { error: tError("nameRequired") };
   const tags = parseTagNames(data.tags);
-  if (tags.length === 0) return { error: "at least one tag is required" };
-  if (!/^\d{4}-\d{2}-\d{2}$/.test(data.date)) return { error: "invalid date" };
+  if (tags.length === 0) return { error: tError("tagRequired") };
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(data.date)) return { error: tError("invalidDate") };
   if (!currencies.includes(data.currency as CurrencyCode)) {
-    return { error: "invalid currency" };
+    return { error: tError("invalidCurrency") };
   }
   const amount = parseDollarsToCents(data.amount);
-  if (amount === null || amount <= 0) return { error: "invalid amount" };
+  if (amount === null || amount <= 0) return { error: tError("invalidAmount") };
   return {
     data: {
       name,
@@ -79,15 +80,15 @@ export async function createExpenseMutation(input: ExpenseInput): Promise<FormRe
   const result = validateExpenseInput(input);
   if ("error" in result) return result;
   const period = await getCurrentPayPeriod();
-  if (!period) return { error: "set a primary pay schedule in settings first" };
+  if (!period) return { error: tError("noPrimarySchedule") };
   if (!isDateInPeriod(result.data.date, period)) {
-    return { error: "date must fall within the current pay period" };
+    return { error: tError("dateOutsidePayPeriod") };
   }
   try {
     await createExpense(result.data);
     return { success: true };
   } catch (error) {
-    return mutationError(error, "failed to create expense");
+    return mutationError(error, tError("failedCreateExpense"));
   }
 }
 
@@ -96,15 +97,15 @@ export async function updateExpenseAmountMutation(
   amountRaw: string,
 ): Promise<FormResult> {
   const amount = parseDollarsToCents(amountRaw);
-  if (amount === null || amount <= 0) return { error: "invalid amount" };
+  if (amount === null || amount <= 0) return { error: tError("invalidAmount") };
   const existing = await getExpenseById(id);
-  if (!existing) return { error: "expense not found" };
+  if (!existing) return { error: tError("expenseNotFound") };
   try {
     const updated = await updateExpenseAmount(id, amount);
-    if (!updated) return { error: "expense not found" };
+    if (!updated) return { error: tError("expenseNotFound") };
     return { success: true };
   } catch (error) {
-    return mutationError(error, "failed to update expense");
+    return mutationError(error, tError("failedUpdateExpense"));
   }
 }
 
@@ -123,43 +124,43 @@ export async function markFuturePaymentAsPaidMutation(
 ): Promise<FormResult> {
   const { sourceType, scheduledDate, paidDate, amount: amountRaw, currency } = input;
   if (sourceType !== "recurring" && sourceType !== "planned") {
-    return { error: "invalid payment source" };
+    return { error: tError("invalidPaymentSource") };
   }
   if (!/^\d{4}-\d{2}-\d{2}$/.test(scheduledDate)) {
-    return { error: "invalid scheduled date" };
+    return { error: tError("invalidScheduledDate") };
   }
   if (!/^\d{4}-\d{2}-\d{2}$/.test(paidDate)) {
-    return { error: "invalid paid date" };
+    return { error: tError("invalidPaidDate") };
   }
   if (!currencies.includes(currency as CurrencyCode)) {
-    return { error: "invalid currency" };
+    return { error: tError("invalidCurrency") };
   }
   const amount = parseDollarsToCents(amountRaw);
-  if (amount === null || amount <= 0) return { error: "invalid amount" };
+  if (amount === null || amount <= 0) return { error: tError("invalidAmount") };
   const period = await getCurrentPayPeriod();
-  if (!period) return { error: "set a primary pay schedule in settings first" };
+  if (!period) return { error: tError("noPrimarySchedule") };
   if (!isDateInPeriod(paidDate, period)) {
-    return { error: "paid date must fall within the current pay period" };
+    return { error: tError("paidDateOutsidePayPeriod") };
   }
   const today = new Date().toISOString().slice(0, 10);
-  if (paidDate > today) return { error: "paid date cannot be in the future" };
+  if (paidDate > today) return { error: tError("paidDateInFuture") };
 
   try {
     if (sourceType === "recurring") {
       const recurringId = String(input.recurringId ?? "").trim();
-      if (!recurringId) return { error: "invalid recurring expense" };
+      if (!recurringId) return { error: tError("invalidRecurringExpense") };
       const recurring = await getRecurringExpenseById(recurringId);
-      if (!recurring) return { error: "recurring expense not found" };
+      if (!recurring) return { error: tError("recurringExpenseNotFound") };
       const dueDates = getPayDatesInRange(
         scheduleToInput(recurring),
         scheduledDate,
         scheduledDate,
       );
       if (dueDates.length === 0) {
-        return { error: "scheduled date does not match recurring expense" };
+        return { error: tError("scheduledDateMismatchRecurring") };
       }
       if (scheduledDate <= today) {
-        return { error: "scheduled date must be in the future" };
+        return { error: tError("scheduledDateMustBeFuture") };
       }
       const allExpenses = await getExpenses();
       if (
@@ -169,7 +170,7 @@ export async function markFuturePaymentAsPaidMutation(
             (e.scheduledDate ?? e.date) === scheduledDate,
         )
       ) {
-        return { error: "this payment has already been recorded" };
+        return { error: tError("paymentAlreadyRecorded") };
       }
       await earlyPayExpense({
         sourceType: "recurring",
@@ -181,18 +182,18 @@ export async function markFuturePaymentAsPaidMutation(
       });
     } else {
       const plannedExpenseId = String(input.plannedExpenseId ?? "").trim();
-      if (!plannedExpenseId) return { error: "invalid planned expense" };
+      if (!plannedExpenseId) return { error: tError("invalidPlannedExpense") };
       const planned = await getPlannedExpenseById(plannedExpenseId);
-      if (!planned) return { error: "planned expense not found" };
+      if (!planned) return { error: tError("plannedExpenseNotFound") };
       if (planned.date !== scheduledDate) {
-        return { error: "scheduled date does not match planned expense" };
+        return { error: tError("scheduledDateMismatchPlanned") };
       }
       if (planned.date <= today) {
-        return { error: "scheduled date must be in the future" };
+        return { error: tError("scheduledDateMustBeFuture") };
       }
       const allExpenses = await getExpenses();
       if (allExpenses.some((e) => e.plannedExpenseId === plannedExpenseId)) {
-        return { error: "this payment has already been recorded" };
+        return { error: tError("paymentAlreadyRecorded") };
       }
       await earlyPayExpense({
         sourceType: "planned",
@@ -205,18 +206,18 @@ export async function markFuturePaymentAsPaidMutation(
     }
     return { success: true };
   } catch (error) {
-    return mutationError(error, "failed to record early payment");
+    return mutationError(error, tError("failedRecordEarlyPayment"));
   }
 }
 
 export async function deleteExpenseMutation(id: string): Promise<FormResult> {
   const existing = await getExpenseById(id);
-  if (!existing) return { error: "expense not found" };
+  if (!existing) return { error: tError("expenseNotFound") };
   try {
     await deleteExpense(id);
     return { success: true };
   } catch (error) {
-    return mutationError(error, "failed to delete expense");
+    return mutationError(error, tError("failedDeleteExpense"));
   }
 }
 

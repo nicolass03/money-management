@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useTransition } from "react";
+import { useTranslation } from "react-i18next";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
@@ -23,6 +24,7 @@ export function PlannedExpenseList({
   displayCurrency,
   rates,
 }: PlannedExpenseListProps) {
+  const { t } = useTranslation(["expenses", "common"]);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [pending, startTransition] = useTransition();
   const deletePlanned = useDeletePlannedExpense();
@@ -39,7 +41,7 @@ export function PlannedExpenseList({
   if (plannedExpenses.length === 0) {
     return (
       <p className="font-mono text-sm text-muted">
-        {"> no planned expenses yet. add one above."}
+        {t("expenses:plannedEmptyList")}
       </p>
     );
   }
@@ -89,7 +91,7 @@ export function PlannedExpenseList({
                 variant="ghost"
                 onClick={() => setEditingId(planned.id)}
               >
-                edit
+                {t("common:edit")}
               </Button>
               <Button
                 size="sm"
@@ -97,7 +99,7 @@ export function PlannedExpenseList({
                 loading={pending}
                 onClick={() => handleDelete(planned.id)}
               >
-                {pending ? "deleting..." : "delete"}
+                {pending ? t("common:deleting") : t("common:delete")}
               </Button>
             </div>
           </Card>

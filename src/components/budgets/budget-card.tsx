@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useTransition } from "react";
+import { useTranslation } from "react-i18next";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
@@ -24,6 +25,14 @@ interface BudgetCardProps extends MoneyDisplayContext {
   expenses: ExpenseWithTags[];
 }
 
+const STATUS_KEYS: Record<BudgetStatus, string> = {
+  active: "statusActive",
+  upcoming: "statusUpcoming",
+  open: "statusOpen",
+  ended: "statusEnded",
+  depleted: "statusDepleted",
+};
+
 function statusBadgeVariant(
   status: BudgetStatus,
 ): "accent" | "success" | "default" {
@@ -42,6 +51,7 @@ export function BudgetCard({
   displayCurrency,
   rates,
 }: BudgetCardProps) {
+  const { t } = useTranslation(["budgets", "common"]);
   const [expanded, setExpanded] = useState(false);
   const [editing, setEditing] = useState(false);
   const [pending, startTransition] = useTransition();
@@ -79,7 +89,9 @@ export function BudgetCard({
         <div className="min-w-0 flex-1">
           <div className="flex flex-wrap items-center gap-2">
             <p className="font-mono text-sm text-text">{budget.name}</p>
-            <Badge variant={statusBadgeVariant(status)}>{status}</Badge>
+            <Badge variant={statusBadgeVariant(status)}>
+              {t(`budgets:${STATUS_KEYS[status]}`)}
+            </Badge>
           </div>
           <p className="mt-1 font-mono text-xs text-muted">
             {isDatedBudget(budget) ? (
@@ -87,14 +99,14 @@ export function BudgetCard({
                 {formatDateRange(budget.startDate!, budget.endDate!)} {"//"}{" "}
               </>
             ) : (
-              <>open-ended {"//"} </>
+              <>{t("budgets:openEnded")} {"//"} </>
             )}
             <TagList tags={budget.tags} />
           </p>
 
           <div className="mt-3">
             <div className="mb-1 flex items-center justify-between font-mono text-xs">
-              <span className="text-muted">spent / total</span>
+              <span className="text-muted">{t("budgets:spentTotal")}</span>
               <span className="text-text">
                 <MoneyText
                   value={`${formatMoney(spentDisplay, displayCurrency, displayCurrency, rates)} / ${formatMoney(totalDisplay, displayCurrency, displayCurrency, rates)}`}
@@ -119,13 +131,13 @@ export function BudgetCard({
           className="shrink-0"
           onClick={() => setExpanded((open) => !open)}
         >
-          {expanded ? "collapse" : "expand"}
+          {expanded ? t("budgets:collapse") : t("budgets:expand")}
         </Button>
       </div>
 
       <div className="mt-4 flex gap-2">
         <Button size="sm" variant="ghost" onClick={() => setEditing(true)}>
-          edit
+          {t("common:edit")}
         </Button>
         <Button
           size="sm"
@@ -133,7 +145,7 @@ export function BudgetCard({
           loading={pending}
           onClick={handleDelete}
         >
-          {pending ? "deleting..." : "delete"}
+          {pending ? t("common:deleting") : t("common:delete")}
         </Button>
       </div>
 

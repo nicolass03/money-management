@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useTranslation } from "react-i18next";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
@@ -24,6 +25,7 @@ export function RecurringExpenses({
   displayCurrency,
   rates,
 }: RecurringExpensesProps) {
+  const { t } = useTranslation(["expenses", "common"]);
   const [showAdd, setShowAdd] = useState(recurringExpenses.length === 0);
   const ctx = { displayCurrency, rates };
 
@@ -44,8 +46,8 @@ export function RecurringExpenses({
 
       <div className="mb-4 flex flex-wrap items-center justify-between gap-4">
         <SectionHeader
-          title="recurring_expenses"
-          subtitle="templates charged daily on their due date"
+          title={t("expenses:recurringTitle")}
+          subtitle={t("expenses:recurringSubtitle")}
           className="mb-0"
         />
         <div className="flex shrink-0 items-center gap-3">
@@ -59,7 +61,7 @@ export function RecurringExpenses({
                   rates,
                 )}
               />
-              /cycle
+              {t("common:perCycle")}
             </Badge>
           )}
           <Button
@@ -67,7 +69,7 @@ export function RecurringExpenses({
             variant={showAdd ? "ghost" : "primary"}
             onClick={() => setShowAdd((open) => !open)}
           >
-            {showAdd ? "cancel" : "+ add recurring"}
+            {showAdd ? t("common:cancel") : t("expenses:addRecurring")}
           </Button>
         </div>
       </div>
@@ -75,7 +77,7 @@ export function RecurringExpenses({
       {showAdd && (
         <Card className="mb-4">
           <p className="mb-4 font-mono text-xs text-muted">
-            set a due date anchor — charges are created on each due date
+            {t("expenses:recurringFormHint")}
           </p>
           <RecurringExpenseForm
             displayCurrency={displayCurrency}

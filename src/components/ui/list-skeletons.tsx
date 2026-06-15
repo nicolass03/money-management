@@ -1,3 +1,4 @@
+import { useTranslation } from "react-i18next";
 import { Card } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { cn } from "@/lib/utils";
@@ -11,13 +12,16 @@ interface CardListSkeletonProps {
 export function CardListSkeleton({
   count = 3,
   className,
-  label = "loading",
+  label,
 }: CardListSkeletonProps) {
+  const { t } = useTranslation("common");
+  const resolvedLabel = label ?? t("loading");
+
   return (
     <div
       className={cn("space-y-4", className)}
       aria-busy="true"
-      aria-label={label}
+      aria-label={resolvedLabel}
     >
       {Array.from({ length: count }, (_, index) => (
         <Card key={index}>
@@ -44,8 +48,14 @@ interface ProjectionsTableSkeletonProps {
 }
 
 export function ProjectionsTableSkeleton({ rows = 6 }: ProjectionsTableSkeletonProps) {
+  const { t } = useTranslation("common");
+
   return (
-    <Card className="overflow-hidden p-0" aria-busy="true" aria-label="loading projections">
+    <Card
+      className="overflow-hidden p-0"
+      aria-busy="true"
+      aria-label={t("loadingProjections")}
+    >
       <div className="grid grid-cols-[1fr_auto_auto_auto_auto] gap-4 border-b border-border px-4 py-3">
         <Skeleton className="h-3 w-16" />
         <Skeleton className="h-3 w-12 justify-self-end" />

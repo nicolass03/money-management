@@ -1,0 +1,20 @@
+{
+  "title": "projections",
+  "subtitle": "cash flow by pay period for the next 7 months — planned spend and running free money",
+  "noSchedule": "> no primary pay schedule configured.",
+  "configureInSettings": "configure in ~/settings",
+  "scheduleMeta": "periods based on {{name}} // displaying in {{currency}}",
+  "colPayDate": "pay date",
+  "colIncome": "income",
+  "colPlannedSpend": "planned spend",
+  "colFree": "free",
+  "colCumulative": "cumulative",
+  "badgeActual": "actual",
+  "badgeProjected": "projected",
+  "emptyPeriodExpenses": "> no expenses in this period",
+  "expensesInPeriod": "expenses in period:",
+  "metaBudget": "// budget",
+  "metaSubscription": "// subscription",
+  "metaProjected": "// projected",
+  "metaActual": "// actual"
+}

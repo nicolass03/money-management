@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { useTranslation } from "react-i18next";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
@@ -26,6 +27,7 @@ export function MarkEarlyPaymentPanel({
   periodEndDate,
   defaultPaidDate,
 }: MarkEarlyPaymentPanelProps) {
+  const { t } = useTranslation(["expenses", "common"]);
   const [open, setOpen] = useState(false);
   const [selectedKey, setSelectedKey] = useState<string | null>(null);
   const [amount, setAmount] = useState("");
@@ -82,6 +84,13 @@ export function MarkEarlyPaymentPanel({
     setError("");
   }
 
+  function dueLine(item: PayableFutureItem) {
+    const date = formatDate(item.scheduledDate);
+    return item.sourceType === "recurring"
+      ? t("expenses:dueRecurring", { date })
+      : t("expenses:dueOneTime", { date });
+  }
+
   return (
     <>
       <Card className="mt-4 overflow-hidden p-0">
@@ -90,7 +99,7 @@ export function MarkEarlyPaymentPanel({
           onClick={() => setOpen(true)}
           className="flex w-full items-center justify-between gap-4 px-4 py-3 text-left transition-colors hover:bg-surface/60"
         >
-          <p className="font-mono text-sm text-text">mark as paid</p>
+          <p className="font-mono text-sm text-text">{t("expenses:markAsPaid")}</p>
           <div className="flex items-center gap-2">
             {upcomingItems.length > 0 && (
               <Badge variant="default">{upcomingItems.length}</Badge>
@@ -103,17 +112,15 @@ export function MarkEarlyPaymentPanel({
       <TerminalModal
         open={open}
         onClose={handleClose}
-        title="mark-as-paid"
+        title={t("expenses:markAsPaidTitle")}
         subtitle={
           selected
-            ? "confirm payment details"
-            : "select an upcoming charge to mark as paid"
+            ? t("expenses:modalSubtitleConfirm")
+            : t("expenses:modalSubtitleSelect")
         }
       >
         {upcomingItems.length === 0 ? (
-          <p className="font-mono text-sm text-muted">
-            {"> no upcoming payments in the next 30 days."}
-          </p>
+          <p className="font-mono text-sm text-muted">{t("expenses:noUpcoming")}</p>
         ) : selected ? (
           <form
             onSubmit={async (e) => {
@@ -134,10 +141,7 @@ export function MarkEarlyPaymentPanel({
           >
             <div>
               <p className="font-mono text-sm text-text">{selected.name}</p>
-              <p className="font-mono text-xs text-muted">
-                due {formatDate(selected.scheduledDate)}
-                {selected.sourceType === "recurring" ? " // recurring" : " // one-time"}
-              </p>
+              <p className="font-mono text-xs text-muted">{dueLine(selected)}</p>
             </div>
 
             <div className="grid gap-4 sm:grid-cols-2">
@@ -146,7 +150,7 @@ export function MarkEarlyPaymentPanel({
                   htmlFor="early-amount"
                   className="mb-2 block font-mono text-xs text-muted"
                 >
-                  amount paid:
+                  {t("expenses:labelAmountPaid")}
                 </label>
                 <Input
                   id="early-amount"
@@ -164,7 +168,7 @@ export function MarkEarlyPaymentPanel({
                   htmlFor="early-currency"
                   className="mb-2 block font-mono text-xs text-muted"
                 >
-                  currency:
+                  {t("common:labelCurrency")}
                 </label>
                 <select
                   id="early-currency"
@@ -189,7 +193,7 @@ export function MarkEarlyPaymentPanel({
                 htmlFor="early-paid-date"
                 className="mb-2 block font-mono text-xs text-muted"
               >
-                paid date:
+                {t("expenses:labelPaidDate")}
               </label>
               <Input
                 id="early-paid-date"
@@ -209,14 +213,16 @@ export function MarkEarlyPaymentPanel({
 
             <div className="flex gap-2">
               <Button type="submit" loading={markPaid.isPending}>
-                {markPaid.isPending ? "saving..." : "confirm payment"}
+                {markPaid.isPending
+                  ? t("common:saving")
+                  : t("expenses:confirmPayment")}
               </Button>
               <Button
                 type="button"
                 variant="ghost"
                 onClick={() => resetForm()}
               >
-                back
+                {t("common:back")}
               </Button>
             </div>
           </form>
@@ -233,13 +239,12 @@ export function MarkEarlyPaymentPanel({
                   <div className="flex items-center gap-2">
                     <p className="font-mono text-sm text-text">{item.name}</p>
                     {item.isSubscription && (
-                      <Badge variant="default">subscription</Badge>
+                      <Badge variant="default">
+                        {t("expenses:subscription")}
+                      </Badge>
                     )}
                   </div>
-                  <p className="font-mono text-xs text-muted">
-                    due {formatDate(item.scheduledDate)} {"//"}{" "}
-                    {item.sourceType === "recurring" ? "recurring" : "one-time"}
-                  </p>
+                  <p className="font-mono text-xs text-muted">{dueLine(item)}</p>
                 </div>
                 <span className="font-mono text-sm text-danger">
                   -{formatItemAmount(item)}

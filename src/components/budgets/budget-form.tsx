@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useTranslation } from "react-i18next";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useCreateBudget, useUpdateBudget } from "@/lib/mutations/budgets";
@@ -21,6 +22,7 @@ export function BudgetForm({
   onCancel,
   onSuccess,
 }: BudgetFormProps) {
+  const { t } = useTranslation(["budgets", "common"]);
   const isEditing = Boolean(budget);
   const [name, setName] = useState(budget?.name ?? "");
   const [tags, setTags] = useState(budget ? formatTagNames(budget.tags) : "");
@@ -72,13 +74,13 @@ export function BudgetForm({
     <form onSubmit={handleSubmit} className="space-y-4">
       <div>
         <label htmlFor="budget-name" className="mb-2 block font-mono text-xs text-muted">
-          name:
+          {t("common:labelName")}
         </label>
         <Input
           id="budget-name"
           value={name}
           onChange={(e) => setName(e.target.value)}
-          placeholder="Summer trip"
+          placeholder={t("budgets:namePlaceholder")}
           required
         />
       </div>
@@ -88,7 +90,7 @@ export function BudgetForm({
       <div className="grid gap-4 sm:grid-cols-2">
         <div>
           <label htmlFor="budget-amount" className="mb-2 block font-mono text-xs text-muted">
-            amount:
+            {t("common:labelAmount")}
           </label>
           <Input
             id="budget-amount"
@@ -96,14 +98,14 @@ export function BudgetForm({
             inputMode="decimal"
             value={amount}
             onChange={(e) => setAmount(e.target.value)}
-            placeholder="1500.00"
+            placeholder={t("budgets:amountPlaceholder")}
             required
           />
         </div>
 
         <div>
           <label htmlFor="budget-currency" className="mb-2 block font-mono text-xs text-muted">
-            currency:
+            {t("common:labelCurrency")}
           </label>
           <select
             id="budget-currency"
@@ -130,13 +132,13 @@ export function BudgetForm({
             onChange={(e) => handleDatedToggle(e.target.checked)}
             className="accent-accent"
           />
-          dated budget (start + end required)
+          {t("budgets:datedBudgetCheckbox")}
         </label>
         {dated && (
           <div className="mt-3 grid gap-4 sm:grid-cols-2">
             <div>
               <label htmlFor="budget-start" className="mb-2 block font-mono text-xs text-muted">
-                start date:
+                {t("budgets:labelStartDate")}
               </label>
               <Input
                 id="budget-start"
@@ -148,7 +150,7 @@ export function BudgetForm({
             </div>
             <div>
               <label htmlFor="budget-end" className="mb-2 block font-mono text-xs text-muted">
-                end date:
+                {t("budgets:labelEndDate")}
               </label>
               <Input
                 id="budget-end"
@@ -161,9 +163,7 @@ export function BudgetForm({
           </div>
         )}
         <p className="mt-2 font-mono text-xs text-muted">
-          {dated
-            ? "full total shows on projections until the last day, then actual spent"
-            : "no projection until you spend — expenses appear on ~/expenses"}
+          {dated ? t("budgets:datedBudgetHint") : t("budgets:openEndedBudgetHint")}
         </p>
       </div>
 
@@ -171,11 +171,15 @@ export function BudgetForm({
 
       <div className="flex gap-2">
         <Button type="submit" loading={pending}>
-          {pending ? "saving..." : isEditing ? "update" : "add budget"}
+          {pending
+            ? t("common:saving")
+            : isEditing
+              ? t("common:update")
+              : t("budgets:submitAdd")}
         </Button>
         {onCancel && (
           <Button type="button" variant="ghost" onClick={onCancel}>
-            cancel
+            {t("common:cancel")}
           </Button>
         )}
       </div>

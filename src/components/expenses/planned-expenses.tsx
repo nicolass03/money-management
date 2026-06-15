@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useTranslation } from "react-i18next";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
@@ -25,6 +26,7 @@ export function PlannedExpenses({
   displayCurrency,
   rates,
 }: PlannedExpensesProps) {
+  const { t } = useTranslation(["expenses", "common"]);
   const [showAdd, setShowAdd] = useState(plannedExpenses.length === 0);
   const ctx = { displayCurrency, rates };
   const today = todayIso();
@@ -41,8 +43,8 @@ export function PlannedExpenses({
     <section>
       <div className="mb-4 flex flex-wrap items-center justify-between gap-4">
         <SectionHeader
-          title="planned_expenses"
-          subtitle="one-time spends on a specific future date"
+          title={t("expenses:plannedTitle")}
+          subtitle={t("expenses:plannedSubtitle")}
           className="mb-0"
         />
         <div className="flex shrink-0 items-center gap-3">
@@ -56,7 +58,7 @@ export function PlannedExpenses({
                   rates,
                 )}
               />
-              upcoming
+              {t("expenses:badgeUpcoming")}
             </Badge>
           )}
           <Button
@@ -64,7 +66,7 @@ export function PlannedExpenses({
             variant={showAdd ? "ghost" : "primary"}
             onClick={() => setShowAdd((open) => !open)}
           >
-            {showAdd ? "cancel" : "+ add planned"}
+            {showAdd ? t("common:cancel") : t("expenses:addPlanned")}
           </Button>
         </div>
       </div>
@@ -72,7 +74,7 @@ export function PlannedExpenses({
       {showAdd && (
         <Card className="mb-4">
           <p className="mb-4 font-mono text-xs text-muted">
-            set a single future date — appears in projections until then
+            {t("expenses:plannedFormHint")}
           </p>
           <PlannedExpenseForm
             displayCurrency={displayCurrency}

@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useTranslation } from "react-i18next";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
@@ -24,6 +25,7 @@ export function PaySchedules({
   displayCurrency,
   rates,
 }: PaySchedulesProps) {
+  const { t } = useTranslation(["income", "common"]);
   const [showAdd, setShowAdd] = useState(false);
   const ctx = { displayCurrency, rates };
 
@@ -37,8 +39,8 @@ export function PaySchedules({
     <section>
       <div className="mb-4 flex flex-wrap items-center justify-between gap-4">
         <SectionHeader
-          title="pay_schedules"
-          subtitle="configure pay dates and periodicity"
+          title={t("income:paySchedulesTitle")}
+          subtitle={t("income:paySchedulesSubtitle")}
           className="mb-0"
         />
         <div className="flex shrink-0 items-center gap-3">
@@ -55,7 +57,7 @@ export function PaySchedules({
                     rates,
                   )}
                 />
-                /cycle
+                {t("common:perCycle")}
               </Badge>
             )
           )}
@@ -65,7 +67,7 @@ export function PaySchedules({
               variant={showAdd ? "ghost" : "primary"}
               onClick={() => setShowAdd((open) => !open)}
             >
-              {showAdd ? "cancel" : "+ add schedule"}
+              {showAdd ? t("common:cancel") : t("income:addSchedule")}
             </Button>
           )}
         </div>
@@ -74,7 +76,7 @@ export function PaySchedules({
       {showAdd && !loading && (
         <Card className="mb-4">
           <p className="mb-4 font-mono text-xs text-muted">
-            set an anchor pay date — future pay dates are derived from it
+            {t("income:scheduleFormHint")}
           </p>
           <IncomeScheduleForm
             displayCurrency={displayCurrency}

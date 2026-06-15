@@ -1,5 +1,6 @@
 import { useNavigate } from "@tanstack/react-router";
 import { motion } from "framer-motion";
+import { useTranslation } from "react-i18next";
 import { NavItem } from "./nav-item";
 import { usePrivacyMode } from "./privacy-mode";
 import { ThemeSwitcher } from "./theme-switcher";
@@ -8,15 +9,16 @@ import { useSession } from "@/lib/auth/session-store";
 import { cn } from "@/lib/utils";
 
 const navItems = [
-  { href: "/expenses", label: "~/expenses" },
-  { href: "/budgets", label: "~/budgets" },
-  { href: "/income", label: "~/income" },
-  { href: "/projections", label: "~/projections" },
-  { href: "/savings", label: "~/savings" },
-  { href: "/settings", label: "~/settings" },
+  { href: "/expenses", key: "navExpenses" },
+  { href: "/budgets", key: "navBudgets" },
+  { href: "/income", key: "navIncome" },
+  { href: "/projections", key: "navProjections" },
+  { href: "/savings", key: "navSavings" },
+  { href: "/settings", key: "navSettings" },
 ];
 
 export function Sidebar() {
+  const { t } = useTranslation("common");
   const navigate = useNavigate();
   const { signOut } = useSession();
   const { privacyMode, togglePrivacyMode } = usePrivacyMode();
@@ -42,7 +44,7 @@ export function Sidebar() {
 
       <nav className="flex-1 py-2">
         {navItems.map((item) => (
-          <NavItem key={item.href} href={item.href} label={item.label} />
+          <NavItem key={item.href} href={item.href} label={t(item.key)} />
         ))}
       </nav>
 
@@ -58,7 +60,7 @@ export function Sidebar() {
           onClick={togglePrivacyMode}
           aria-pressed={privacyMode}
         >
-          {privacyMode ? "privacy: on" : "privacy: off"}
+          {privacyMode ? t("privacyOn") : t("privacyOff")}
         </Button>
         <Button
           variant="ghost"
@@ -66,7 +68,7 @@ export function Sidebar() {
           className="w-full"
           onClick={handleLogout}
         >
-          logout
+          {t("logout")}
         </Button>
       </div>
     </motion.aside>

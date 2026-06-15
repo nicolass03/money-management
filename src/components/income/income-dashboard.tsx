@@ -1,3 +1,4 @@
+import { useTranslation } from "react-i18next";
 import { Badge } from "@/components/ui/badge";
 import { SectionHeader } from "@/components/ui/section-header";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -34,6 +35,7 @@ export function IncomeDashboard({
   displayCurrency,
   rates,
 }: IncomeDashboardProps) {
+  const { t } = useTranslation("income");
   const ctx = { displayCurrency, rates };
   const total = sumEntries(entries, ctx);
 
@@ -41,8 +43,8 @@ export function IncomeDashboard({
     <div>
       <div className="mb-6 flex items-center justify-between">
         <SectionHeader
-          title="income"
-          subtitle="manage pay schedules and track earnings"
+          title={t("title")}
+          subtitle={t("subtitle")}
           className="mb-0"
         />
         {entriesLoading ? (
@@ -67,7 +69,6 @@ export function IncomeDashboard({
 
       <IncomeEntries
         entries={entries}
-        schedules={schedules}
         loading={entriesLoading}
         displayCurrency={displayCurrency}
         rates={rates}

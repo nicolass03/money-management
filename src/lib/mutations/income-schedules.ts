@@ -11,6 +11,7 @@ import {
   type CurrencyCode,
   type PayFrequency,
 } from "@/lib/types/constants";
+import { tError } from "@/lib/i18n/errors";
 import { parseDollarsToCents } from "@/lib/utils";
 import { mutationError, type FormResult } from "./types";
 
@@ -34,18 +35,18 @@ function validateScheduleInput(data: ScheduleInput):
       };
     } {
   const name = data.name.trim();
-  if (!name) return { error: "name is required" };
+  if (!name) return { error: tError("nameRequired") };
   if (!/^\d{4}-\d{2}-\d{2}$/.test(data.anchorDate)) {
-    return { error: "invalid anchor date" };
+    return { error: tError("invalidAnchorDate") };
   }
   if (!payFrequencies.includes(data.frequency as PayFrequency)) {
-    return { error: "invalid frequency" };
+    return { error: tError("invalidFrequency") };
   }
   if (!currencies.includes(data.currency as CurrencyCode)) {
-    return { error: "invalid currency" };
+    return { error: tError("invalidCurrency") };
   }
   const amount = parseDollarsToCents(data.amount);
-  if (amount === null || amount <= 0) return { error: "invalid amount" };
+  if (amount === null || amount <= 0) return { error: tError("invalidAmount") };
   return {
     data: {
       name,
@@ -66,7 +67,7 @@ export async function createScheduleMutation(
     await createIncomeSchedule(result.data);
     return { success: true };
   } catch (error) {
-    return mutationError(error, "failed to create schedule");
+    return mutationError(error, tError("failedCreateSchedule"));
   }
 }
 
@@ -78,10 +79,10 @@ export async function updateScheduleMutation(
   if ("error" in result) return result;
   try {
     const updated = await updateIncomeSchedule(id, result.data);
-    if (!updated) return { error: "schedule not found" };
+    if (!updated) return { error: tError("scheduleNotFound") };
     return { success: true };
   } catch (error) {
-    return mutationError(error, "failed to update schedule");
+    return mutationError(error, tError("failedUpdateSchedule"));
   }
 }
 
@@ -90,7 +91,7 @@ export async function deleteScheduleMutation(id: string): Promise<FormResult> {
     await deleteIncomeSchedule(id);
     return { success: true };
   } catch (error) {
-    return mutationError(error, "failed to delete schedule");
+    return mutationError(error, tError("failedDeleteSchedule"));
   }
 }
 

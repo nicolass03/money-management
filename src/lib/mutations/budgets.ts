@@ -19,6 +19,7 @@ import {
 } from "@/lib/income/pay-periods";
 import { invalidateAfter } from "@/lib/query/invalidation";
 import { currencies, type CurrencyCode } from "@/lib/types/constants";
+import { tError } from "@/lib/i18n/errors";
 import { parseDollarsToCents } from "@/lib/utils";
 import { mutationError, type FormResult } from "./types";
 
@@ -63,23 +64,23 @@ function validateBudgetInput(data: BudgetInput):
       };
     } {
   const name = data.name.trim();
-  if (!name) return { error: "name is required" };
+  if (!name) return { error: tError("nameRequired") };
   const tags = parseTagNames(data.tags);
-  if (tags.length === 0) return { error: "at least one tag is required" };
+  if (tags.length === 0) return { error: tError("tagRequired") };
   if (!currencies.includes(data.currency as CurrencyCode)) {
-    return { error: "invalid currency" };
+    return { error: tError("invalidCurrency") };
   }
   const amount = parseDollarsToCents(data.amount);
-  if (amount === null || amount <= 0) return { error: "invalid amount" };
+  if (amount === null || amount <= 0) return { error: tError("invalidAmount") };
   const startDate = parseOptionalDate(data.startDate);
   const endDate = parseOptionalDate(data.endDate);
   const hasStart = startDate != null;
   const hasEnd = endDate != null;
   if (hasStart !== hasEnd) {
-    return { error: "dated budgets require both start and end dates" };
+    return { error: tError("datedBudgetRequiresBothDates") };
   }
   if (hasStart && hasEnd && endDate! < startDate!) {
-    return { error: "end date must be on or after start date" };
+    return { error: tError("endDateBeforeStart") };
   }
   return {
     data: {
@@ -100,7 +101,7 @@ export async function createBudgetMutation(input: BudgetInput): Promise<FormResu
     await createBudget(result.data);
     return { success: true };
   } catch (error) {
-    return mutationError(error, "failed to create budget");
+    return mutationError(error, tError("failedCreateBudget"));
   }
 }
 
@@ -112,10 +113,10 @@ export async function updateBudgetMutation(
   if ("error" in result) return result;
   try {
     const updated = await updateBudget(id, result.data);
-    if (!updated) return { error: "budget not found" };
+    if (!updated) return { error: tError("budgetNotFound") };
     return { success: true };
   } catch (error) {
-    return mutationError(error, "failed to update budget");
+    return mutationError(error, tError("failedUpdateBudget"));
   }
 }
 
@@ -125,9 +126,9 @@ export async function deleteBudgetMutation(id: string): Promise<FormResult> {
     return { success: true };
   } catch (error) {
     if (error instanceof ApiError && error.message.includes("expenses")) {
-      return { error: "cannot delete budget with recorded expenses" };
+      return { error: tError("cannotDeleteBudgetWithExpenses") };
     }
-    return mutationError(error, "failed to delete budget");
+    return mutationError(error, tError("failedDeleteBudget"));
   }
 }
 
@@ -142,35 +143,35 @@ export async function addBudgetExpenseMutation(
   input: BudgetExpenseInput,
 ): Promise<FormResult> {
   const budget = await getBudgetById(budgetId);
-  if (!budget) return { error: "budget not found" };
+  if (!budget) return { error: tError("budgetNotFound") };
   const amount = parseDollarsToCents(input.amount);
-  if (amount === null || amount <= 0) return { error: "invalid amount" };
+  if (amount === null || amount <= 0) return { error: tError("invalidAmount") };
   const date = input.date;
-  if (!/^\d{4}-\d{2}-\d{2}$/.test(date)) return { error: "invalid date" };
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(date)) return { error: tError("invalidDate") };
   const remaining = budget.amount - budget.spent;
-  if (amount > remaining) return { error: "amount exceeds remaining budget" };
+  if (amount > remaining) return { error: tError("amountExceedsRemaining") };
   const period = await getCurrentPayPeriod();
-  if (!period) return { error: "set a primary pay schedule in settings first" };
+  if (!period) return { error: tError("noPrimarySchedule") };
   if (!isDateInPeriod(date, period)) {
-    return { error: "date must fall within the current pay period" };
+    return { error: tError("dateOutsidePayPeriod") };
   }
   const today = todayIso();
   const dated = isDatedBudget(budget);
   if (dated) {
     if (today < budget.startDate!) {
-      return { error: "spending unlocks on the budget start date" };
+      return { error: tError("spendingLockedUntilStart") };
     }
     if (date < budget.startDate! || date > budget.endDate!) {
-      return { error: "date must fall within the budget period" };
+      return { error: tError("dateOutsideBudgetPeriod") };
     }
   }
   const name = input.name.trim() || budget.name;
-  if (!name) return { error: "name is required" };
+  if (!name) return { error: tError("nameRequired") };
   try {
     await createBudgetExpense(budgetId, { name, amount, date });
     return { success: true };
   } catch (error) {
-    return mutationError(error, "failed to add expense");
+    return mutationError(error, tError("failedAddBudgetExpense"));
   }
 }
 
@@ -182,7 +183,7 @@ export async function deleteBudgetExpenseMutation(
     await deleteBudgetExpense(budgetId, expenseId);
     return { success: true };
   } catch (error) {
-    return mutationError(error, "failed to delete expense");
+    return mutationError(error, tError("failedDeleteBudgetExpense"));
   }
 }
 

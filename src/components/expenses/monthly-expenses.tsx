@@ -1,3 +1,4 @@
+import { useTranslation } from "react-i18next";
 import { MoneyText } from "@/components/layout/privacy-mode";
 import { Badge } from "@/components/ui/badge";
 import { Card } from "@/components/ui/card";
@@ -19,6 +20,7 @@ export function MonthlyExpenses({
   displayCurrency,
   rates,
 }: MonthlyExpensesProps) {
+  const { t } = useTranslation("expenses");
   const ctx = { displayCurrency, rates };
   const total = expenses.reduce(
     (sum, e) => sum + toDisplayAmount(e.amount, e.currency, ctx),
@@ -29,8 +31,8 @@ export function MonthlyExpenses({
     <section className="mt-8">
       <div className="mb-4 flex items-center justify-between">
         <SectionHeader
-          title="monthly_irl_expenses"
-          subtitle="one-off real-world spending"
+          title={t("monthlyIrlTitle")}
+          subtitle={t("monthlyIrlSubtitle")}
           className="mb-0"
         />
         <Badge variant="accent">
@@ -42,9 +44,7 @@ export function MonthlyExpenses({
 
       <Card>
         {expenses.length === 0 ? (
-          <p className="font-mono text-sm text-muted">
-            {"> no irl expenses yet."}
-          </p>
+          <p className="font-mono text-sm text-muted">{t("emptyIrl")}</p>
         ) : (
           <div className="divide-y divide-border">
             {expenses.map((expense) => (
