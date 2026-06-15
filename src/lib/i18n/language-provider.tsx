@@ -38,8 +38,8 @@ interface LanguageContextValue {
 const LanguageContext = createContext<LanguageContextValue | null>(null);
 
 export function LanguageProvider({ children }: { children: React.ReactNode }) {
-  const { isAuthenticated } = useSession();
-  const settings = useSettings(isAuthenticated);
+  const { canAccessApp } = useSession();
+  const settings = useSettings(canAccessApp);
   const [language, setLanguageState] = useState<AppLanguage>(() => {
     return getStoredLanguage() ?? getPreferredLanguage();
   });
@@ -51,14 +51,14 @@ export function LanguageProvider({ children }: { children: React.ReactNode }) {
   }, []);
 
   useEffect(() => {
-    if (!isAuthenticated || !settings.data?.language) return;
+    if (!canAccessApp || !settings.data?.language) return;
     const fromApi = settings.data.language;
     if (fromApi !== language) {
       setLanguageState(fromApi);
       storeLanguage(fromApi);
       applyLanguage(fromApi);
     }
-  }, [isAuthenticated, language, settings.data?.language]);
+  }, [canAccessApp, language, settings.data?.language]);
 
   async function setLanguage(nextLanguage: AppLanguage) {
     setLanguageState(nextLanguage);

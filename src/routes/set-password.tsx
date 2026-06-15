@@ -70,7 +70,9 @@ function SetPasswordPage() {
     }
 
     void prepareSession();
-  }, [navigate]);
+    // Run once on mount — session is resolved locally, not via router deps.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();

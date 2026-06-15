@@ -82,9 +82,9 @@ export function SessionProvider({ children }: { children: ReactNode }) {
       void signOut();
     });
     setOnboardingRequiredHandler(() => {
-      if (typeof window !== "undefined") {
-        window.location.assign("/set-password");
-      }
+      if (typeof window === "undefined") return;
+      if (window.location.pathname.startsWith("/set-password")) return;
+      window.location.assign("/set-password");
     });
   }, [signOut]);
 

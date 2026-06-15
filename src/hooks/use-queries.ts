@@ -23,6 +23,12 @@ export function useSettings(enabled = true) {
     queryKey: queryKeys.settings(),
     queryFn: getUserSettingsFromApi,
     enabled,
+    retry: (failureCount, error) => {
+      if (error instanceof ApiError && error.status === 403) {
+        return false;
+      }
+      return failureCount < 1;
+    },
   });
 }
 

@@ -59,7 +59,12 @@ export async function apiFetch<T>(
       }
     }
     if (message === "onboarding_required") {
-      triggerOnboardingRequired();
+      if (
+        typeof window !== "undefined" &&
+        !window.location.pathname.startsWith("/set-password")
+      ) {
+        triggerOnboardingRequired();
+      }
     }
     throw new ApiError(403, message);
   }
