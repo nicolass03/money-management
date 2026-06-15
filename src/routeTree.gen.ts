@@ -9,9 +9,11 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as SetPasswordRouteImport } from './routes/set-password'
 import { Route as LoginRouteImport } from './routes/login'
 import { Route as AppRouteImport } from './routes/_app'
 import { Route as AppIndexRouteImport } from './routes/_app/index'
+import { Route as AuthCallbackRouteImport } from './routes/auth/callback'
 import { Route as AppSettingsRouteImport } from './routes/_app/settings'
 import { Route as AppSavingsRouteImport } from './routes/_app/savings'
 import { Route as AppProjectionsRouteImport } from './routes/_app/projections'
@@ -21,6 +23,11 @@ import { Route as AppExpensesIndexRouteImport } from './routes/_app/expenses/ind
 import { Route as AppExpensesRecurringRouteImport } from './routes/_app/expenses/recurring'
 import { Route as AppExpensesPlannedRouteImport } from './routes/_app/expenses/planned'
 
+const SetPasswordRoute = SetPasswordRouteImport.update({
+  id: '/set-password',
+  path: '/set-password',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const LoginRoute = LoginRouteImport.update({
   id: '/login',
   path: '/login',
@@ -34,6 +41,11 @@ const AppIndexRoute = AppIndexRouteImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => AppRoute,
+} as any)
+const AuthCallbackRoute = AuthCallbackRouteImport.update({
+  id: '/auth/callback',
+  path: '/auth/callback',
+  getParentRoute: () => rootRouteImport,
 } as any)
 const AppSettingsRoute = AppSettingsRouteImport.update({
   id: '/settings',
@@ -79,22 +91,26 @@ const AppExpensesPlannedRoute = AppExpensesPlannedRouteImport.update({
 export interface FileRoutesByFullPath {
   '/': typeof AppIndexRoute
   '/login': typeof LoginRoute
+  '/set-password': typeof SetPasswordRoute
   '/budgets': typeof AppBudgetsRoute
   '/income': typeof AppIncomeRoute
   '/projections': typeof AppProjectionsRoute
   '/savings': typeof AppSavingsRoute
   '/settings': typeof AppSettingsRoute
+  '/auth/callback': typeof AuthCallbackRoute
   '/expenses/planned': typeof AppExpensesPlannedRoute
   '/expenses/recurring': typeof AppExpensesRecurringRoute
   '/expenses/': typeof AppExpensesIndexRoute
 }
 export interface FileRoutesByTo {
   '/login': typeof LoginRoute
+  '/set-password': typeof SetPasswordRoute
   '/budgets': typeof AppBudgetsRoute
   '/income': typeof AppIncomeRoute
   '/projections': typeof AppProjectionsRoute
   '/savings': typeof AppSavingsRoute
   '/settings': typeof AppSettingsRoute
+  '/auth/callback': typeof AuthCallbackRoute
   '/': typeof AppIndexRoute
   '/expenses/planned': typeof AppExpensesPlannedRoute
   '/expenses/recurring': typeof AppExpensesRecurringRoute
@@ -104,11 +120,13 @@ export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/_app': typeof AppRouteWithChildren
   '/login': typeof LoginRoute
+  '/set-password': typeof SetPasswordRoute
   '/_app/budgets': typeof AppBudgetsRoute
   '/_app/income': typeof AppIncomeRoute
   '/_app/projections': typeof AppProjectionsRoute
   '/_app/savings': typeof AppSavingsRoute
   '/_app/settings': typeof AppSettingsRoute
+  '/auth/callback': typeof AuthCallbackRoute
   '/_app/': typeof AppIndexRoute
   '/_app/expenses/planned': typeof AppExpensesPlannedRoute
   '/_app/expenses/recurring': typeof AppExpensesRecurringRoute
@@ -119,22 +137,26 @@ export interface FileRouteTypes {
   fullPaths:
     | '/'
     | '/login'
+    | '/set-password'
     | '/budgets'
     | '/income'
     | '/projections'
     | '/savings'
     | '/settings'
+    | '/auth/callback'
     | '/expenses/planned'
     | '/expenses/recurring'
     | '/expenses/'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/login'
+    | '/set-password'
     | '/budgets'
     | '/income'
     | '/projections'
     | '/savings'
     | '/settings'
+    | '/auth/callback'
     | '/'
     | '/expenses/planned'
     | '/expenses/recurring'
@@ -143,11 +165,13 @@ export interface FileRouteTypes {
     | '__root__'
     | '/_app'
     | '/login'
+    | '/set-password'
     | '/_app/budgets'
     | '/_app/income'
     | '/_app/projections'
     | '/_app/savings'
     | '/_app/settings'
+    | '/auth/callback'
     | '/_app/'
     | '/_app/expenses/planned'
     | '/_app/expenses/recurring'
@@ -157,10 +181,19 @@ export interface FileRouteTypes {
 export interface RootRouteChildren {
   AppRoute: typeof AppRouteWithChildren
   LoginRoute: typeof LoginRoute
+  SetPasswordRoute: typeof SetPasswordRoute
+  AuthCallbackRoute: typeof AuthCallbackRoute
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/set-password': {
+      id: '/set-password'
+      path: '/set-password'
+      fullPath: '/set-password'
+      preLoaderRoute: typeof SetPasswordRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/login': {
       id: '/login'
       path: '/login'
@@ -181,6 +214,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/'
       preLoaderRoute: typeof AppIndexRouteImport
       parentRoute: typeof AppRoute
+    }
+    '/auth/callback': {
+      id: '/auth/callback'
+      path: '/auth/callback'
+      fullPath: '/auth/callback'
+      preLoaderRoute: typeof AuthCallbackRouteImport
+      parentRoute: typeof rootRouteImport
     }
     '/_app/settings': {
       id: '/_app/settings'
@@ -270,6 +310,8 @@ const AppRouteWithChildren = AppRoute._addFileChildren(AppRouteChildren)
 const rootRouteChildren: RootRouteChildren = {
   AppRoute: AppRouteWithChildren,
   LoginRoute: LoginRoute,
+  SetPasswordRoute: SetPasswordRoute,
+  AuthCallbackRoute: AuthCallbackRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

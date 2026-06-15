@@ -1,4 +1,4 @@
-import { createFileRoute, useNavigate } from "@tanstack/react-router";
+import { createFileRoute, useNavigate, useSearch } from "@tanstack/react-router";
 import { useEffect, useRef, useState } from "react";
 import { motion } from "framer-motion";
 import { useTranslation } from "react-i18next";
@@ -13,26 +13,64 @@ import {
 } from "@/lib/auth/remember-email";
 import { redirectIfAuthenticated } from "@/lib/auth/route-guards";
 import { useSession } from "@/lib/auth/session-store";
+import type { AuthErrorCode } from "@/lib/auth/session-store";
 import { ThemeSwitcher } from "@/components/layout/theme-switcher";
 
+type LoginSearch = {
+  error?: "callback_failed";
+};
+
 export const Route = createFileRoute("/login")({
+  validateSearch: (search: Record<string, unknown>): LoginSearch => ({
+    error:
+      search.error === "callback_failed" ? "callback_failed" : undefined,
+  }),
   beforeLoad: async () => {
     await redirectIfAuthenticated();
   },
   component: LoginPage,
 });
 
+function authErrorMessage(
+  t: (key: string) => string,
+  code: AuthErrorCode | "callback_failed",
+): string {
+  switch (code) {
+    case "invalid_credentials":
+      return t("auth:authFailed");
+    case "email_not_confirmed":
+      return t("auth:emailNotConfirmed");
+    case "rate_limited":
+      return t("auth:rateLimited");
+    case "network":
+      return t("auth:networkError");
+    case "callback_failed":
+      return t("auth:callbackFailed");
+    default:
+      return t("auth:authFailed");
+  }
+}
+
 function LoginPage() {
   const { t } = useTranslation(["auth", "common"]);
   const navigate = useNavigate();
-  const { signIn, isBootstrapping } = useSession();
+  const { error: callbackError } = useSearch({ from: "/login" });
+  const { signIn, isBootstrapping, resetPasswordForEmail } = useSession();
   const emailRef = useRef<HTMLInputElement>(null);
   const passwordRef = useRef<HTMLInputElement>(null);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [rememberMe, setRememberMe] = useState(false);
   const [error, setError] = useState("");
+  const [info, setInfo] = useState("");
   const [loading, setLoading] = useState(false);
+  const [resetLoading, setResetLoading] = useState(false);
+
+  useEffect(() => {
+    if (callbackError) {
+      setError(authErrorMessage(t, callbackError));
+    }
+  }, [callbackError, t]);
 
   useEffect(() => {
     const remembered = getRememberedEmail();
@@ -48,11 +86,12 @@ function LoginPage() {
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     setError("");
+    setInfo("");
     setLoading(true);
 
     const result = await signIn(email, password);
     if (result.error) {
-      setError(t("auth:authFailed"));
+      setError(authErrorMessage(t, result.error));
       setLoading(false);
       return;
     }
@@ -64,6 +103,29 @@ function LoginPage() {
     }
 
     void navigate({ to: "/expenses" });
+  }
+
+  async function handleForgotPassword() {
+    setError("");
+    setInfo("");
+
+    const trimmedEmail = email.trim();
+    if (!trimmedEmail) {
+      setError(t("auth:enterEmail"));
+      emailRef.current?.focus();
+      return;
+    }
+
+    setResetLoading(true);
+    const result = await resetPasswordForEmail(trimmedEmail);
+    setResetLoading(false);
+
+    if (result.error) {
+      setError(result.error);
+      return;
+    }
+
+    setInfo(t("auth:resetPasswordSent"));
   }
 
   if (isBootstrapping) {
@@ -128,12 +190,22 @@ function LoginPage() {
             </div>
 
             <div>
-              <label
-                htmlFor="password"
-                className="mb-2 block font-mono text-xs text-muted"
-              >
-                {t("auth:enterPassword")}
-              </label>
+              <div className="mb-2 flex items-center justify-between gap-2">
+                <label
+                  htmlFor="password"
+                  className="block font-mono text-xs text-muted"
+                >
+                  {t("auth:enterPassword")}
+                </label>
+                <button
+                  type="button"
+                  onClick={() => void handleForgotPassword()}
+                  disabled={resetLoading || loading}
+                  className="font-mono text-xs text-accent hover:text-accent-glow disabled:opacity-50"
+                >
+                  {resetLoading ? t("auth:authenticating") : t("auth:forgotPassword")}
+                </button>
+              </div>
               <Input
                 ref={passwordRef}
                 id="password"
@@ -163,6 +235,16 @@ function LoginPage() {
                 className="font-mono text-xs text-danger"
               >
                 {error}
+              </motion.p>
+            )}
+
+            {info && (
+              <motion.p
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                className="font-mono text-xs text-accent"
+              >
+                {info}
               </motion.p>
             )}
 

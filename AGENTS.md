@@ -34,7 +34,14 @@ If `cargo run` fails with `DATABASE_URL is required` while `.env` is set, the sh
 
 ## Auth
 
-- Users sign in with email and password on `/login`. Any valid Supabase Auth JWT is accepted by the API.
+- **Invite-only:** new users are created via Supabase Dashboard (**Authentication → Users → Invite user**), not client signup. Disable public signups under **Authentication → Providers → Email** (“Enable sign ups” off).
+- Users sign in with email and password on `/login`. Invited users complete onboarding on `/set-password` (web only for v1; iOS login works after password is set on web).
+- Public auth routes: `/login`, `/auth/callback` (PKCE `?code=` exchange), `/set-password` (invite + password reset).
+- Supabase **URL configuration** (Authentication → URL Configuration): add redirect URLs for `/auth/callback` and `/set-password` on production and `http://localhost:5173` for local dev. Set **Site URL** to production origin, or customize the **Invite user** email template to `redirect_to` `/set-password` (dashboard invites default to Site URL).
+- Invite email template example (append redirect): `<a href="{{ .ConfirmationURL }}&redirect_to={{ .SiteURL }}/set-password">Accept invitation</a>`
+- Forgot password on `/login` calls `resetPasswordForEmail` with `redirectTo` → `/set-password`.
+- Invited users are gated until `user_metadata.password_set` is set (`updateUser` on `/set-password`). `requireAuth` redirects incomplete invites to `/set-password`.
+- Any valid Supabase Auth JWT is accepted by the API; first request auto-creates `users` + `user_settings`.
 - Default seeded user: `9886a71c-56d5-4cbe-a566-d762f24d0c9e` / `nickph116@gmail.com`.
 - Supabase **JWT signing keys** issue **ES256** access tokens. The Rust API validates them by fetching public keys from `{SUPABASE_URL}/auth/v1/.well-known/jwks.json` — do not use the legacy `SUPABASE_JWT_SECRET`. A 401 with API log `InvalidAlgorithm` or `unsupported jwt algorithm` means JWKS validation is missing or stale — restart the API after key rotation.
 
