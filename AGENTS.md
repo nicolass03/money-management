@@ -44,6 +44,7 @@ If `cargo run` fails with `DATABASE_URL is required` while `.env` is set, the sh
 - Theme preference: **dark** (default), **light**, or **system** (follows OS). Persisted in `localStorage` under key `theme`. Switcher: sidebar footer + login page (`ThemeSwitcher`).
 - Recharts cannot read CSS variables — use `useChartTheme()` from `src/hooks/use-chart-theme.ts`; do not hardcode hex colors in chart components.
 - Focus/hover glows use `--glow-color` (theme-aware); scanlines use `--scanline-color`.
+- Overlay dialogs use `TerminalModal` (`src/components/ui/terminal-modal.tsx`) — portaled, `~/title` header, `esc` close, scrollable body. Example: **mark as paid** (`mark-early-payment-panel.tsx`).
 
 ## Vite SPA (TanStack Router + Query)
 
@@ -66,7 +67,7 @@ The expenses tab no longer blocks on 8 parallel fetches. Init uses **settings** 
 
 - `useExpensePeriodView(period)` → hero + period list **and charts** (`byTag` / `subscriptionSplit` are embedded in the period-view response, so `ExpenseCharts` reads `periodView` directly — there is no separate chart-summary request)
   - The `expense_analytics` section header subtitle shows `periodView.totalSpend` (includes projected recurring/planned/budget rows for the pay period). The left chart column is **not** the old `by_type` pie; it is two KPI cards (`expense-period-kpis.tsx`): `total_spent` (sum of `byTag` = **actual** persisted spend only) and `extra_spent` (`periodView.extraSpent` = manual/unplanned spend). The `extra_spent` card shows `/ limit` and a warning color (`text-warning` ≥70% used, `text-danger` ≥92% / over) **only for the pay period** (`isPayPeriod`); `last-month` / `last-3-months` show extra spend alone. `subscriptionSplit` is still returned by the API but no longer rendered. Limit is configured in settings (`extra-spent-settings.tsx` → `useUpdateExtraSpentLimit`); `--warning` token lives in `globals.css`. Persisted manual expenses in the period list show a yellow `extra` badge (`Badge variant="warning"`) next to the name — same rule as `extraSpent` (no `recurringId` / `plannedExpenseId` / `budgetId`). The **current_period** list (`current-period-expenses.tsx`) omits `projected` rows client-side (unmaterialized recurring/planned); the fetch still passes `includeProjected=true` so `totalSpend` in analytics includes planned rows. Materialized recurring/planned expenses (`projected: false`) remain in the list.
-- `useUpcomingPayable()` → early-pay panel
+- `useUpcomingPayable()` → **mark as paid** row opens `TerminalModal` with scrollable upcoming-payable list (not an inline collapsible).
 
 Each section shows **inline skeletons** (`src/components/ui/skeleton.tsx`, `src/components/ui/list-skeletons.tsx`, `src/components/expenses/expense-loading-skeletons.tsx`) for backend-dependent content; the shell renders immediately. Tags load only when opening the expense form. Period toggle refetches period-view only.
 

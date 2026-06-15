@@ -66,11 +66,11 @@ export function EarlyPaymentPanelSkeleton() {
   return (
     <Card className="mt-4 overflow-hidden p-0" aria-busy="true" aria-label="loading upcoming payments">
       <div className="flex items-center justify-between gap-4 px-4 py-3">
+        <Skeleton className="h-4 w-28" />
         <div className="flex items-center gap-2">
+          <Skeleton className="h-5 w-6" />
           <Skeleton className="h-3 w-3" />
-          <Skeleton className="h-4 w-52" />
         </div>
-        <Skeleton className="h-5 w-6" />
       </div>
     </Card>
   );
