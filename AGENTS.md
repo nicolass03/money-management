@@ -76,8 +76,8 @@ If `cargo run` fails with `DATABASE_URL is required` while `.env` is set, the sh
 - Login uses direct `supabase.auth.signInWithPassword` (no BFF proxy). Rate limiting relies on Supabase Auth (the old Next.js IP/email limiter was removed).
 - **Logout / user switch:** `performSignOut()` (`src/lib/auth/sign-out.ts`) clears React Query (`clearAppDataCache`), then `supabase.auth.signOut({ scope: 'local' })` per [Supabase signOut docs](https://supabase.com/docs/reference/javascript/auth-signout). If that errors, purge `sb-*-auth-token` from `localStorage`. `signIn` also clears the query cache so a new user never sees the previous user's cached API data. `onAuthStateChange` clears cache on `SIGNED_OUT` and when `SIGNED_IN` user id changes.
 - Env vars (`.env.example`): `VITE_SUPABASE_URL`, `VITE_SUPABASE_PUBLISHABLE_KEY`, `VITE_API_URL` — all baked at **build time**. Set them in Railway before the first deploy.
-- HTTP security headers for production are set in `nginx/default.conf.template` (CSP, HSTS). Health check: `GET /health`.
-- `server.js` remains for local `npm start` only; Railway serves via **nginx** in Docker.
+- HTTP security headers for production (CSP, HSTS) are set in `Caddyfile`. Health check: `GET /health` (handled by Caddy).
+- Local dev is `npm run dev` (Vite, port 3000); `npm run preview` serves a production build locally. Railway serves the built `dist/` via **Caddy** in Docker (no Node server at runtime).
 - Ensure Rust API `CORS_ORIGIN` includes the deployed UI origin (browser calls API directly, same as iOS).
 
 ## Expenses tab loading
@@ -94,7 +94,7 @@ Each section shows **inline skeletons** (`src/components/ui/skeleton.tsx`, `src/
 
 ## Railway deployment (UI)
 
-- Multi-stage `Dockerfile`: Node builds `dist/`, **nginx:alpine** serves static files with SPA fallback (`try_files` → `/index.html`). `nginx/docker-entrypoint.sh` binds Railway’s injected `PORT`.
+- Multi-stage `Dockerfile`: Node builds `dist/`, **caddy:2-alpine** serves static files with SPA fallback (`try_files {path} /index.html`). The `Caddyfile` site binds Railway’s injected `PORT` via `:{$PORT:8080}`, sets `auto_https off` (Railway terminates TLS at the edge), and applies CSP/security headers (CSP `connect-src` includes `VITE_SUPABASE_URL` + `VITE_API_URL`).
 - `railway.toml` sets `healthcheckPath = "/health"`.
 - Set `VITE_*` service variables **before** the first build — Dockerfile declares them as `ARG`/`ENV` in the builder stage so Vite inlines them. Changing them requires a redeploy/rebuild. A blank page after deploy usually means `VITE_*` were missing at image build time.
 - After generating the UI domain, add it to the API’s `CORS_ORIGIN`.

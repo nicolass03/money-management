@@ -24,10 +24,10 @@ Replicate with the same tooling for the closest match:
 
 | Layer | Choice |
 |-------|--------|
-| Framework | Next.js (App Router) |
+| Framework | Vite 6 + React 19 SPA (TanStack Router/Query) |
 | Styling | **Tailwind CSS v4** via `@import "tailwindcss"` in global CSS |
 | PostCSS | `@tailwindcss/postcss` plugin |
-| Font | [JetBrains Mono](https://fonts.google.com/specimen/JetBrains+Mono) via `next/font/google` |
+| Font | [JetBrains Mono](https://fonts.google.com/specimen/JetBrains+Mono) via `@fontsource/jetbrains-mono` (imported in `src/globals.css`) |
 | Class merging | `clsx` + `tailwind-merge` → `cn()` helper |
 | Animation | `framer-motion` for page/sidebar transitions; CSS keyframes for blink/glow |
 | Charts | Recharts with hard-coded dark tooltip/axis styles |
@@ -57,7 +57,7 @@ export default config;
 
 ### 2. Global CSS — design tokens & effects
 
-Copy the token block and global rules from `src/app/globals.css`. This is the **source of truth** for colors, Tailwind theme mapping, scanline overlay, and custom animations.
+Copy the token block and global rules from `src/globals.css`. This is the **source of truth** for colors, Tailwind theme mapping, scanline overlay, and custom animations. It also loads JetBrains Mono via `@fontsource/jetbrains-mono` imports (`src/globals.css` is imported by the app entry, `src/main.tsx`).
 
 ```css
 @import "tailwindcss";
@@ -92,25 +92,17 @@ Copy the token block and global rules from `src/app/globals.css`. This is the **
 
 Tailwind v4 maps these to utilities like `bg-bg`, `text-muted`, `border-accent/50`, etc.
 
-### 3. Root layout — font
+### 3. Font loading
 
-```tsx
-import { JetBrains_Mono } from "next/font/google";
-import "./globals.css";
+Fonts load via `@fontsource/jetbrains-mono` imports at the top of `src/globals.css`:
 
-const jetbrainsMono = JetBrains_Mono({
-  variable: "--font-jetbrains-mono",
-  subsets: ["latin"],
-});
-
-export default function RootLayout({ children }) {
-  return (
-    <html lang="en" className={`${jetbrainsMono.variable} h-full`}>
-      <body className="min-h-full">{children}</body>
-    </html>
-  );
-}
+```css
+@import "@fontsource/jetbrains-mono/400.css";
+@import "@fontsource/jetbrains-mono/500.css";
+@import "@fontsource/jetbrains-mono/700.css";
 ```
+
+The `--font-jetbrains-mono` token (and `--font-mono` alias) is defined in the same file. `src/globals.css` is imported once by the app entry `src/main.tsx`; `<html lang>` is set in `index.html`.
 
 ### 4. `cn()` utility
 
@@ -480,13 +472,13 @@ Standalone full-screen layout (no sidebar):
 
 | Path | Purpose |
 |------|---------|
-| `src/app/globals.css` | Tokens, scanlines, animations, terminal CSS |
-| `src/app/layout.tsx` | Font loading |
+| `src/globals.css` | Tokens, scanlines, animations, terminal CSS, JetBrains Mono (`@fontsource`) loading |
+| `src/main.tsx` / `src/routes/__root.tsx` | App entry / root layout + providers |
 | `src/components/ui/*` | Primitives (Button, Card, Input, Badge, etc.) |
 | `src/components/layout/app-shell.tsx` | Shell layout + main animation |
 | `src/components/layout/sidebar.tsx` | Sidebar structure + branding |
 | `src/components/layout/nav-item.tsx` | Active nav animation |
-| `src/app/login/page.tsx` | Auth screen reference |
+| `src/routes/login.tsx` | Auth screen reference |
 | `src/components/expenses/expense-charts.tsx` | Chart styling reference |
 | `src/lib/utils.ts` | `cn()` helper |
 

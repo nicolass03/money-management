@@ -10,6 +10,8 @@
   "failedRefreshExchangeRates": "failed to refresh exchange rates",
   "invalidLanguage": "invalid language",
   "failedUpdateLanguage": "failed to update language",
+  "invalidTheme": "invalid theme",
+  "failedUpdateTheme": "failed to update theme",
   "nameRequired": "name is required",
   "tagRequired": "at least one tag is required",
   "invalidDate": "invalid date",

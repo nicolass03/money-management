@@ -1,23 +1,23 @@
 # money-management
 
-A personal finance dashboard for tracking income, expenses, and cash-flow projections. The UI uses a terminal-inspired aesthetic (monospace type, shell-style navigation) and is built for a single user on your own Supabase project.
+A personal finance dashboard for tracking income, expenses, and cash-flow projections. The UI uses a terminal-inspired aesthetic (monospace type, shell-style navigation) and is built for a single user on your own Supabase project. This is the web client for **spendfly**.
 
 ## What it does
 
 | Area | Description |
 |------|-------------|
 | **Expenses** | Log one-off expenses, manage recurring bills and subscriptions, and plan future purchases. Tag spending and view charts for the current pay period. |
-| **Income** | Define pay schedules (weekly, biweekly, monthly, yearly) and record income entries. Scheduled income syncs automatically into entries. |
+| **Income** | Define pay schedules (weekly, biweekly, monthly, yearly) and record income entries. Scheduled income is materialized automatically by the API. |
 | **Projections** | Forecast free cash per pay period by combining your primary income schedule with actual, recurring, and planned expenses. Supports multi-currency conversion. |
-| **Savings** | Basic savings entry list (UI still evolving). |
-| **Settings** | Choose a display currency (EUR, USD, COP), configure exchange rates, and set projection options (primary pay schedule, starting balance, start date). |
-| **Privacy mode** | Toggle masking of sensitive amounts in the sidebar. |
+| **Budgets** | Track spending against budgets for the pay period. |
+| **Settings** | Choose a display currency (EUR, USD, COP), configure exchange rates, set projection options (primary pay schedule, starting balance, start date), language (en/es), and theme. |
 
 ## Tech stack
 
-- **Next.js 16** (App Router) + **React 19** + **TypeScript**
+- **Vite 6** + **React 19** + **TypeScript** (single-page app — no Next.js)
+- **TanStack Router** (file-based routing) + **TanStack Query** (data fetching/caching)
 - **Tailwind CSS 4** for styling
-- **Supabase Auth** for login and session management
+- **Supabase Auth** for login and session management (browser `@supabase/supabase-js`)
 - **[money-management-api](../money-management-api)** (Rust/Axum) for all business logic and database access
 
 ## Prerequisites
@@ -38,8 +38,8 @@ npm install
 
 In the Supabase dashboard:
 
-1. **Authentication → Users** — create a user with an email and password. You will log in with the password only; the email is configured server-side.
-2. **Settings → API** — copy the project URL, publishable key (`sb_publishable_...`), and JWT secret.
+1. **Authentication → Users → Invite user** — invite yourself with an email. New users are invite-only; you set your password on the web `/set-password` page from the invite link. Disable public signups under **Authentication → Providers → Email**.
+2. **Settings → API** — copy the project URL and publishable key (`sb_publishable_...`).
 
 ### 3. Configure environment variables
 
@@ -51,9 +51,11 @@ Fill in `.env`:
 
 | Variable | Purpose |
 |----------|---------|
-| `NEXT_PUBLIC_SUPABASE_URL` | Supabase project URL |
-| `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` | Publishable API key (safe for the browser) |
-| `API_URL` | Rust API base URL (default `http://localhost:8080`) |
+| `VITE_SUPABASE_URL` | Supabase project URL |
+| `VITE_SUPABASE_PUBLISHABLE_KEY` | Publishable API key (safe for the browser) |
+| `VITE_API_URL` | Rust API base URL, no trailing slash (default `http://localhost:8080`) |
+
+All `VITE_*` values are inlined at **build time**.
 
 The Rust API needs its own `.env` with `DATABASE_URL` and `SUPABASE_URL`. See the [API README](../money-management-api/README.md).
 
@@ -63,7 +65,7 @@ The Rust API needs its own `.env` with `DATABASE_URL` and `SUPABASE_URL`. See th
 # Terminal 1 — Rust API
 cd ../money-management-api && cargo run
 
-# Terminal 2 — Next.js UI
+# Terminal 2 — Vite UI
 npm run dev
 ```
 
@@ -71,39 +73,44 @@ Open [http://localhost:3000](http://localhost:3000) and sign in with your Supaba
 
 ## Authentication
 
-The login page accepts email and password via Supabase Auth. Middleware keeps sessions fresh and protects all routes except `/login` and auth API endpoints. The UI forwards the Supabase JWT to the Rust API for all data requests.
+The login page accepts email and password via Supabase Auth (`signInWithPassword`), handled in the browser. Invited users complete onboarding on `/set-password`; all other routes require an authenticated session. The UI forwards the Supabase JWT to the Rust API (`Authorization: Bearer`) for all data requests. Public routes: `/login`, `/set-password`, `/auth/callback`.
 
 ## Recurring expense charging
 
-Recurring expenses define a schedule; actual `expenses` rows are created when a payment is due. The Rust API runs an **internal daily scheduler** (no HTTP endpoint). Keep at least one API instance running with `ENABLE_INTERNAL_CRON=true` (default).
+Recurring expenses define a schedule; actual `expenses` rows are created when a payment is due. The Rust API runs an **internal daily scheduler** (no HTTP endpoint) that also materializes scheduled income. Keep at least one API instance running with `ENABLE_INTERNAL_CRON=true` (default).
 
 ## Scripts
 
 | Command | Description |
 |---------|-------------|
-| `npm run dev` | Start the development server |
-| `npm run build` | Create a production build |
-| `npm run start` | Run the production server |
+| `npm run dev` | Start the Vite dev server (port 3000) |
+| `npm run build` | Create a production build (`dist/`) |
+| `npm run preview` | Preview the production build locally |
 | `npm run lint` | Run ESLint |
 
 ## Project structure
 
 ```
 src/
-├── app/                    # Routes, pages, and auth API handlers
-│   ├── (app)/              # Authenticated pages (expenses, income, …)
-│   ├── api/auth/           # Login and logout
-│   └── login/              # Login page
-├── components/             # UI by domain (expenses, income, projections, …)
+├── main.tsx                # App entry
+├── globals.css             # Semantic color tokens + Tailwind theme
+├── routeTree.gen.ts        # Generated by the TanStack Router plugin
+├── routes/                 # File-based routes (_app/ = authenticated, login, set-password, auth/)
+├── components/             # UI by domain (expenses, income, projections, budgets, …)
+├── hooks/                  # TanStack Query hooks (use-queries.ts), chart theme, …
+├── locales/                # i18n resources (en/, es/)
 └── lib/
     ├── api/                # Typed HTTP client for the Rust API
-    ├── types/              # Domain types and constants
-    ├── supabase/           # Supabase client and middleware
-    ├── auth/               # Password sign-in helper
+    ├── supabase/           # Supabase browser client
+    ├── auth/               # Session store + sign-in/out helpers
+    ├── query/              # Cache invalidation map (mirrors iOS/API)
+    ├── mutations/          # Write operations
     ├── currency/           # Formatting and conversion (display only)
     ├── income/             # Pay-period calculations (display)
     ├── expenses/           # Period views and tag utilities
-    └── projections/        # Period item builders (display)
+    ├── projections/        # Period item builders (display)
+    ├── i18n/               # react-i18next setup + language provider
+    └── types/              # Domain types and constants
 ```
 
 ## Deploy to Railway
@@ -112,20 +119,22 @@ Both the UI (this repo) and the [Rust API](../money-management-api) deploy as al
 
 ### UI (this repo)
 
+A multi-stage `Dockerfile` builds the static `dist/` with Node, then serves it with **Caddy** (SPA fallback to `index.html`, gzip/zstd, security headers + CSP).
+
 1. Create a Railway service and connect this GitHub repo (or run `railway up` from this directory).
-2. Set **service variables** before the first deploy (`NEXT_PUBLIC_*` values are baked in at build time):
+2. Set **service variables** before the first deploy — `VITE_*` values are baked in at **build time** (declared as `ARG`/`ENV` in the builder stage), so a blank page after deploy usually means they were missing at image build time:
 
    | Variable | Value |
    |----------|-------|
-   | `NEXT_PUBLIC_SUPABASE_URL` | Supabase project URL |
-   | `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` | Supabase publishable key |
-   | `API_URL` | Public URL of the deployed Rust API (no trailing slash) |
+   | `VITE_SUPABASE_URL` | Supabase project URL |
+   | `VITE_SUPABASE_PUBLISHABLE_KEY` | Supabase publishable key |
+   | `VITE_API_URL` | Public URL of the deployed Rust API (no trailing slash) |
 
 3. Under **Networking → Generate Domain** for the UI service.
 4. Update the API service’s `CORS_ORIGIN` to include the UI domain (comma-separated if you also keep localhost).
 
-Health checks use `GET /login`. Railway injects `PORT`; the standalone server binds `0.0.0.0`.
+Health checks use `GET /health` (`railway.toml`). Caddy binds Railway’s injected `PORT`.
 
 ### API
 
-See the [API README](../money-management-api/README.md#deploy-to-railway). After both services are live, set each service’s public URL on the other (`API_URL` on the UI, `CORS_ORIGIN` on the API).
+See the [API README](../money-management-api/README.md#deploy-to-railway). After both services are live, set each service’s public URL on the other (`VITE_API_URL` on the UI, `CORS_ORIGIN` on the API).

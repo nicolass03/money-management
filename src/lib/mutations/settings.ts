@@ -3,6 +3,7 @@ import { getMoneyContext } from "@/lib/api/money-context";
 import { patchSettings } from "@/lib/api/settings";
 import { tError } from "@/lib/i18n/errors";
 import { invalidateAfter } from "@/lib/query/invalidation";
+import { isThemeCode } from "@/lib/theme/themes";
 import { currencies, type CurrencyCode } from "@/lib/types/constants";
 import type { AppLanguage } from "@/lib/types/domain";
 import { parseDollarsToCents, parseSignedDollarsToCents } from "@/lib/utils";
@@ -31,6 +32,18 @@ export async function updateLanguageMutation(language: AppLanguage): Promise<For
     return { success: true };
   } catch (error) {
     return mutationError(error, tError("failedUpdateLanguage"));
+  }
+}
+
+export async function updateThemeMutation(code: string): Promise<FormResult> {
+  if (!isThemeCode(code)) {
+    return { error: tError("invalidTheme") };
+  }
+  try {
+    await patchSettings({ theme: code });
+    return { success: true };
+  } catch (error) {
+    return mutationError(error, tError("failedUpdateTheme"));
   }
 }
 
@@ -118,6 +131,16 @@ export function useUpdateLanguage() {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: updateLanguageMutation,
+    onSuccess: (result) => {
+      if (result.success) void invalidateAfter(queryClient, "settingsChange");
+    },
+  });
+}
+
+export function useUpdateTheme() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: updateThemeMutation,
     onSuccess: (result) => {
       if (result.success) void invalidateAfter(queryClient, "settingsChange");
     },

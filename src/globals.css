@@ -3,8 +3,15 @@
 @import "@fontsource/jetbrains-mono/500.css";
 @import "@fontsource/jetbrains-mono/700.css";
 
+/*
+ * Theme token values live in the TS registry (src/lib/theme/themes.ts) and are written onto
+ * the document root at runtime by ThemeManagerProvider, whose inline styles override the blocks
+ * below. These two blocks are only a pre-JS fallback for the default "terminal" theme — paired
+ * with the next-themes light/dark class so first paint is styled with no flash before React
+ * mounts. They mirror THEMES[0] ("terminal"); other themes are applied entirely at runtime.
+ */
 :root {
-  --font-jetbrains-mono: "JetBrains Mono", ui-monospace, monospace;
+  --font-base: "JetBrains Mono", ui-monospace, monospace;
   --bg: #0a0a0a;
   --surface: #141414;
   --surface-elevated: #1a1a1a;
@@ -51,7 +58,7 @@
   --color-success: var(--success);
   --color-warning: var(--warning);
   --color-danger: var(--danger);
-  --font-mono: var(--font-jetbrains-mono);
+  --font-mono: var(--font-base);
 }
 
 * {
@@ -61,7 +68,7 @@
 body {
   background: var(--bg);
   color: var(--text);
-  font-family: var(--font-jetbrains-mono);
+  font-family: var(--font-base);
   min-height: 100vh;
 }
 

@@ -15,6 +15,7 @@ export interface PatchSettingsInput {
   projectionInitialFreeMoney?: number;
   projectionStartDate?: string | null;
   extraSpentLimit?: number | null;
+  theme?: string;
 }
 
 export async function patchSettings(

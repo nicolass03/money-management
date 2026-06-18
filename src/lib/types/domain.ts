@@ -18,6 +18,7 @@ export interface UserSettings {
   projectionInitialFreeMoney: number;
   projectionStartDate: string | null;
   extraSpentLimit: number | null;
+  theme: string;
   cacheRevision: number;
   updatedAt: string;
 }

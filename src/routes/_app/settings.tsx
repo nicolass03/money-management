@@ -4,6 +4,7 @@ import { CurrencySettings } from "@/components/settings/currency-settings";
 import { ExtraSpentSettings } from "@/components/settings/extra-spent-settings";
 import { LanguageSettings } from "@/components/settings/language-settings";
 import { ProjectionSettings } from "@/components/settings/projection-settings";
+import { ThemeSettings } from "@/components/settings/theme-settings";
 import { LoadingIndicator } from "@/components/ui/loading-indicator";
 import { SectionHeader } from "@/components/ui/section-header";
 import {
@@ -35,6 +36,8 @@ function SettingsPage() {
       />
 
       <LanguageSettings language={settings.data.language} />
+
+      <ThemeSettings theme={settings.data.theme} />
 
       <CurrencySettings
         displayCurrency={settings.data.displayCurrency}

@@ -10,6 +10,8 @@
   "failedRefreshExchangeRates": "no se pudieron actualizar las tasas de cambio",
   "invalidLanguage": "idioma inválido",
   "failedUpdateLanguage": "no se pudo actualizar el idioma",
+  "invalidTheme": "tema inválido",
+  "failedUpdateTheme": "no se pudo actualizar el tema",
   "nameRequired": "el nombre es obligatorio",
   "tagRequired": "se requiere al menos una etiqueta",
   "invalidDate": "fecha inválida",
