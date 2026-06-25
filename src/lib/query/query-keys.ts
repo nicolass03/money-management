@@ -9,6 +9,7 @@ export const queryKeys = {
   upcomingPayable: (horizonDays?: number) =>
     ["upcomingPayable", horizonDays ?? 30] as const,
   recurringExpenses: () => ["recurringExpenses"] as const,
+  subscriptionReminders: () => ["subscriptionReminders"] as const,
   plannedExpenses: () => ["plannedExpenses"] as const,
   budgets: () => ["budgets"] as const,
   budgetExpenses: (budgetId: string) => ["budgetExpenses", budgetId] as const,
@@ -27,7 +28,8 @@ export type InvalidationEvent =
   | "incomeChange"
   | "scheduleChange"
   | "settingsChange"
-  | "moneyContextRefresh";
+  | "moneyContextRefresh"
+  | "subscriptionReminderChange";
 
 type QueryKey = readonly unknown[];
 
@@ -40,6 +42,7 @@ const invalidationMap: Record<InvalidationEvent, QueryKey[]> = {
   ],
   recurringChange: [
     queryKeys.recurringExpenses(),
+    queryKeys.subscriptionReminders(),
     queryKeys.expenses(),
     queryKeys.projections(),
     queryKeys.expensePeriodViews(),
@@ -77,6 +80,7 @@ const invalidationMap: Record<InvalidationEvent, QueryKey[]> = {
     queryKeys.upcomingPayable(),
   ],
   moneyContextRefresh: [queryKeys.moneyContext()],
+  subscriptionReminderChange: [queryKeys.subscriptionReminders()],
 };
 
 export function keysForEvent(event: InvalidationEvent): QueryKey[] {

@@ -92,5 +92,19 @@
   "emptyIrl": "> aún no hay gastos reales.",
   "subscriptionsTitle": "suscripciones",
   "subscriptionsSubtitle": "cargos mensuales recurrentes",
-  "emptySubscriptions": "> aún no hay suscripciones."
+  "emptySubscriptions": "> aún no hay suscripciones.",
+  "cancelReminder": "recordar cancelar",
+  "cancelReminderTitle": "cancelar una suscripción",
+  "cancelReminderSelectSubtitle": "elige una suscripción — te avisaremos antes de que vuelva a cobrarse",
+  "cancelReminderConfirmSubtitle": "confirmar recordatorio de cancelación",
+  "cancelReminderNoSubscriptions": "> no hay suscripciones para recordar.",
+  "cancelReminderNextCharge": "próximo cargo: {{date}}",
+  "cancelReminderConfirmText": "recuérdame 5 y 2 días antes de que {{name}} vuelva a cobrarse el {{date}}, para poder cancelarla a tiempo.",
+  "cancelReminderRemoveText": "¿dejar de recordarte cancelar {{name}}?",
+  "cancelReminderNoCharge": "no hay cargos próximos que recordar.",
+  "cancelReminderConfirm": "activar recordatorio",
+  "cancelReminderRemove": "quitar recordatorio",
+  "reminderSet": "recordatorio activo",
+  "reminderBanner": "{{name}} se cobra de nuevo en {{days}} días ({{date}}) — cancélala ahora si ya no la quieres.",
+  "dismissReminder": "descartar recordatorio"
 }

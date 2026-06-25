@@ -68,5 +68,7 @@
   "dateMustBeFuture": "la fecha debe ser futura",
   "failedCreatePlanned": "no se pudo crear el gasto planificado",
   "failedUpdatePlanned": "no se pudo actualizar el gasto planificado",
-  "failedDeletePlanned": "no se pudo eliminar el gasto planificado"
+  "failedDeletePlanned": "no se pudo eliminar el gasto planificado",
+  "failedCancelReminder": "no se pudo actualizar el recordatorio de cancelación",
+  "failedDismissReminder": "no se pudo descartar el recordatorio"
 }

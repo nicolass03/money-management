@@ -68,5 +68,7 @@
   "dateMustBeFuture": "date must be in the future",
   "failedCreatePlanned": "failed to create planned expense",
   "failedUpdatePlanned": "failed to update planned expense",
-  "failedDeletePlanned": "failed to delete planned expense"
+  "failedDeletePlanned": "failed to delete planned expense",
+  "failedCancelReminder": "failed to update cancellation reminder",
+  "failedDismissReminder": "failed to dismiss reminder"
 }

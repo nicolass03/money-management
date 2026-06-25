@@ -2,6 +2,7 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 import {
   createRecurringExpense,
   deleteRecurringExpense,
+  setCancelReminder,
   updateRecurringExpense,
 } from "@/lib/api/recurring-expenses";
 import { parseTagNames } from "@/lib/expenses/tag-utils";
@@ -144,6 +145,29 @@ export function useDeleteRecurringExpense() {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: deleteRecurringExpenseMutation,
+    onSuccess: (result) => {
+      if (result.success) void invalidateAfter(queryClient, "recurringChange");
+    },
+  });
+}
+
+export async function setCancelReminderMutation(
+  id: string,
+  enabled: boolean,
+): Promise<FormResult> {
+  try {
+    await setCancelReminder(id, enabled);
+    return { success: true };
+  } catch (error) {
+    return mutationError(error, tError("failedCancelReminder"));
+  }
+}
+
+export function useSetCancelReminder() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: ({ id, enabled }: { id: string; enabled: boolean }) =>
+      setCancelReminderMutation(id, enabled),
     onSuccess: (result) => {
       if (result.success) void invalidateAfter(queryClient, "recurringChange");
     },

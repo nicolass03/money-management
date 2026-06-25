@@ -11,6 +11,7 @@ import { getMoneyContext } from "@/lib/api/money-context";
 import { getPlannedExpenses } from "@/lib/api/planned-expenses";
 import { getProjectionsFromApi } from "@/lib/api/projections";
 import { getRecurringExpenses } from "@/lib/api/recurring-expenses";
+import { getSubscriptionReminders } from "@/lib/api/subscription-reminders";
 import { getSavings } from "@/lib/api/savings";
 import { getUserSettingsFromApi } from "@/lib/api/settings";
 import { getAllTagNames } from "@/lib/api/tags";
@@ -73,6 +74,13 @@ export function useRecurringExpenses() {
   return useQuery({
     queryKey: queryKeys.recurringExpenses(),
     queryFn: getRecurringExpenses,
+  });
+}
+
+export function useSubscriptionReminders() {
+  return useQuery({
+    queryKey: queryKeys.subscriptionReminders(),
+    queryFn: getSubscriptionReminders,
   });
 }
 

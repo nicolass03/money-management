@@ -1,4 +1,5 @@
 import { motion } from "framer-motion";
+import { SubscriptionReminderBanner } from "@/components/expenses/subscription-reminder-banner";
 import { PrivacyModeProvider } from "./privacy-mode";
 import { Sidebar } from "./sidebar";
 
@@ -17,6 +18,7 @@ export function AppShell({ children }: AppShellProps) {
           transition={{ duration: 0.3, delay: 0.1 }}
           className="min-h-0 flex-1 overflow-y-auto p-6 md:p-8"
         >
+          <SubscriptionReminderBanner />
           {children}
         </motion.main>
       </div>

@@ -92,5 +92,19 @@
   "emptyIrl": "> no irl expenses yet.",
   "subscriptionsTitle": "subscriptions",
   "subscriptionsSubtitle": "recurring monthly charges",
-  "emptySubscriptions": "> no subscriptions yet."
+  "emptySubscriptions": "> no subscriptions yet.",
+  "cancelReminder": "cancel reminder",
+  "cancelReminderTitle": "cancel a subscription",
+  "cancelReminderSelectSubtitle": "pick a subscription — we'll remind you before it charges again",
+  "cancelReminderConfirmSubtitle": "confirm cancellation reminder",
+  "cancelReminderNoSubscriptions": "> no subscriptions to remind about.",
+  "cancelReminderNextCharge": "next charge: {{date}}",
+  "cancelReminderConfirmText": "remind me 5 and 2 days before {{name}} charges again on {{date}}, so I can cancel it in time.",
+  "cancelReminderRemoveText": "stop reminding me to cancel {{name}}?",
+  "cancelReminderNoCharge": "no upcoming charge to remind about.",
+  "cancelReminderConfirm": "set reminder",
+  "cancelReminderRemove": "remove reminder",
+  "reminderSet": "reminder set",
+  "reminderBanner": "{{name}} charges again in {{days}} days ({{date}}) — cancel it now if you no longer want it.",
+  "dismissReminder": "dismiss reminder"
 }

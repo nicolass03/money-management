@@ -10,6 +10,7 @@ import { MoneyText } from "@/components/layout/privacy-mode";
 import { formatMoney } from "@/lib/currency/format";
 import { toDisplayAmount, type MoneyDisplayContext } from "@/lib/currency/display";
 import type { RecurringExpenseWithTags } from "@/lib/types/domain";
+import { CancelReminderDialog } from "./cancel-reminder-dialog";
 import { RecurringExpenseForm } from "./recurring-expense-form";
 import { RecurringExpenseList } from "./recurring-expense-list";
 import { RecurringPaymentCharts } from "./recurring-payment-charts";
@@ -27,7 +28,10 @@ export function RecurringExpenses({
 }: RecurringExpensesProps) {
   const { t } = useTranslation(["expenses", "common"]);
   const [showAdd, setShowAdd] = useState(recurringExpenses.length === 0);
+  const [showCancelReminder, setShowCancelReminder] = useState(false);
   const ctx = { displayCurrency, rates };
+
+  const subscriptions = recurringExpenses.filter((r) => r.isSubscription);
 
   const recurringTotal = recurringExpenses.reduce(
     (sum, recurring) =>
@@ -64,6 +68,15 @@ export function RecurringExpenses({
               {t("common:perCycle")}
             </Badge>
           )}
+          {subscriptions.length > 0 && (
+            <Button
+              size="sm"
+              variant="ghost"
+              onClick={() => setShowCancelReminder(true)}
+            >
+              {t("expenses:cancelReminder")}
+            </Button>
+          )}
           <Button
             size="sm"
             variant={showAdd ? "ghost" : "primary"}
@@ -73,6 +86,12 @@ export function RecurringExpenses({
           </Button>
         </div>
       </div>
+
+      <CancelReminderDialog
+        open={showCancelReminder}
+        onClose={() => setShowCancelReminder(false)}
+        subscriptions={subscriptions}
+      />
 
       {showAdd && (
         <Card className="mb-4">

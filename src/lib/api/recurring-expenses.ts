@@ -62,3 +62,12 @@ export async function updateRecurringExpense(
 export async function deleteRecurringExpense(id: string): Promise<void> {
   await apiFetch(`/api/v1/recurring-expenses/${id}`, { method: "DELETE" });
 }
+
+export async function setCancelReminder(
+  id: string,
+  enabled: boolean,
+): Promise<void> {
+  await apiFetch(`/api/v1/recurring-expenses/${id}/cancel-reminder`, {
+    method: enabled ? "POST" : "DELETE",
+  });
+}

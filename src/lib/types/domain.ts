@@ -71,11 +71,24 @@ export interface RecurringExpense {
   currency: CurrencyCode;
   isSubscription: boolean;
   lastPaymentDate: string | null;
+  cancelReminderEnabled: boolean;
   createdAt: string;
   updatedAt: string;
 }
 
 export type RecurringExpenseWithTags = RecurringExpense & { tags: string[] };
+
+export type SubscriptionReminderKind = "five_day" | "two_day";
+
+export interface SubscriptionReminder {
+  id: string;
+  recurringExpenseId: string;
+  name: string;
+  kind: SubscriptionReminderKind;
+  chargeDate: string;
+  amount: number;
+  currency: CurrencyCode;
+}
 
 export interface PlannedExpense {
   id: string;
