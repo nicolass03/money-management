@@ -6,6 +6,7 @@ import {
   useSettings,
 } from "@/hooks/use-queries";
 import { ApiError } from "@/lib/api/client";
+import { visibleProjectionRows } from "@/lib/projections/projection-display";
 import type { ExchangeRates } from "@/lib/currency/convert";
 import type { CurrencyCode } from "@/lib/types/constants";
 
@@ -51,7 +52,7 @@ function ProjectionsPage() {
 
   return (
     <ProjectionsDashboard
-      rows={projections.data?.rows ?? []}
+      rows={visibleProjectionRows(projections.data?.rows ?? [])}
       primarySchedule={
         projections.data?.primarySchedule ??
         settings.data?.primarySchedule ??

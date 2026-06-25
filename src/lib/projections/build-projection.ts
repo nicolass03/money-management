@@ -1,3 +1,4 @@
+import { localTodayIso } from "@/lib/date/local-today";
 import { convertAmount, type ExchangeRates } from "@/lib/currency/convert";
 import {
   budgetOverlapsPeriod,
@@ -359,7 +360,7 @@ export function getCurrentPeriodExpenses({
   budgets = [],
   displayCurrency,
   rates,
-  today = new Date().toISOString().slice(0, 10),
+  today = localTodayIso(),
 }: {
   primarySchedule: IncomePaySchedule;
   expenses: ExpenseWithTags[];
@@ -399,7 +400,7 @@ export function buildProjectionRows({
   rates,
   initialFreeMoney = 0,
   projectionStartDate = null,
-  today = new Date().toISOString().slice(0, 10),
+  today = localTodayIso(),
 }: BuildProjectionInput): ProjectionRow[] {
   const scheduleInput = scheduleToInput(primarySchedule);
   const periods = getProjectionPeriods(

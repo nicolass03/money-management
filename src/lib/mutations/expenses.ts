@@ -18,6 +18,7 @@ import {
   isDateInPeriod,
   scheduleToInput,
 } from "@/lib/income/pay-periods";
+import { localTodayIso } from "@/lib/date/local-today";
 import { invalidateAfter } from "@/lib/query/invalidation";
 import { currencies, type CurrencyCode } from "@/lib/types/constants";
 import { tError } from "@/lib/i18n/errors";
@@ -29,7 +30,7 @@ async function getCurrentPayPeriod() {
   if (!settings.primaryScheduleId) return null;
   const primarySchedule = await getIncomeScheduleById(settings.primaryScheduleId);
   if (!primarySchedule) return null;
-  const today = new Date().toISOString().slice(0, 10);
+  const today = localTodayIso();
   return getPeriodContaining(scheduleToInput(primarySchedule), today);
 }
 
@@ -142,7 +143,7 @@ export async function markFuturePaymentAsPaidMutation(
   if (!isDateInPeriod(paidDate, period)) {
     return { error: tError("paidDateOutsidePayPeriod") };
   }
-  const today = new Date().toISOString().slice(0, 10);
+  const today = localTodayIso();
   if (paidDate > today) return { error: tError("paidDateInFuture") };
 
   try {

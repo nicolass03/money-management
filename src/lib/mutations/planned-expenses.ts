@@ -5,6 +5,7 @@ import {
   updatePlannedExpense,
 } from "@/lib/api/planned-expenses";
 import { parseTagNames } from "@/lib/expenses/tag-utils";
+import { localTodayIso } from "@/lib/date/local-today";
 import { invalidateAfter } from "@/lib/query/invalidation";
 import { currencies, type CurrencyCode } from "@/lib/types/constants";
 import { tError } from "@/lib/i18n/errors";
@@ -12,7 +13,7 @@ import { parseDollarsToCents } from "@/lib/utils";
 import { mutationError, type FormResult } from "./types";
 
 function todayIso() {
-  return new Date().toISOString().slice(0, 10);
+  return localTodayIso();
 }
 
 export interface PlannedInput {

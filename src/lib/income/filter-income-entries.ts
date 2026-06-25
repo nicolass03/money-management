@@ -1,7 +1,16 @@
 import type { Income } from "@/lib/types/domain";
+import { localTodayIso } from "@/lib/date/local-today";
 
 export function isManualIncome(entry: Income): boolean {
   return entry.source !== "scheduled" && entry.scheduleId == null;
+}
+
+/** Materialized scheduled rows in the past are regular pay history — no badge. */
+export function shouldShowScheduledBadge(
+  entry: Income,
+  today: string = localTodayIso(),
+): boolean {
+  return !isManualIncome(entry) && entry.date >= today;
 }
 
 /**

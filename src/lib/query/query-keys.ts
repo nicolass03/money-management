@@ -1,13 +1,15 @@
+import { localTodayIso } from "@/lib/date/local-today";
+
 export const queryKeys = {
   settings: () => ["settings"] as const,
   moneyContext: (forceRefresh?: boolean) =>
     ["moneyContext", forceRefresh ?? false] as const,
   expenses: () => ["expenses"] as const,
   expensePeriodView: (period: string) =>
-    ["expensePeriodView", period, true] as const,
+    ["expensePeriodView", period, true, localTodayIso()] as const,
   expensePeriodViews: () => ["expensePeriodView"] as const,
   upcomingPayable: (horizonDays?: number) =>
-    ["upcomingPayable", horizonDays ?? 30] as const,
+    ["upcomingPayable", horizonDays ?? 30, localTodayIso()] as const,
   recurringExpenses: () => ["recurringExpenses"] as const,
   subscriptionReminders: () => ["subscriptionReminders"] as const,
   plannedExpenses: () => ["plannedExpenses"] as const,
@@ -15,7 +17,7 @@ export const queryKeys = {
   budgetExpenses: (budgetId: string) => ["budgetExpenses", budgetId] as const,
   income: () => ["income"] as const,
   schedules: () => ["schedules"] as const,
-  projections: () => ["projections"] as const,
+  projections: () => ["projections", localTodayIso()] as const,
   tags: () => ["tags"] as const,
   savings: () => ["savings"] as const,
 };

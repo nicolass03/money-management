@@ -5,6 +5,7 @@ import { Input } from "@/components/ui/input";
 import { useCreateIncome, useUpdateIncome } from "@/lib/mutations/income";
 import { currencies, type CurrencyCode } from "@/lib/types/constants";
 import type { Income } from "@/lib/types/domain";
+import { localTodayIso } from "@/lib/date/local-today";
 import { cn, formatCentsAsDollarsInput } from "@/lib/utils";
 
 interface IncomeFormProps {
@@ -30,7 +31,7 @@ export function IncomeForm({
     entry?.currency ?? "usd",
   );
   const [date, setDate] = useState(
-    entry?.date ?? defaultDate ?? new Date().toISOString().slice(0, 10),
+    entry?.date ?? defaultDate ?? localTodayIso(),
   );
   const [error, setError] = useState("");
 
@@ -53,7 +54,7 @@ export function IncomeForm({
       setName("");
       setAmount("");
       setCurrency("usd");
-      setDate(defaultDate ?? new Date().toISOString().slice(0, 10));
+      setDate(defaultDate ?? localTodayIso());
     }
     onSuccess?.();
   }

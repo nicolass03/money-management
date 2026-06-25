@@ -11,6 +11,7 @@ import { MoneyText } from "@/components/layout/privacy-mode";
 import { formatMoney } from "@/lib/currency/format";
 import { toDisplayAmount, type MoneyDisplayContext } from "@/lib/currency/display";
 import type { Income } from "@/lib/types/domain";
+import { localTodayIso } from "@/lib/date/local-today";
 import { filterIncomeEntriesForDisplay } from "@/lib/income/filter-income-entries";
 import { IncomeEntryList } from "./income-entry-list";
 import { IncomeForm } from "./income-form";
@@ -29,7 +30,7 @@ export function IncomeEntries({
   const { t } = useTranslation(["income", "common"]);
   const [showAdd, setShowAdd] = useState(false);
   const ctx = { displayCurrency, rates };
-  const today = new Date().toISOString().slice(0, 10);
+  const today = localTodayIso();
   const visibleEntries = filterIncomeEntriesForDisplay(entries);
 
   const total = visibleEntries.reduce(

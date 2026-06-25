@@ -9,6 +9,7 @@ import { SectionHeader } from "@/components/ui/section-header";
 import { MoneyText } from "@/components/layout/privacy-mode";
 import { formatMoney } from "@/lib/currency/format";
 import { toDisplayAmount, type MoneyDisplayContext } from "@/lib/currency/display";
+import { localTodayIso } from "@/lib/date/local-today";
 import type { PlannedExpenseWithTags } from "@/lib/types/domain";
 import { PlannedExpenseForm } from "./planned-expense-form";
 import { PlannedExpenseList } from "./planned-expense-list";
@@ -18,7 +19,7 @@ interface PlannedExpensesProps extends MoneyDisplayContext {
 }
 
 function todayIso(): string {
-  return new Date().toISOString().slice(0, 10);
+  return localTodayIso();
 }
 
 export function PlannedExpenses({

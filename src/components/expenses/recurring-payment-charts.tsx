@@ -19,6 +19,7 @@ import { useChartTheme } from "@/hooks/use-chart-theme";
 import { formatMoney } from "@/lib/currency/format";
 import type { MoneyDisplayContext } from "@/lib/currency/display";
 import type { RecurringExpenseWithTags } from "@/lib/types/domain";
+import { localTodayIso } from "@/lib/date/local-today";
 import {
   isActiveRecurring,
   toMonthlyDisplayAmount,
@@ -122,7 +123,7 @@ export function RecurringPaymentCharts({
   const chartTheme = useChartTheme();
   const [selectedTags, setSelectedTags] = useState<string[]>([]);
   const ctx = { displayCurrency, rates };
-  const today = new Date().toISOString().slice(0, 10);
+  const today = localTodayIso();
 
   const activeRecurring = useMemo(
     () => recurringExpenses.filter((recurring) => isActiveRecurring(recurring, today)),

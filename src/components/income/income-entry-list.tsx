@@ -15,7 +15,7 @@ import {
 import { formatMoney } from "@/lib/currency/format";
 import type { MoneyDisplayContext } from "@/lib/currency/display";
 import type { Income } from "@/lib/types/domain";
-import { isManualIncome } from "@/lib/income/filter-income-entries";
+import { isManualIncome, shouldShowScheduledBadge } from "@/lib/income/filter-income-entries";
 import { formatCentsAsDollarsInput, formatDate } from "@/lib/utils";
 import { IncomeForm } from "./income-form";
 
@@ -126,7 +126,7 @@ export function IncomeEntryList({
               <div>
                 <div className="flex items-center gap-2">
                   <p className="font-mono text-sm text-text">{entry.name}</p>
-                  {!manual && (
+                  {shouldShowScheduledBadge(entry) && (
                     <Badge variant="default">{t("income:badgeScheduled")}</Badge>
                   )}
                 </div>

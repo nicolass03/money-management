@@ -6,6 +6,7 @@ import type {
   ExpenseWithTags,
   PayableFutureItem,
 } from "@/lib/types/domain";
+import { localTodayIso } from "@/lib/date/local-today";
 import { apiFetch } from "./client";
 
 export interface CreateExpenseInput {
@@ -48,6 +49,7 @@ export async function getExpensePeriodView(
   const params = new URLSearchParams({
     period,
     includeProjected: "true",
+    asOf: localTodayIso(),
   });
   return apiFetch<ExpensePeriodView>(
     `/api/v1/expenses/period-view?${params.toString()}`,
@@ -57,8 +59,12 @@ export async function getExpensePeriodView(
 export async function getUpcomingPayable(
   horizonDays = 30,
 ): Promise<PayableFutureItem[]> {
+  const params = new URLSearchParams({
+    horizonDays: String(horizonDays),
+    asOf: localTodayIso(),
+  });
   return apiFetch<PayableFutureItem[]>(
-    `/api/v1/expenses/upcoming-payable?horizonDays=${horizonDays}`,
+    `/api/v1/expenses/upcoming-payable?${params.toString()}`,
   );
 }
 

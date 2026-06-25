@@ -5,6 +5,7 @@ import { Input } from "@/components/ui/input";
 import { useAddBudgetExpense } from "@/lib/mutations/budgets";
 import type { BudgetWithTags } from "@/lib/types/domain";
 import { isDatedBudget } from "@/lib/budgets/budget-status";
+import { localTodayIso } from "@/lib/date/local-today";
 import { formatCentsAsDollarsInput } from "@/lib/utils";
 
 interface BudgetExpenseFormProps {
@@ -13,7 +14,7 @@ interface BudgetExpenseFormProps {
 }
 
 function todayIso() {
-  return new Date().toISOString().slice(0, 10);
+  return localTodayIso();
 }
 
 export function BudgetExpenseForm({ budget, onSuccess }: BudgetExpenseFormProps) {

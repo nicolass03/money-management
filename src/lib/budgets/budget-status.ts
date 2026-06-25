@@ -1,4 +1,5 @@
 import type { BudgetWithTags } from "@/lib/types/domain";
+import { localTodayIso } from "@/lib/date/local-today";
 
 export type BudgetStatus =
   | "upcoming"
@@ -16,7 +17,7 @@ export function isDatedBudget(budget: {
 
 export function getBudgetStatus(
   budget: Pick<BudgetWithTags, "startDate" | "endDate" | "amount" | "spent">,
-  today: string = new Date().toISOString().slice(0, 10),
+  today: string = localTodayIso(),
 ): BudgetStatus {
   if (budget.spent >= budget.amount) {
     return "depleted";

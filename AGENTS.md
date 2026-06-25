@@ -90,7 +90,11 @@ The expenses tab no longer blocks on 8 parallel fetches. Init uses **settings** 
 
 Each section shows **inline skeletons** (`src/components/ui/skeleton.tsx`, `src/components/ui/list-skeletons.tsx`, `src/components/expenses/expense-loading-skeletons.tsx`) for backend-dependent content; the shell renders immediately. Tags load only when opening the expense form. Period toggle refetches period-view only.
 
+**Pay-period rollover / `asOf`:** Date-relative API reads (`period-view`, `upcoming-payable`, `projections`) send `asOf=<localTodayIso()>` from `src/lib/date/local-today.ts` (local calendar date, not `toISOString().slice(0,10)` UTC). TanStack Query keys include the same date; `main.tsx` schedules invalidation at local midnight so tabs left open overnight refetch. Without `asOf`, the API falls back to UTC and can show the prior pay period after payday until UTC catches up.
+
 **Budgets, income, projections** use the same pattern — page shell + section skeletons; no full-screen `LoadingIndicator` on those tabs (component kept for auth/login and other routes).
+
+**Projections list (web):** The API returns all periods (including past) for correct `cumulativeFree` math. The route filters with `visibleProjectionRows()` (`src/lib/projections/projection-display.ts`) before render — current pay period first, up to 10 upcoming, past hidden (parity with iOS `ProjectionDisplayLogic`).
 
 ## Railway deployment (UI)
 

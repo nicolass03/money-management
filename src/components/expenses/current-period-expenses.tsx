@@ -26,6 +26,7 @@ import type {
   ProjectionExpenseItem,
 } from "@/lib/types/domain";
 import { Skeleton } from "@/components/ui/skeleton";
+import { localTodayIso } from "@/lib/date/local-today";
 import { cn, formatCentsAsDollarsInput, formatDate } from "@/lib/utils";
 import { ExpenseForm } from "./expense-form";
 import {
@@ -313,7 +314,7 @@ export function CurrentPeriodExpenses({
   const [editingId, setEditingId] = useState<string | null>(null);
   const [deletePending, startDeleteTransition] = useTransition();
   const deleteExpense = useDeleteExpense();
-  const today = new Date().toISOString().slice(0, 10);
+  const today = localTodayIso();
 
   useEffect(() => {
     setShowAdd(false);
