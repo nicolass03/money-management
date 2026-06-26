@@ -151,19 +151,12 @@ export async function addBudgetExpenseMutation(
   if (!/^\d{4}-\d{2}-\d{2}$/.test(date)) return { error: tError("invalidDate") };
   const remaining = budget.amount - budget.spent;
   if (amount > remaining) return { error: tError("amountExceedsRemaining") };
-  const period = await getCurrentPayPeriod();
-  if (!period) return { error: tError("noPrimarySchedule") };
-  if (!isDateInPeriod(date, period)) {
-    return { error: tError("dateOutsidePayPeriod") };
-  }
-  const today = todayIso();
   const dated = isDatedBudget(budget);
-  if (dated) {
-    if (today < budget.startDate!) {
-      return { error: tError("spendingLockedUntilStart") };
-    }
-    if (date < budget.startDate! || date > budget.endDate!) {
-      return { error: tError("dateOutsideBudgetPeriod") };
+  if (!dated) {
+    const period = await getCurrentPayPeriod();
+    if (!period) return { error: tError("noPrimarySchedule") };
+    if (!isDateInPeriod(date, period)) {
+      return { error: tError("dateOutsidePayPeriod") };
     }
   }
   const name = input.name.trim() || budget.name;

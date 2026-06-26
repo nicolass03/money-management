@@ -80,6 +80,10 @@ If `cargo run` fails with `DATABASE_URL is required` while `.env` is set, the sh
 - Local dev is `npm run dev` (Vite, port 3000); `npm run preview` serves a production build locally. Railway serves the built `dist/` via **Caddy** in Docker (no Node server at runtime).
 - Ensure Rust API `CORS_ORIGIN` includes the deployed UI origin (browser calls API directly, same as iOS).
 
+## Budgets tab
+
+- Expand a budget card → `BudgetExpenseForm` adds charges. **Dated budgets** accept any expense date (no picker min/max, no budget-range validation). Open-ended budgets still require the expense date in the current pay period. Projection display unchanged — dated budgets still appear on projections from their start date.
+
 ## Expenses tab loading
 
 The expenses tab no longer blocks on 8 parallel fetches. Init uses **settings** (with embedded `primarySchedule`), **money-context**, and section queries:

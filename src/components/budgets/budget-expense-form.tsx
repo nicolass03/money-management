@@ -21,7 +21,6 @@ export function BudgetExpenseForm({ budget, onSuccess }: BudgetExpenseFormProps)
   const { t } = useTranslation(["budgets", "common"]);
   const dated = isDatedBudget(budget);
   const today = todayIso();
-  const canSpend = !dated || today >= budget.startDate!;
   const remaining = budget.amount - budget.spent;
 
   const [name, setName] = useState("");
@@ -46,14 +45,6 @@ export function BudgetExpenseForm({ budget, onSuccess }: BudgetExpenseFormProps)
     setAmount("");
     setDate(todayIso());
     onSuccess?.();
-  }
-
-  if (!canSpend) {
-    return (
-      <p className="font-mono text-xs text-muted">
-        {t("budgets:spendingUnlocks", { date: budget.startDate })}
-      </p>
-    );
   }
 
   if (remaining <= 0) {
