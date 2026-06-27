@@ -16,6 +16,7 @@ import { Route as AppIndexRouteImport } from './routes/_app/index'
 import { Route as AuthCallbackRouteImport } from './routes/auth/callback'
 import { Route as AppSettingsRouteImport } from './routes/_app/settings'
 import { Route as AppSavingsRouteImport } from './routes/_app/savings'
+import { Route as AppReportsRouteImport } from './routes/_app/reports'
 import { Route as AppProjectionsRouteImport } from './routes/_app/projections'
 import { Route as AppIncomeRouteImport } from './routes/_app/income'
 import { Route as AppBudgetsRouteImport } from './routes/_app/budgets'
@@ -57,6 +58,11 @@ const AppSavingsRoute = AppSavingsRouteImport.update({
   path: '/savings',
   getParentRoute: () => AppRoute,
 } as any)
+const AppReportsRoute = AppReportsRouteImport.update({
+  id: '/reports',
+  path: '/reports',
+  getParentRoute: () => AppRoute,
+} as any)
 const AppProjectionsRoute = AppProjectionsRouteImport.update({
   id: '/projections',
   path: '/projections',
@@ -95,6 +101,7 @@ export interface FileRoutesByFullPath {
   '/budgets': typeof AppBudgetsRoute
   '/income': typeof AppIncomeRoute
   '/projections': typeof AppProjectionsRoute
+  '/reports': typeof AppReportsRoute
   '/savings': typeof AppSavingsRoute
   '/settings': typeof AppSettingsRoute
   '/auth/callback': typeof AuthCallbackRoute
@@ -108,6 +115,7 @@ export interface FileRoutesByTo {
   '/budgets': typeof AppBudgetsRoute
   '/income': typeof AppIncomeRoute
   '/projections': typeof AppProjectionsRoute
+  '/reports': typeof AppReportsRoute
   '/savings': typeof AppSavingsRoute
   '/settings': typeof AppSettingsRoute
   '/auth/callback': typeof AuthCallbackRoute
@@ -124,6 +132,7 @@ export interface FileRoutesById {
   '/_app/budgets': typeof AppBudgetsRoute
   '/_app/income': typeof AppIncomeRoute
   '/_app/projections': typeof AppProjectionsRoute
+  '/_app/reports': typeof AppReportsRoute
   '/_app/savings': typeof AppSavingsRoute
   '/_app/settings': typeof AppSettingsRoute
   '/auth/callback': typeof AuthCallbackRoute
@@ -141,6 +150,7 @@ export interface FileRouteTypes {
     | '/budgets'
     | '/income'
     | '/projections'
+    | '/reports'
     | '/savings'
     | '/settings'
     | '/auth/callback'
@@ -154,6 +164,7 @@ export interface FileRouteTypes {
     | '/budgets'
     | '/income'
     | '/projections'
+    | '/reports'
     | '/savings'
     | '/settings'
     | '/auth/callback'
@@ -169,6 +180,7 @@ export interface FileRouteTypes {
     | '/_app/budgets'
     | '/_app/income'
     | '/_app/projections'
+    | '/_app/reports'
     | '/_app/savings'
     | '/_app/settings'
     | '/auth/callback'
@@ -236,6 +248,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppSavingsRouteImport
       parentRoute: typeof AppRoute
     }
+    '/_app/reports': {
+      id: '/_app/reports'
+      path: '/reports'
+      fullPath: '/reports'
+      preLoaderRoute: typeof AppReportsRouteImport
+      parentRoute: typeof AppRoute
+    }
     '/_app/projections': {
       id: '/_app/projections'
       path: '/projections'
@@ -285,6 +304,7 @@ interface AppRouteChildren {
   AppBudgetsRoute: typeof AppBudgetsRoute
   AppIncomeRoute: typeof AppIncomeRoute
   AppProjectionsRoute: typeof AppProjectionsRoute
+  AppReportsRoute: typeof AppReportsRoute
   AppSavingsRoute: typeof AppSavingsRoute
   AppSettingsRoute: typeof AppSettingsRoute
   AppIndexRoute: typeof AppIndexRoute
@@ -297,6 +317,7 @@ const AppRouteChildren: AppRouteChildren = {
   AppBudgetsRoute: AppBudgetsRoute,
   AppIncomeRoute: AppIncomeRoute,
   AppProjectionsRoute: AppProjectionsRoute,
+  AppReportsRoute: AppReportsRoute,
   AppSavingsRoute: AppSavingsRoute,
   AppSettingsRoute: AppSettingsRoute,
   AppIndexRoute: AppIndexRoute,

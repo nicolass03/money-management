@@ -84,6 +84,10 @@ If `cargo run` fails with `DATABASE_URL is required` while `.env` is set, the sh
 
 - Expand a budget card → `BudgetExpenseForm` adds charges. **Dated budgets** accept any expense date (no picker min/max, no budget-range validation). Open-ended budgets still require the expense date in the current pay period. Projection display unchanged — dated budgets still appear on projections from their start date.
 
+## Reports tab (web only)
+
+- Route `/reports` — custom date range (`from`/`to` native date inputs + presets). Data from `GET /api/v1/reports/summary` via `useReportSummary(from, to)`. KPIs + charts (income vs expenses, by tag, subscription split, net trend, top budgets). Prior-period % deltas on KPIs. Max range 730 days. Not on iOS.
+
 ## Expenses tab loading
 
 The expenses tab no longer blocks on 8 parallel fetches. Init uses **settings** (with embedded `primarySchedule`), **money-context**, and section queries:

@@ -7,6 +7,7 @@ import errorsEn from "@/locales/en/errors.json";
 import expensesEn from "@/locales/en/expenses.json";
 import incomeEn from "@/locales/en/income.json";
 import projectionsEn from "@/locales/en/projections.json";
+import reportsEn from "@/locales/en/reports.json";
 import savingsEn from "@/locales/en/savings.json";
 import settingsEn from "@/locales/en/settings.json";
 import authEs from "@/locales/es/auth.json";
@@ -16,6 +17,7 @@ import errorsEs from "@/locales/es/errors.json";
 import expensesEs from "@/locales/es/expenses.json";
 import incomeEs from "@/locales/es/income.json";
 import projectionsEs from "@/locales/es/projections.json";
+import reportsEs from "@/locales/es/reports.json";
 import savingsEs from "@/locales/es/savings.json";
 import settingsEs from "@/locales/es/settings.json";
 
@@ -29,6 +31,7 @@ export const resources = {
     budgets: budgetsEn,
     income: incomeEn,
     projections: projectionsEn,
+    reports: reportsEn,
     savings: savingsEn,
   },
   es: {
@@ -40,6 +43,7 @@ export const resources = {
     budgets: budgetsEs,
     income: incomeEs,
     projections: projectionsEs,
+    reports: reportsEs,
     savings: savingsEs,
   },
 } as const;

@@ -10,6 +10,7 @@ import { getIncomeScheduleById, getIncomeSchedules } from "@/lib/api/income-sche
 import { getMoneyContext } from "@/lib/api/money-context";
 import { getPlannedExpenses } from "@/lib/api/planned-expenses";
 import { getProjectionsFromApi } from "@/lib/api/projections";
+import { getReportSummary } from "@/lib/api/reports";
 import { getRecurringExpenses } from "@/lib/api/recurring-expenses";
 import { getSubscriptionReminders } from "@/lib/api/subscription-reminders";
 import { getSavings } from "@/lib/api/savings";
@@ -166,5 +167,19 @@ export function useSavings() {
   return useQuery({
     queryKey: queryKeys.savings(),
     queryFn: getSavings,
+  });
+}
+
+export function useReportSummary(from: string, to: string, enabled = true) {
+  return useQuery({
+    queryKey: queryKeys.reportSummary(from, to),
+    queryFn: () => getReportSummary(from, to),
+    enabled: enabled && !!from && !!to,
+    retry: (failureCount, error) => {
+      if (error instanceof ApiError && error.status === 400) {
+        return false;
+      }
+      return failureCount < 1;
+    },
   });
 }

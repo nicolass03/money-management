@@ -13,6 +13,7 @@
   "navBudgets": "~/presupuestos",
   "navIncome": "~/ingresos",
   "navProjections": "~/proyecciones",
+  "navReports": "~/informes",
   "navSavings": "~/ahorros",
   "navSettings": "~/configuración",
   "fetchingData": "cargando datos",

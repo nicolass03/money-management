@@ -20,6 +20,9 @@ export const queryKeys = {
   projections: () => ["projections", localTodayIso()] as const,
   tags: () => ["tags"] as const,
   savings: () => ["savings"] as const,
+  reportSummaries: () => ["reportSummary"] as const,
+  reportSummary: (from: string, to: string) =>
+    ["reportSummary", from, to] as const,
 };
 
 export type InvalidationEvent =
@@ -41,6 +44,7 @@ const invalidationMap: Record<InvalidationEvent, QueryKey[]> = {
     queryKeys.projections(),
     queryKeys.expensePeriodViews(),
     queryKeys.upcomingPayable(),
+    queryKeys.reportSummaries(),
   ],
   recurringChange: [
     queryKeys.recurringExpenses(),
@@ -64,7 +68,7 @@ const invalidationMap: Record<InvalidationEvent, QueryKey[]> = {
     queryKeys.expensePeriodViews(),
     queryKeys.upcomingPayable(),
   ],
-  incomeChange: [queryKeys.income(), queryKeys.projections()],
+  incomeChange: [queryKeys.income(), queryKeys.projections(), queryKeys.reportSummaries()],
   scheduleChange: [
     queryKeys.schedules(),
     queryKeys.income(),

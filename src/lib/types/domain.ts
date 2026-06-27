@@ -194,3 +194,57 @@ export interface PayableFutureItem {
   tags: string[];
   isSubscription: boolean;
 }
+
+export type ReportTimeGranularity = "day" | "week" | "month";
+
+export interface ReportKpis {
+  totalIncome: number;
+  totalExpenses: number;
+  netCashFlow: number;
+  extraSpent: number;
+  expenseCount: number;
+  incomeCount: number;
+  avgDailySpend: number;
+}
+
+export interface ReportPriorPeriod {
+  from: string;
+  to: string;
+  kpis: ReportKpis;
+}
+
+export interface ReportTimeBucket {
+  startDate: string;
+  endDate: string;
+  label: string;
+  income: number;
+  expenses: number;
+  net: number;
+}
+
+export interface ReportTimeSeries {
+  granularity: ReportTimeGranularity;
+  buckets: ReportTimeBucket[];
+}
+
+export interface ReportBudgetSpend {
+  budgetId: string;
+  name: string;
+  amount: number;
+}
+
+export interface ReportSummary {
+  range: {
+    from: string;
+    to: string;
+    dayCount: number;
+  };
+  displayCurrency: CurrencyCode;
+  rates: import("@/lib/currency/convert").ExchangeRates;
+  kpis: ReportKpis;
+  priorPeriod: ReportPriorPeriod | null;
+  byTag: { tag: string; amount: number }[];
+  subscriptionSplit: { subscription: number; other: number };
+  timeSeries: ReportTimeSeries;
+  topBudgets: ReportBudgetSpend[];
+}
