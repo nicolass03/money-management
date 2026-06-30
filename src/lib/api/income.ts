@@ -7,6 +7,7 @@ export interface IncomeInput {
   amount: number;
   currency: CurrencyCode;
   date: string;
+  accountId?: string | null;
 }
 
 export async function getIncome(): Promise<Income[]> {

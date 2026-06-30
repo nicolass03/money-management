@@ -32,6 +32,7 @@
   "projectionStartDateHint": "> projections begin on this date; only the opening balance applies until the next pay date (no income in that window)",
   "initialFreeMoney": "initial_free_money ({{currency}}):",
   "initialFreeMoneyHint": "> free cash balance on the projection start date",
+  "initialBalanceFromAccounts": "> the projection's opening balance is the total of your account starting amounts — manage them in",
   "projectionUpdated": "> projection settings updated",
   "saveProjectionSettings": "save projection settings",
   "extraSpentTitle": "extra_spent_limit",

@@ -12,6 +12,7 @@
   "navExpenses": "~/expenses",
   "navBudgets": "~/budgets",
   "navIncome": "~/income",
+  "navAccounts": "~/accounts",
   "navProjections": "~/projections",
   "navReports": "~/reports",
   "navSavings": "~/savings",

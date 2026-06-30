@@ -32,6 +32,7 @@
   "projectionStartDateHint": "> las proyecciones inician en esta fecha; solo se aplica el saldo inicial hasta la próxima fecha de pago (sin ingresos en esa ventana)",
   "initialFreeMoney": "saldo_libre_inicial ({{currency}}):",
   "initialFreeMoneyHint": "> saldo libre en la fecha de inicio de la proyección",
+  "initialBalanceFromAccounts": "> el saldo inicial de la proyección es la suma de los montos iniciales de tus cuentas — gestiónalas en",
   "projectionUpdated": "> configuración de proyección actualizada",
   "saveProjectionSettings": "guardar configuración de proyección",
   "extraSpentTitle": "límite_gasto_extra",

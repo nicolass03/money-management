@@ -11,6 +11,7 @@ export interface PlannedExpenseInput {
   amount: number;
   currency: CurrencyCode;
   tags: string[];
+  accountId?: string | null;
 }
 
 export async function getPlannedExpenses(): Promise<PlannedExpenseWithTags[]> {

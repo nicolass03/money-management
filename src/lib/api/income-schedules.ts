@@ -12,6 +12,7 @@ export interface IncomeScheduleInput {
   frequency: PayFrequency;
   amount: number;
   currency: CurrencyCode;
+  accountId?: string | null;
 }
 
 export async function getIncomeSchedules(): Promise<IncomePaySchedule[]> {

@@ -70,5 +70,9 @@
   "failedUpdatePlanned": "failed to update planned expense",
   "failedDeletePlanned": "failed to delete planned expense",
   "failedCancelReminder": "failed to update cancellation reminder",
-  "failedDismissReminder": "failed to dismiss reminder"
+  "failedDismissReminder": "failed to dismiss reminder",
+  "failedCreateAccount": "failed to create account",
+  "failedUpdateAccount": "failed to update account",
+  "failedDeleteAccount": "failed to archive account",
+  "accountNotFound": "account not found"
 }

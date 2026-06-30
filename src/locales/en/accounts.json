@@ -1,0 +1,20 @@
+{
+  "title": "accounts",
+  "subtitle": "money you hold across cash and bank accounts",
+  "addAccount": "add account",
+  "formHint": "name is optional. currency and starting balance are fixed per account.",
+  "labelAccount": "account",
+  "labelName": "name (optional)",
+  "namePlaceholder": "cash, euros, savings…",
+  "labelInitialAmount": "initial amount",
+  "initialAmountPlaceholder": "0.00",
+  "submitAdd": "add account",
+  "unnamed": "unnamed",
+  "noAccounts": "no accounts yet",
+  "empty": "no accounts yet — add one to start tracking balances",
+  "balance": "balance",
+  "initial": "initial",
+  "badgeNetWorth": " net worth",
+  "archive": "archive",
+  "confirmArchive": "archive this account? its history stays, but it leaves the pickers and projection total."
+}

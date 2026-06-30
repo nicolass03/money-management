@@ -21,6 +21,7 @@ export interface ScheduleInput {
   frequency: string;
   amount: string;
   currency: string;
+  accountId?: string | null;
 }
 
 function validateScheduleInput(data: ScheduleInput):
@@ -32,6 +33,7 @@ function validateScheduleInput(data: ScheduleInput):
         frequency: PayFrequency;
         amount: number;
         currency: CurrencyCode;
+        accountId: string | null;
       };
     } {
   const name = data.name.trim();
@@ -54,6 +56,7 @@ function validateScheduleInput(data: ScheduleInput):
       frequency: data.frequency as PayFrequency,
       amount,
       currency: data.currency as CurrencyCode,
+      accountId: data.accountId ?? null,
     },
   };
 }

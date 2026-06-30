@@ -16,6 +16,7 @@ export interface CreateExpenseInput {
   date: string;
   tags: string[];
   isSubscription: boolean;
+  accountId?: string | null;
 }
 
 export interface EarlyPayExpenseInput {

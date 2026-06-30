@@ -41,6 +41,7 @@ export interface ExpenseInput {
   currency: string;
   date: string;
   isSubscription: boolean;
+  accountId?: string | null;
 }
 
 function validateExpenseInput(data: ExpenseInput):
@@ -53,6 +54,7 @@ function validateExpenseInput(data: ExpenseInput):
         currency: CurrencyCode;
         date: string;
         isSubscription: boolean;
+        accountId: string | null;
       };
     } {
   const name = data.name.trim();
@@ -73,6 +75,7 @@ function validateExpenseInput(data: ExpenseInput):
       currency: data.currency as CurrencyCode,
       date: data.date,
       isSubscription: data.isSubscription,
+      accountId: data.accountId ?? null,
     },
   };
 }

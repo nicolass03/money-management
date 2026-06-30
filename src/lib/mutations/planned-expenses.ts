@@ -22,6 +22,7 @@ export interface PlannedInput {
   amount: string;
   currency: string;
   tags: string;
+  accountId?: string | null;
 }
 
 function validatePlannedInput(
@@ -36,6 +37,7 @@ function validatePlannedInput(
         amount: number;
         currency: CurrencyCode;
         tags: string[];
+        accountId: string | null;
       };
     } {
   const name = data.name.trim();
@@ -58,6 +60,7 @@ function validatePlannedInput(
       amount,
       currency: data.currency as CurrencyCode,
       tags,
+      accountId: data.accountId ?? null,
     },
   };
 }

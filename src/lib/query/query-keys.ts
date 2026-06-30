@@ -17,6 +17,7 @@ export const queryKeys = {
   budgetExpenses: (budgetId: string) => ["budgetExpenses", budgetId] as const,
   income: () => ["income"] as const,
   schedules: () => ["schedules"] as const,
+  accounts: () => ["accounts"] as const,
   projections: () => ["projections", localTodayIso()] as const,
   tags: () => ["tags"] as const,
   savings: () => ["savings"] as const,
@@ -33,6 +34,7 @@ export type InvalidationEvent =
   | "incomeChange"
   | "scheduleChange"
   | "settingsChange"
+  | "accountChange"
   | "moneyContextRefresh"
   | "subscriptionReminderChange";
 
@@ -45,6 +47,7 @@ const invalidationMap: Record<InvalidationEvent, QueryKey[]> = {
     queryKeys.expensePeriodViews(),
     queryKeys.upcomingPayable(),
     queryKeys.reportSummaries(),
+    queryKeys.accounts(),
   ],
   recurringChange: [
     queryKeys.recurringExpenses(),
@@ -60,6 +63,7 @@ const invalidationMap: Record<InvalidationEvent, QueryKey[]> = {
     queryKeys.projections(),
     queryKeys.expensePeriodViews(),
     queryKeys.upcomingPayable(),
+    queryKeys.accounts(),
   ],
   budgetChange: [
     queryKeys.budgets(),
@@ -68,13 +72,19 @@ const invalidationMap: Record<InvalidationEvent, QueryKey[]> = {
     queryKeys.expensePeriodViews(),
     queryKeys.upcomingPayable(),
   ],
-  incomeChange: [queryKeys.income(), queryKeys.projections(), queryKeys.reportSummaries()],
+  incomeChange: [
+    queryKeys.income(),
+    queryKeys.projections(),
+    queryKeys.reportSummaries(),
+    queryKeys.accounts(),
+  ],
   scheduleChange: [
     queryKeys.schedules(),
     queryKeys.income(),
     queryKeys.projections(),
     queryKeys.settings(),
     queryKeys.expensePeriodViews(),
+    queryKeys.accounts(),
   ],
   settingsChange: [
     queryKeys.settings(),
@@ -84,6 +94,12 @@ const invalidationMap: Record<InvalidationEvent, QueryKey[]> = {
     queryKeys.expenses(),
     queryKeys.expensePeriodViews(),
     queryKeys.upcomingPayable(),
+  ],
+  accountChange: [
+    queryKeys.accounts(),
+    queryKeys.projections(),
+    queryKeys.expenses(),
+    queryKeys.income(),
   ],
   moneyContextRefresh: [queryKeys.moneyContext()],
   subscriptionReminderChange: [queryKeys.subscriptionReminders()],
