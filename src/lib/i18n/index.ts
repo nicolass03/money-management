@@ -1,5 +1,6 @@
 import i18n from "i18next";
 import { initReactI18next } from "react-i18next";
+import accountsEn from "@/locales/en/accounts.json";
 import authEn from "@/locales/en/auth.json";
 import budgetsEn from "@/locales/en/budgets.json";
 import commonEn from "@/locales/en/common.json";
@@ -20,11 +21,13 @@ import projectionsEs from "@/locales/es/projections.json";
 import reportsEs from "@/locales/es/reports.json";
 import savingsEs from "@/locales/es/savings.json";
 import settingsEs from "@/locales/es/settings.json";
+import accountsEs from "@/locales/es/accounts.json";
 
 export const resources = {
   en: {
     common: commonEn,
     auth: authEn,
+    accounts: accountsEn,
     settings: settingsEn,
     errors: errorsEn,
     expenses: expensesEn,
@@ -37,6 +40,7 @@ export const resources = {
   es: {
     common: commonEs,
     auth: authEs,
+    accounts: accountsEs,
     settings: settingsEs,
     errors: errorsEs,
     expenses: expensesEs,

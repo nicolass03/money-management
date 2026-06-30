@@ -23,6 +23,18 @@ export interface UserSettings {
   updatedAt: string;
 }
 
+/** A money account (cash, EUR account, USD account, …). `balance` is the server-derived current
+ * balance in the account's own currency. */
+export interface Account {
+  id: string;
+  name: string | null;
+  currency: CurrencyCode;
+  initialAmount: number;
+  balance: number;
+  archivedAt: string | null;
+  createdAt: string;
+}
+
 export interface IncomePaySchedule {
   id: string;
   name: string;
@@ -30,6 +42,7 @@ export interface IncomePaySchedule {
   frequency: PayFrequency;
   amount: number;
   currency: CurrencyCode;
+  accountId: string | null;
   createdAt: string;
   updatedAt: string;
 }
@@ -42,6 +55,7 @@ export interface Income {
   source: IncomeSource;
   date: string;
   scheduleId: string | null;
+  accountId: string | null;
   createdAt: string;
 }
 
@@ -57,6 +71,7 @@ export interface Expense {
   budgetId: string | null;
   amountOverridden: boolean;
   isSubscription: boolean;
+  accountId: string | null;
   createdAt: string;
 }
 
@@ -96,6 +111,7 @@ export interface PlannedExpense {
   date: string;
   amount: number;
   currency: CurrencyCode;
+  accountId: string | null;
   createdAt: string;
   updatedAt: string;
 }

@@ -2,11 +2,13 @@ import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { AccountSelect } from "@/components/accounts/account-select";
+import { useAccounts } from "@/hooks/use-queries";
 import { useCreateIncome, useUpdateIncome } from "@/lib/mutations/income";
-import { currencies, type CurrencyCode } from "@/lib/types/constants";
+import { formatCurrencyLabel } from "@/lib/currency/types";
 import type { Income } from "@/lib/types/domain";
 import { localTodayIso } from "@/lib/date/local-today";
-import { cn, formatCentsAsDollarsInput } from "@/lib/utils";
+import { formatCentsAsDollarsInput } from "@/lib/utils";
 
 interface IncomeFormProps {
   entry?: Income;
@@ -22,14 +24,13 @@ export function IncomeForm({
   onSuccess,
 }: IncomeFormProps) {
   const { t } = useTranslation(["income", "common"]);
+  const { data: accounts = [] } = useAccounts();
   const isEditing = Boolean(entry);
   const [name, setName] = useState(entry?.name ?? "");
   const [amount, setAmount] = useState(
     entry ? formatCentsAsDollarsInput(entry.amount) : "",
   );
-  const [currency, setCurrency] = useState<CurrencyCode>(
-    entry?.currency ?? "usd",
-  );
+  const [accountId, setAccountId] = useState(entry?.accountId ?? "");
   const [date, setDate] = useState(
     entry?.date ?? defaultDate ?? localTodayIso(),
   );
@@ -38,11 +39,20 @@ export function IncomeForm({
   const createIncome = useCreateIncome();
   const updateIncome = useUpdateIncome();
   const pending = createIncome.isPending || updateIncome.isPending;
+  // Income lands in the chosen account; currency follows it.
+  const selectedAccount = accounts.find((a) => a.id === accountId) ?? accounts[0];
+  const currency = selectedAccount?.currency ?? entry?.currency ?? "usd";
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     setError("");
-    const input = { name, amount, currency, date };
+    const input = {
+      name,
+      amount,
+      currency,
+      date,
+      accountId: selectedAccount?.id ?? null,
+    };
     const result = isEditing
       ? await updateIncome.mutateAsync({ id: entry!.id, input })
       : await createIncome.mutateAsync(input);
@@ -53,7 +63,7 @@ export function IncomeForm({
     if (!isEditing) {
       setName("");
       setAmount("");
-      setCurrency("usd");
+      setAccountId("");
       setDate(defaultDate ?? localTodayIso());
     }
     onSuccess?.();
@@ -103,22 +113,21 @@ export function IncomeForm({
           >
             {t("common:labelCurrency")}
           </label>
-          <select
+          <div
             id="income-currency"
-            value={currency}
-            onChange={(e) => setCurrency(e.target.value as CurrencyCode)}
-            className={cn(
-              "w-full border border-border bg-surface px-3 py-2 font-mono text-sm text-text outline-none transition-colors focus:border-accent focus:shadow-[0_0_8px_var(--glow-color)]",
-            )}
+            className="w-full border border-border bg-bg/50 px-3 py-2 font-mono text-sm text-muted"
           >
-            {currencies.map((c) => (
-              <option key={c} value={c}>
-                {c.toUpperCase()}
-              </option>
-            ))}
-          </select>
+            {formatCurrencyLabel(currency)}
+          </div>
         </div>
       </div>
+
+      <AccountSelect
+        id="income-account"
+        accounts={accounts}
+        value={selectedAccount?.id ?? ""}
+        onChange={setAccountId}
+      />
 
       <div>
         <label

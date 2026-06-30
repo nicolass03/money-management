@@ -1,4 +1,5 @@
 import { useQuery } from "@tanstack/react-query";
+import { getAccounts } from "@/lib/api/accounts";
 import { getBudgetExpenses, getBudgets } from "@/lib/api/budgets";
 import {
   getExpensePeriodView,
@@ -153,6 +154,13 @@ export function useProjections(enabled = true) {
       }
       return failureCount < 1;
     },
+  });
+}
+
+export function useAccounts() {
+  return useQuery({
+    queryKey: queryKeys.accounts(),
+    queryFn: getAccounts,
   });
 }
 

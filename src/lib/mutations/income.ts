@@ -16,6 +16,7 @@ export interface IncomeInput {
   amount: string;
   currency: string;
   date: string;
+  accountId?: string | null;
 }
 
 function validateIncomeInput(data: IncomeInput):
@@ -26,6 +27,7 @@ function validateIncomeInput(data: IncomeInput):
         amount: number;
         currency: CurrencyCode;
         date: string;
+        accountId: string | null;
       };
     } {
   const name = data.name.trim();
@@ -42,6 +44,7 @@ function validateIncomeInput(data: IncomeInput):
       amount,
       currency: data.currency as CurrencyCode,
       date: data.date,
+      accountId: data.accountId ?? null,
     },
   };
 }

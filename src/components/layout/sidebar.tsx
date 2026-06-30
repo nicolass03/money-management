@@ -12,6 +12,7 @@ const navItems = [
   { href: "/expenses", key: "navExpenses" },
   { href: "/budgets", key: "navBudgets" },
   { href: "/income", key: "navIncome" },
+  { href: "/accounts", key: "navAccounts" },
   { href: "/projections", key: "navProjections" },
   { href: "/reports", key: "navReports" },
   { href: "/savings", key: "navSavings" },

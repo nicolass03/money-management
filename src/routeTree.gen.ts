@@ -20,6 +20,7 @@ import { Route as AppReportsRouteImport } from './routes/_app/reports'
 import { Route as AppProjectionsRouteImport } from './routes/_app/projections'
 import { Route as AppIncomeRouteImport } from './routes/_app/income'
 import { Route as AppBudgetsRouteImport } from './routes/_app/budgets'
+import { Route as AppAccountsRouteImport } from './routes/_app/accounts'
 import { Route as AppExpensesIndexRouteImport } from './routes/_app/expenses/index'
 import { Route as AppExpensesRecurringRouteImport } from './routes/_app/expenses/recurring'
 import { Route as AppExpensesPlannedRouteImport } from './routes/_app/expenses/planned'
@@ -78,6 +79,11 @@ const AppBudgetsRoute = AppBudgetsRouteImport.update({
   path: '/budgets',
   getParentRoute: () => AppRoute,
 } as any)
+const AppAccountsRoute = AppAccountsRouteImport.update({
+  id: '/accounts',
+  path: '/accounts',
+  getParentRoute: () => AppRoute,
+} as any)
 const AppExpensesIndexRoute = AppExpensesIndexRouteImport.update({
   id: '/expenses/',
   path: '/expenses/',
@@ -98,6 +104,7 @@ export interface FileRoutesByFullPath {
   '/': typeof AppIndexRoute
   '/login': typeof LoginRoute
   '/set-password': typeof SetPasswordRoute
+  '/accounts': typeof AppAccountsRoute
   '/budgets': typeof AppBudgetsRoute
   '/income': typeof AppIncomeRoute
   '/projections': typeof AppProjectionsRoute
@@ -112,6 +119,7 @@ export interface FileRoutesByFullPath {
 export interface FileRoutesByTo {
   '/login': typeof LoginRoute
   '/set-password': typeof SetPasswordRoute
+  '/accounts': typeof AppAccountsRoute
   '/budgets': typeof AppBudgetsRoute
   '/income': typeof AppIncomeRoute
   '/projections': typeof AppProjectionsRoute
@@ -129,6 +137,7 @@ export interface FileRoutesById {
   '/_app': typeof AppRouteWithChildren
   '/login': typeof LoginRoute
   '/set-password': typeof SetPasswordRoute
+  '/_app/accounts': typeof AppAccountsRoute
   '/_app/budgets': typeof AppBudgetsRoute
   '/_app/income': typeof AppIncomeRoute
   '/_app/projections': typeof AppProjectionsRoute
@@ -147,6 +156,7 @@ export interface FileRouteTypes {
     | '/'
     | '/login'
     | '/set-password'
+    | '/accounts'
     | '/budgets'
     | '/income'
     | '/projections'
@@ -161,6 +171,7 @@ export interface FileRouteTypes {
   to:
     | '/login'
     | '/set-password'
+    | '/accounts'
     | '/budgets'
     | '/income'
     | '/projections'
@@ -177,6 +188,7 @@ export interface FileRouteTypes {
     | '/_app'
     | '/login'
     | '/set-password'
+    | '/_app/accounts'
     | '/_app/budgets'
     | '/_app/income'
     | '/_app/projections'
@@ -276,6 +288,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppBudgetsRouteImport
       parentRoute: typeof AppRoute
     }
+    '/_app/accounts': {
+      id: '/_app/accounts'
+      path: '/accounts'
+      fullPath: '/accounts'
+      preLoaderRoute: typeof AppAccountsRouteImport
+      parentRoute: typeof AppRoute
+    }
     '/_app/expenses/': {
       id: '/_app/expenses/'
       path: '/expenses'
@@ -301,6 +320,7 @@ declare module '@tanstack/react-router' {
 }
 
 interface AppRouteChildren {
+  AppAccountsRoute: typeof AppAccountsRoute
   AppBudgetsRoute: typeof AppBudgetsRoute
   AppIncomeRoute: typeof AppIncomeRoute
   AppProjectionsRoute: typeof AppProjectionsRoute
@@ -314,6 +334,7 @@ interface AppRouteChildren {
 }
 
 const AppRouteChildren: AppRouteChildren = {
+  AppAccountsRoute: AppAccountsRoute,
   AppBudgetsRoute: AppBudgetsRoute,
   AppIncomeRoute: AppIncomeRoute,
   AppProjectionsRoute: AppProjectionsRoute,

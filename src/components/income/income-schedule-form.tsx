@@ -4,13 +4,14 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { cn } from "@/lib/utils";
 import { useCreateSchedule, useUpdateSchedule } from "@/lib/mutations/income-schedules";
+import { AccountSelect } from "@/components/accounts/account-select";
+import { useAccounts } from "@/hooks/use-queries";
 import { MoneyText } from "@/components/layout/privacy-mode";
 import { formatMoney } from "@/lib/currency/format";
+import { formatCurrencyLabel } from "@/lib/currency/types";
 import type { MoneyDisplayContext } from "@/lib/currency/display";
 import {
-  currencies,
   payFrequencies,
-  type CurrencyCode,
   type PayFrequency,
 } from "@/lib/types/constants";
 import type { IncomePaySchedule } from "@/lib/types/domain";
@@ -35,15 +36,14 @@ export function IncomeScheduleForm({
   rates,
 }: IncomeScheduleFormProps) {
   const { t } = useTranslation(["income", "common"]);
+  const { data: accounts = [] } = useAccounts();
   const isEditing = Boolean(schedule);
   const [name, setName] = useState(schedule?.name ?? "");
   const [anchorDate, setAnchorDate] = useState(schedule?.anchorDate ?? "");
   const [frequency, setFrequency] = useState<PayFrequency>(
     schedule?.frequency ?? "biweekly",
   );
-  const [currency, setCurrency] = useState<CurrencyCode>(
-    schedule?.currency ?? "usd",
-  );
+  const [accountId, setAccountId] = useState(schedule?.accountId ?? "");
   const [amount, setAmount] = useState(
     schedule ? formatCentsAsDollarsInput(schedule.amount) : "",
   );
@@ -52,11 +52,21 @@ export function IncomeScheduleForm({
   const createSchedule = useCreateSchedule();
   const updateSchedule = useUpdateSchedule();
   const pending = createSchedule.isPending || updateSchedule.isPending;
+  // Scheduled income lands in the chosen account; currency follows it.
+  const selectedAccount = accounts.find((a) => a.id === accountId) ?? accounts[0];
+  const currency = selectedAccount?.currency ?? schedule?.currency ?? "usd";
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     setError("");
-    const input = { name, anchorDate, frequency, amount, currency };
+    const input = {
+      name,
+      anchorDate,
+      frequency,
+      amount,
+      currency,
+      accountId: selectedAccount?.id ?? null,
+    };
     const result = isEditing
       ? await updateSchedule.mutateAsync({ id: schedule!.id, input })
       : await createSchedule.mutateAsync(input);
@@ -133,22 +143,21 @@ export function IncomeScheduleForm({
           >
             {t("common:labelCurrency")}
           </label>
-          <select
+          <div
             id="schedule-currency"
-            value={currency}
-            onChange={(e) => setCurrency(e.target.value as CurrencyCode)}
-            className={cn(
-              "w-full border border-border bg-surface px-3 py-2 font-mono text-sm text-text outline-none transition-colors focus:border-accent focus:shadow-[0_0_8px_var(--glow-color)]",
-            )}
+            className="w-full border border-border bg-bg/50 px-3 py-2 font-mono text-sm text-muted"
           >
-            {currencies.map((c) => (
-              <option key={c} value={c}>
-                {c.toUpperCase()}
-              </option>
-            ))}
-          </select>
+            {formatCurrencyLabel(currency)}
+          </div>
         </div>
       </div>
+
+      <AccountSelect
+        id="schedule-account"
+        accounts={accounts}
+        value={selectedAccount?.id ?? ""}
+        onChange={setAccountId}
+      />
 
       <div>
         <label

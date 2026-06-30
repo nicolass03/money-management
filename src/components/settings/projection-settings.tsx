@@ -6,7 +6,6 @@ import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { SectionHeader } from "@/components/ui/section-header";
 import { useUpdateProjectionSettings } from "@/lib/mutations/settings";
-import { CURRENCY_LABELS } from "@/lib/currency/types";
 import type { CurrencyCode, IncomePaySchedule } from "@/lib/types/domain";
 import { formatFrequency } from "@/lib/income/pay-periods";
 import { cn, formatCentsAsDollarsInput } from "@/lib/utils";
@@ -24,7 +23,6 @@ export function ProjectionSettings({
   primaryScheduleId,
   projectionInitialFreeMoney,
   projectionStartDate,
-  displayCurrency,
 }: ProjectionSettingsProps) {
   const { t } = useTranslation(["settings", "common"]);
   const updateSettings = useUpdateProjectionSettings();
@@ -36,7 +34,9 @@ export function ProjectionSettings({
     const formData = new FormData(e.currentTarget);
     const result = await updateSettings.mutateAsync({
       primaryScheduleId: String(formData.get("primaryScheduleId") ?? ""),
-      initialFreeMoney: String(formData.get("initialFreeMoney") ?? ""),
+      // The projection's opening balance now comes from the sum of account initial amounts
+      // (see ~/accounts), so this control is gone; preserve the stored value untouched.
+      initialFreeMoney: formatCentsAsDollarsInput(projectionInitialFreeMoney),
       projectionStartDate: String(formData.get("projectionStartDate") ?? ""),
     });
     if (result.success) setSuccess(true);
@@ -102,25 +102,12 @@ export function ProjectionSettings({
               </p>
             </div>
 
-            <div>
-              <label
-                htmlFor="initial-free-money"
-                className="mb-2 block font-mono text-xs text-muted"
-              >
-                {t("settings:initialFreeMoney", { currency: CURRENCY_LABELS[displayCurrency] })}
-              </label>
-              <Input
-                id="initial-free-money"
-                name="initialFreeMoney"
-                type="text"
-                inputMode="decimal"
-                defaultValue={formatCentsAsDollarsInput(projectionInitialFreeMoney)}
-                placeholder="0.00"
-              />
-              <p className="mt-2 font-mono text-xs text-muted">
-                {t("settings:initialFreeMoneyHint")}
-              </p>
-            </div>
+            <p className="font-mono text-xs text-muted">
+              {t("settings:initialBalanceFromAccounts")}{" "}
+              <Link to="/accounts" className="text-accent hover:text-accent-glow">
+                ~/accounts
+              </Link>
+            </p>
 
             {updateSettings.data?.error && (
               <p className="font-mono text-xs text-danger">

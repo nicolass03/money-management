@@ -2,10 +2,10 @@ import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { AccountSelect } from "@/components/accounts/account-select";
+import { useAccounts } from "@/hooks/use-queries";
 import { useCreateExpense } from "@/lib/mutations/expenses";
 import { formatCurrencyLabel } from "@/lib/currency/types";
-import { currencies, type CurrencyCode } from "@/lib/types/constants";
-import { cn } from "@/lib/utils";
 import { TagInput } from "./tag-input";
 
 interface ExpenseFormProps {
@@ -24,15 +24,19 @@ export function ExpenseForm({
   onSuccess,
 }: ExpenseFormProps) {
   const { t } = useTranslation(["expenses", "common"]);
+  const { data: accounts = [] } = useAccounts();
   const [name, setName] = useState("");
   const [tags, setTags] = useState("");
   const [amount, setAmount] = useState("");
-  const [currency, setCurrency] = useState<CurrencyCode>("usd");
+  const [accountId, setAccountId] = useState("");
   const [date, setDate] = useState(defaultDate);
   const [isSubscription, setIsSubscription] = useState(false);
   const [error, setError] = useState("");
 
   const createExpense = useCreateExpense();
+  // Currency follows the chosen account; fall back to the first account when none is selected yet.
+  const selectedAccount = accounts.find((a) => a.id === accountId) ?? accounts[0];
+  const currency = selectedAccount?.currency ?? "usd";
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -44,6 +48,7 @@ export function ExpenseForm({
       currency,
       date,
       isSubscription,
+      accountId: selectedAccount?.id ?? null,
     });
     if (result.error) {
       setError(result.error);
@@ -52,7 +57,7 @@ export function ExpenseForm({
     setName("");
     setTags("");
     setAmount("");
-    setCurrency("usd");
+    setAccountId("");
     setDate(defaultDate);
     setIsSubscription(false);
     onSuccess?.();
@@ -95,22 +100,21 @@ export function ExpenseForm({
           <label htmlFor="oneoff-currency" className="mb-2 block font-mono text-xs text-muted">
             {t("common:labelCurrency")}
           </label>
-          <select
+          <div
             id="oneoff-currency"
-            value={currency}
-            onChange={(e) => setCurrency(e.target.value as CurrencyCode)}
-            className={cn(
-              "w-full border border-border bg-surface px-3 py-2 font-mono text-sm text-text outline-none transition-colors focus:border-accent",
-            )}
+            className="w-full border border-border bg-bg/50 px-3 py-2 font-mono text-sm text-muted"
           >
-            {currencies.map((c) => (
-              <option key={c} value={c}>
-                {formatCurrencyLabel(c)}
-              </option>
-            ))}
-          </select>
+            {formatCurrencyLabel(currency)}
+          </div>
         </div>
       </div>
+
+      <AccountSelect
+        id="oneoff-account"
+        accounts={accounts}
+        value={selectedAccount?.id ?? ""}
+        onChange={setAccountId}
+      />
 
       <div>
         <label htmlFor="oneoff-date" className="mb-2 block font-mono text-xs text-muted">

@@ -1,0 +1,20 @@
+{
+  "title": "cuentas",
+  "subtitle": "el dinero que tienes en efectivo y cuentas bancarias",
+  "addAccount": "agregar cuenta",
+  "formHint": "el nombre es opcional. la moneda y el saldo inicial son fijos por cuenta.",
+  "labelAccount": "cuenta",
+  "labelName": "nombre (opcional)",
+  "namePlaceholder": "efectivo, euros, ahorros…",
+  "labelInitialAmount": "monto inicial",
+  "initialAmountPlaceholder": "0.00",
+  "submitAdd": "agregar cuenta",
+  "unnamed": "sin nombre",
+  "noAccounts": "aún no hay cuentas",
+  "empty": "aún no hay cuentas — agrega una para registrar saldos",
+  "balance": "saldo",
+  "initial": "inicial",
+  "badgeNetWorth": " patrimonio",
+  "archive": "archivar",
+  "confirmArchive": "¿archivar esta cuenta? su historial se conserva, pero sale de los selectores y del total de proyección."
+}
