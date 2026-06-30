@@ -54,10 +54,6 @@ export function AccountList({ accounts, loading = false }: AccountListProps) {
                 {name}{" "}
                 <span className="text-muted">· {account.currency.toUpperCase()}</span>
               </p>
-              <p className="mt-1 font-mono text-xs text-muted">
-                {t("accounts:initial")}:{" "}
-                <MoneyText value={formatMoney(account.initialAmount, account.currency)} />
-              </p>
             </div>
             <div className="flex shrink-0 items-center gap-3">
               <div className="text-right">
