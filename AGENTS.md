@@ -103,7 +103,7 @@ Each section shows **inline skeletons** (`src/components/ui/skeleton.tsx`, `src/
 
 **Budgets, income, projections** use the same pattern — page shell + section skeletons; no full-screen `LoadingIndicator` on those tabs (component kept for auth/login and other routes).
 
-**Projections list (web):** The API returns all periods (including past) for correct `cumulativeFree` math. The route filters with `visibleProjectionRows()` (`src/lib/projections/projection-display.ts`) before render — current pay period first, up to 10 upcoming, past hidden (parity with iOS `ProjectionDisplayLogic`).
+**Projections list (web):** The API returns all periods (including past) for correct `cumulativeFree` math. The route filters with `visibleProjectionRows()` (`src/lib/projections/projection-display.ts`) before render — up to 2 past pay periods, then current, then up to 10 upcoming; older past hidden (parity with iOS `ProjectionDisplayLogic`). Past rows use frozen history aggregates; expanding a past row lazy-loads expense items via `GET /projections/period-items`.
 
 ## Railway deployment (UI)
 

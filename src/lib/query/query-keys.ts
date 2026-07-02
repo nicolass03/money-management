@@ -19,6 +19,9 @@ export const queryKeys = {
   schedules: () => ["schedules"] as const,
   accounts: () => ["accounts"] as const,
   projections: () => ["projections", localTodayIso()] as const,
+  projectionPeriodItems: (payDate: string) =>
+    ["projectionPeriodItems", payDate, localTodayIso()] as const,
+  projectionPeriodItemsAll: () => ["projectionPeriodItems"] as const,
   tags: () => ["tags"] as const,
   savings: () => ["savings"] as const,
   reportSummaries: () => ["reportSummary"] as const,
@@ -44,6 +47,7 @@ const invalidationMap: Record<InvalidationEvent, QueryKey[]> = {
   expenseChange: [
     queryKeys.expenses(),
     queryKeys.projections(),
+    queryKeys.projectionPeriodItemsAll(),
     queryKeys.expensePeriodViews(),
     queryKeys.upcomingPayable(),
     queryKeys.reportSummaries(),
@@ -82,6 +86,7 @@ const invalidationMap: Record<InvalidationEvent, QueryKey[]> = {
     queryKeys.schedules(),
     queryKeys.income(),
     queryKeys.projections(),
+    queryKeys.projectionPeriodItemsAll(),
     queryKeys.settings(),
     queryKeys.expensePeriodViews(),
     queryKeys.accounts(),
@@ -90,6 +95,7 @@ const invalidationMap: Record<InvalidationEvent, QueryKey[]> = {
     queryKeys.settings(),
     queryKeys.moneyContext(),
     queryKeys.projections(),
+    queryKeys.projectionPeriodItemsAll(),
     queryKeys.income(),
     queryKeys.expenses(),
     queryKeys.expensePeriodViews(),

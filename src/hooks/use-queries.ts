@@ -10,7 +10,10 @@ import { getIncome } from "@/lib/api/income";
 import { getIncomeScheduleById, getIncomeSchedules } from "@/lib/api/income-schedules";
 import { getMoneyContext } from "@/lib/api/money-context";
 import { getPlannedExpenses } from "@/lib/api/planned-expenses";
-import { getProjectionsFromApi } from "@/lib/api/projections";
+import {
+  getProjectionPeriodItems,
+  getProjectionsFromApi,
+} from "@/lib/api/projections";
 import { getReportSummary } from "@/lib/api/reports";
 import { getRecurringExpenses } from "@/lib/api/recurring-expenses";
 import { getSubscriptionReminders } from "@/lib/api/subscription-reminders";
@@ -150,6 +153,25 @@ export function useProjections(enabled = true) {
     enabled,
     retry: (failureCount, error) => {
       if (error instanceof ApiError && (error.status === 400 || error.status === 401)) {
+        return false;
+      }
+      return failureCount < 1;
+    },
+  });
+}
+
+// Lazily fetches a past period's expense-item breakdown (frozen history rows carry aggregates
+// only). Enabled only when a past row without inline items is opened.
+export function useProjectionPeriodItems(
+  payDate: string | null,
+  enabled: boolean,
+) {
+  return useQuery({
+    queryKey: queryKeys.projectionPeriodItems(payDate ?? ""),
+    queryFn: () => getProjectionPeriodItems(payDate!),
+    enabled: enabled && !!payDate,
+    retry: (failureCount, error) => {
+      if (error instanceof ApiError && (error.status === 400 || error.status === 404)) {
         return false;
       }
       return failureCount < 1;

@@ -4,8 +4,11 @@ import type { ProjectionRow } from "@/lib/types/domain";
 /** Matches iOS `ProjectionDisplayLogic.futurePeriodLimit`. */
 export const FUTURE_PERIOD_LIMIT = 10;
 
+/** Matches iOS `ProjectionDisplayLogic.pastPeriodLimit`. */
+export const PAST_PERIOD_LIMIT = 2;
+
 /**
- * Current pay period first, then upcoming periods — past rows hidden.
+ * Up to two past pay periods, then current, then upcoming — older past rows hidden.
  * Parity with iOS `ProjectionDisplayLogic.visibleRows`.
  */
 export function visibleProjectionRows(
@@ -20,26 +23,34 @@ export function visibleProjectionRows(
     (row) => today >= row.startDate && today <= row.endDate,
   );
   if (currentIndex !== -1) {
+    const preceding = sorted.slice(
+      Math.max(0, currentIndex - PAST_PERIOD_LIMIT),
+      currentIndex,
+    );
     const current = sorted[currentIndex];
     const following = sorted.slice(
       currentIndex + 1,
       currentIndex + 1 + FUTURE_PERIOD_LIMIT,
     );
-    return [current, ...following];
+    return [...preceding, current, ...following];
   }
 
   const upcomingIndex = sorted.findIndex((row) => row.endDate >= today);
   if (upcomingIndex !== -1) {
+    const preceding = sorted.slice(
+      Math.max(0, upcomingIndex - PAST_PERIOD_LIMIT),
+      upcomingIndex,
+    );
     const anchor = sorted[upcomingIndex];
     const following = sorted.slice(
       upcomingIndex + 1,
       upcomingIndex + 1 + FUTURE_PERIOD_LIMIT,
     );
-    return [anchor, ...following];
+    return [...preceding, anchor, ...following];
   }
 
-  const latest = sorted.at(-1);
-  return latest ? [latest] : [];
+  const lastIndex = sorted.length - 1;
+  return sorted.slice(Math.max(0, lastIndex - PAST_PERIOD_LIMIT), lastIndex + 1);
 }
 
 export function isCurrentProjectionPeriod(
