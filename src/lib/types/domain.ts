@@ -241,15 +241,21 @@ export interface ReportTimeBucket {
   net: number;
 }
 
+export interface ReportExtraSpentBucket {
+  payDate: string;
+  startDate: string;
+  endDate: string;
+  label: string;
+  extraSpent: number;
+}
+
+export interface ReportExtraSpentTimeSeries {
+  buckets: ReportExtraSpentBucket[];
+}
+
 export interface ReportTimeSeries {
   granularity: ReportTimeGranularity;
   buckets: ReportTimeBucket[];
-}
-
-export interface ReportBudgetSpend {
-  budgetId: string;
-  name: string;
-  amount: number;
 }
 
 export interface ReportSummary {
@@ -263,7 +269,8 @@ export interface ReportSummary {
   kpis: ReportKpis;
   priorPeriod: ReportPriorPeriod | null;
   byTag: { tag: string; amount: number }[];
+  extraSpentByTag: { tag: string; amount: number }[];
   subscriptionSplit: { subscription: number; other: number };
   timeSeries: ReportTimeSeries;
-  topBudgets: ReportBudgetSpend[];
+  extraSpentTimeSeries: ReportExtraSpentTimeSeries;
 }

@@ -87,7 +87,7 @@ If `cargo run` fails with `DATABASE_URL is required` while `.env` is set, the sh
 
 ## Reports tab (web only)
 
-- Route `/reports` — custom date range (`from`/`to` native date inputs + presets). Data from `GET /api/v1/reports/summary` via `useReportSummary(from, to)`. KPIs + charts (income vs expenses, by tag, subscription split, net trend, top budgets). Prior-period % deltas on KPIs. Max range 730 days. Not on iOS.
+- Route `/reports` — custom date range (`from`/`to` native date inputs + presets). Data from `GET /api/v1/reports/summary` via `useReportSummary(from, to)`. KPIs + charts (income vs expenses, by tag, subscription split, net trend, extra spend by pay period, extra spend by tag). Prior-period % deltas on KPIs. Max range 730 days. Not on iOS.
 
 ## Expenses tab loading
 

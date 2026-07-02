@@ -26,7 +26,7 @@ import { formatMoney } from "@/lib/currency/format";
 import type { MoneyDisplayContext } from "@/lib/currency/display";
 import { maskNumericValue } from "@/lib/privacy/mask";
 import type { ReportSummary, ReportTimeGranularity } from "@/lib/types/domain";
-import { cn } from "@/lib/utils";
+import { cn, formatDate } from "@/lib/utils";
 
 interface ReportChartsProps extends MoneyDisplayContext {
   report: ReportSummary;
@@ -79,6 +79,15 @@ export function ReportCharts({
     [report.timeSeries.buckets, minorDivisor],
   );
 
+  const extraSpentTimeSeriesData = useMemo(
+    () =>
+      report.extraSpentTimeSeries.buckets.map((bucket) => ({
+        label: formatDate(bucket.payDate),
+        extraSpent: bucket.extraSpent / minorDivisor,
+      })),
+    [report.extraSpentTimeSeries.buckets, minorDivisor],
+  );
+
   const tagData = useMemo(
     () =>
       report.byTag
@@ -91,6 +100,15 @@ export function ReportCharts({
           amount: entry.amount / minorDivisor,
         })),
     [report.byTag, selectedTags, minorDivisor],
+  );
+
+  const extraSpentByTagData = useMemo(
+    () =>
+      report.extraSpentByTag.map((entry) => ({
+        tag: entry.tag,
+        amount: entry.amount / minorDivisor,
+      })),
+    [report.extraSpentByTag, minorDivisor],
   );
 
   const subscriptionData = useMemo(
@@ -107,19 +125,14 @@ export function ReportCharts({
     [report.subscriptionSplit, minorDivisor, t],
   );
 
-  const topBudgetData = useMemo(
-    () =>
-      report.topBudgets.map((entry) => ({
-        name: entry.name,
-        amount: entry.amount / minorDivisor,
-      })),
-    [report.topBudgets, minorDivisor],
-  );
-
   const allTags = report.byTag.map((entry) => entry.tag);
   const hasSubscriptionData =
     report.subscriptionSplit.subscription > 0 ||
     report.subscriptionSplit.other > 0;
+  const hasExtraSpentData = extraSpentTimeSeriesData.some(
+    (bucket) => bucket.extraSpent > 0,
+  );
+  const hasExtraSpentByTagData = extraSpentByTagData.length > 0;
   const hasAnyData =
     report.kpis.expenseCount > 0 || report.kpis.incomeCount > 0;
 
@@ -351,50 +364,101 @@ export function ReportCharts({
             </LineChart>
           </ResponsiveContainer>
         </Card>
-      </div>
 
-      {topBudgetData.length > 0 && (
+        <Card>
+          <SectionHeader
+            title={t("chartExtraSpentTrend")}
+            subtitle={t("chartExtraSpentTrendSubtitle")}
+            className="mb-3"
+          />
+          {hasExtraSpentData ? (
+            <ResponsiveContainer width="100%" height={220}>
+              <LineChart data={extraSpentTimeSeriesData}>
+                <XAxis
+                  dataKey="label"
+                  tick={axisTick}
+                  axisLine={{ stroke: chartTheme.axis }}
+                  tickLine={false}
+                  interval="preserveStartEnd"
+                />
+                <YAxis
+                  tick={axisTick}
+                  axisLine={{ stroke: chartTheme.axis }}
+                  tickLine={false}
+                  tickFormatter={(value) =>
+                    privacyMode
+                      ? maskNumericValue(String(value))
+                      : String(value)
+                  }
+                />
+                <Tooltip
+                  contentStyle={{
+                    background: chartTheme.tooltipBg,
+                    border: `1px solid ${chartTheme.tooltipBorder}`,
+                    fontFamily: "monospace",
+                    fontSize: 12,
+                  }}
+                  formatter={(value) => formatChartValue(Number(value))}
+                />
+                <Line
+                  type="monotone"
+                  dataKey="extraSpent"
+                  name={t("seriesExtraSpent")}
+                  stroke={chartTheme.pieColors[2]}
+                  strokeWidth={2}
+                  dot={{ fill: chartTheme.pieColors[2], r: 3 }}
+                />
+              </LineChart>
+            </ResponsiveContainer>
+          ) : (
+            <p className="font-mono text-sm text-muted">{t("noData")}</p>
+          )}
+        </Card>
+
         <Card>
           <p className="mb-2 font-mono text-xs text-muted">
-            {t("chartTopBudgets")}
+            {t("chartExtraSpentByTag")}
           </p>
-          <ResponsiveContainer width="100%" height={180}>
-            <BarChart data={topBudgetData} layout="vertical">
-              <XAxis
-                type="number"
-                tick={axisTick}
-                axisLine={{ stroke: chartTheme.axis }}
-                tickLine={false}
-                tickFormatter={(value) =>
-                  privacyMode ? maskNumericValue(String(value)) : String(value)
-                }
-              />
-              <YAxis
-                type="category"
-                dataKey="name"
-                width={100}
-                tick={axisTick}
-                axisLine={{ stroke: chartTheme.axis }}
-                tickLine={false}
-              />
-              <Tooltip
-                contentStyle={{
-                  background: chartTheme.tooltipBg,
-                  border: `1px solid ${chartTheme.tooltipBorder}`,
-                  fontFamily: "monospace",
-                  fontSize: 12,
-                }}
-                formatter={(value) => formatChartValue(Number(value))}
-              />
-              <Bar
-                dataKey="amount"
-                fill={chartTheme.barFill}
-                radius={[0, 2, 2, 0]}
-              />
-            </BarChart>
-          </ResponsiveContainer>
+          {hasExtraSpentByTagData ? (
+            <ResponsiveContainer width="100%" height={200}>
+              <BarChart data={extraSpentByTagData}>
+                <XAxis
+                  dataKey="tag"
+                  tick={axisTick}
+                  axisLine={{ stroke: chartTheme.axis }}
+                  tickLine={false}
+                />
+                <YAxis
+                  tick={axisTick}
+                  axisLine={{ stroke: chartTheme.axis }}
+                  tickLine={false}
+                  tickFormatter={(value) =>
+                    privacyMode
+                      ? maskNumericValue(String(value))
+                      : String(value)
+                  }
+                />
+                <Tooltip
+                  contentStyle={{
+                    background: chartTheme.tooltipBg,
+                    border: `1px solid ${chartTheme.tooltipBorder}`,
+                    fontFamily: "monospace",
+                    fontSize: 12,
+                  }}
+                  formatter={(value) => formatChartValue(Number(value))}
+                />
+                <Bar
+                  dataKey="amount"
+                  fill={chartTheme.pieColors[2]}
+                  radius={[2, 2, 0, 0]}
+                />
+              </BarChart>
+            </ResponsiveContainer>
+          ) : (
+            <p className="font-mono text-sm text-muted">{t("noData")}</p>
+          )}
         </Card>
-      )}
+      </div>
     </motion.div>
   );
 }
