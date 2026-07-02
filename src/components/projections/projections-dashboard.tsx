@@ -6,7 +6,7 @@ import { SectionHeader } from "@/components/ui/section-header";
 import { Skeleton } from "@/components/ui/skeleton";
 import type { MoneyDisplayContext } from "@/lib/currency/display";
 import type { IncomePaySchedule } from "@/lib/types/domain";
-import type { ProjectionRow } from "@/lib/projections/build-projection";
+import type { ProjectionRow } from "@/lib/types/domain";
 import { ProjectionsTable } from "./projections-table";
 
 interface ProjectionsDashboardProps extends MoneyDisplayContext {

@@ -21,15 +21,11 @@ export async function createAccount(data: AccountInput): Promise<Account> {
 export async function updateAccount(
   id: string,
   data: AccountInput,
-): Promise<Account | null> {
-  try {
-    return await apiFetch<Account>(`/api/v1/accounts/${id}`, {
-      method: "PATCH",
-      body: JSON.stringify(data),
-    });
-  } catch {
-    return null;
-  }
+): Promise<Account> {
+  return apiFetch<Account>(`/api/v1/accounts/${id}`, {
+    method: "PATCH",
+    body: JSON.stringify(data),
+  });
 }
 
 export async function deleteAccount(id: string): Promise<void> {

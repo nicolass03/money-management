@@ -17,6 +17,29 @@ interface AccountsSectionProps extends MoneyDisplayContext {
   loading?: boolean;
 }
 
+/**
+ * Sum of every account balance in the display currency, or `null` if a foreign-currency account
+ * can't be converted (missing FX rate) — callers omit the total rather than show a mixed-currency
+ * sum that reads as one currency.
+ */
+function computeNetWorth(
+  accounts: Account[],
+  ctx: MoneyDisplayContext,
+): number | null {
+  let sum = 0;
+  for (const account of accounts) {
+    if (account.currency === ctx.displayCurrency) {
+      sum += account.balance;
+      continue;
+    }
+    const from = ctx.rates.rates[account.currency.toUpperCase()];
+    const to = ctx.rates.rates[ctx.displayCurrency.toUpperCase()];
+    if (!from || !to) return null;
+    sum += toDisplayAmount(account.balance, account.currency, ctx);
+  }
+  return sum;
+}
+
 export function AccountsSection({
   accounts,
   loading = false,
@@ -27,11 +50,10 @@ export function AccountsSection({
   const [showAdd, setShowAdd] = useState(false);
   const ctx = { displayCurrency, rates };
 
-  // Net worth: every account's current balance summed into the display currency.
-  const netWorth = accounts.reduce(
-    (sum, account) => sum + toDisplayAmount(account.balance, account.currency, ctx),
-    0,
-  );
+  // Net worth: every account's current balance summed into the display currency. If any account
+  // holds a foreign currency we can't convert (missing FX rate), we return null rather than a
+  // meaningless total that silently mixes currencies.
+  const netWorth = computeNetWorth(accounts, ctx);
 
   return (
     <section>
@@ -45,11 +67,10 @@ export function AccountsSection({
           {loading ? (
             <Skeleton className="h-5 w-32" />
           ) : (
-            accounts.length > 0 && (
+            accounts.length > 0 &&
+            netWorth !== null && (
               <Badge variant="accent">
-                <MoneyText
-                  value={formatMoney(netWorth, displayCurrency, displayCurrency, rates)}
-                />
+                <MoneyText value={formatMoney(netWorth, displayCurrency)} />
                 {t("accounts:badgeNetWorth")}
               </Badge>
             )

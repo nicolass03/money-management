@@ -1,4 +1,5 @@
 import { useTranslation } from "react-i18next";
+import { formatMoney } from "@/lib/currency/format";
 import { cn } from "@/lib/utils";
 import type { Account } from "@/lib/types/domain";
 
@@ -20,6 +21,10 @@ interface AccountSelectProps {
  */
 export function AccountSelect({ id, accounts, value, onChange }: AccountSelectProps) {
   const { t } = useTranslation(["accounts", "common"]);
+  // The row may still point at an archived account (absent from the active list). Keep it as a
+  // selected option so editing never silently rebinds the row to a different account.
+  const referencesArchived = value !== "" && !accounts.some((a) => a.id === value);
+  const selected = accounts.find((a) => a.id === value);
 
   return (
     <div>
@@ -33,10 +38,13 @@ export function AccountSelect({ id, accounts, value, onChange }: AccountSelectPr
         className={cn(
           "w-full border border-border bg-surface px-3 py-2 font-mono text-sm text-text outline-none transition-colors focus:border-accent focus:shadow-[0_0_8px_var(--glow-color)]",
         )}
-        disabled={accounts.length === 0}
+        disabled={accounts.length === 0 && !referencesArchived}
       >
-        {accounts.length === 0 && (
+        {accounts.length === 0 && !referencesArchived && (
           <option value="">{t("accounts:noAccounts")}</option>
+        )}
+        {referencesArchived && (
+          <option value={value}>{t("accounts:archivedAccount")}</option>
         )}
         {accounts.map((account) => (
           <option key={account.id} value={account.id}>
@@ -44,6 +52,11 @@ export function AccountSelect({ id, accounts, value, onChange }: AccountSelectPr
           </option>
         ))}
       </select>
+      {selected && (
+        <p className="mt-1 font-mono text-[10px] text-muted">
+          {t("accounts:balance")}: {formatMoney(selected.balance, selected.currency)}
+        </p>
+      )}
     </div>
   );
 }

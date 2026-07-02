@@ -26,6 +26,7 @@ export interface RecurringInput {
   tags: string;
   isSubscription: boolean;
   lastPaymentDate: string;
+  accountId: string | null;
 }
 
 function parseLastPaymentDate(value: string): string | null {
@@ -45,6 +46,7 @@ function validateRecurringInput(data: RecurringInput):
         tags: string[];
         isSubscription: boolean;
         lastPaymentDate: string | null;
+        accountId: string | null;
       };
     } {
   const name = data.name.trim();
@@ -79,6 +81,7 @@ function validateRecurringInput(data: RecurringInput):
       tags,
       isSubscription: data.isSubscription,
       lastPaymentDate,
+      accountId: data.accountId,
     },
   };
 }

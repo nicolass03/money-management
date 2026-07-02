@@ -60,6 +60,8 @@ const invalidationMap: Record<InvalidationEvent, QueryKey[]> = {
     queryKeys.projections(),
     queryKeys.expensePeriodViews(),
     queryKeys.upcomingPayable(),
+    // Materialized recurring charges land on an account, so balances can change.
+    queryKeys.accounts(),
   ],
   plannedChange: [
     queryKeys.plannedExpenses(),

@@ -6,7 +6,10 @@ import {
   useCreateRecurringExpense,
   useUpdateRecurringExpense,
 } from "@/lib/mutations/recurring-expenses";
+import { accountLabel } from "@/components/accounts/account-select";
+import { useAccounts } from "@/hooks/use-queries";
 import { formatScheduledExpenseAmount } from "@/lib/currency/expense-display";
+import { formatMoney } from "@/lib/currency/format";
 import { formatCurrencyLabel } from "@/lib/currency/types";
 import { ExpenseAmount } from "./expense-amount";
 import type { MoneyDisplayContext } from "@/lib/currency/display";
@@ -41,7 +44,8 @@ export function RecurringExpenseForm({
   displayCurrency,
   rates,
 }: RecurringExpenseFormProps) {
-  const { t } = useTranslation(["expenses", "common"]);
+  const { t } = useTranslation(["expenses", "accounts", "common"]);
+  const { data: accounts = [] } = useAccounts();
   const isEditing = Boolean(recurring);
   const [name, setName] = useState(recurring?.name ?? "");
   const [tags, setTags] = useState(
@@ -54,6 +58,9 @@ export function RecurringExpenseForm({
   const [currency, setCurrency] = useState<CurrencyCode>(
     recurring?.currency ?? "usd",
   );
+  // Optional pinned account. Empty = "auto": the charge job picks an account by currency at charge
+  // time. When an account is pinned, currency follows it (currency-follows-account).
+  const [accountId, setAccountId] = useState(recurring?.accountId ?? "");
   const [amount, setAmount] = useState(
     recurring ? formatCentsAsDollarsInput(recurring.amount) : "",
   );
@@ -70,6 +77,12 @@ export function RecurringExpenseForm({
   const updateRecurring = useUpdateRecurringExpense();
   const pending = createRecurring.isPending || updateRecurring.isPending;
 
+  const pinnedAccount = accounts.find((a) => a.id === accountId);
+  const pinnedArchived = accountId !== "" && !pinnedAccount;
+  // Currency follows a pinned (still-active) account; otherwise the free currency picker applies.
+  const effectiveCurrency: CurrencyCode = pinnedAccount?.currency ?? currency;
+  const currencyLocked = accountId !== "";
+
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     setError("");
@@ -79,9 +92,10 @@ export function RecurringExpenseForm({
       anchorDate,
       frequency,
       amount,
-      currency,
+      currency: effectiveCurrency,
       isSubscription,
       lastPaymentDate,
+      accountId: accountId || null,
     };
     const result = isEditing
       ? await updateRecurring.mutateAsync({ id: recurring!.id, input })
@@ -159,22 +173,61 @@ export function RecurringExpenseForm({
           <label htmlFor="expense-currency" className="mb-2 block font-mono text-xs text-muted">
             {t("common:labelCurrency")}
           </label>
-          <select
-            id="expense-currency"
-            name="currency"
-            value={currency}
-            onChange={(e) => setCurrency(e.target.value as CurrencyCode)}
-            className={cn(
-              "w-full border border-border bg-surface px-3 py-2 font-mono text-sm text-text outline-none transition-colors focus:border-accent",
-            )}
-          >
-            {currencies.map((c) => (
-              <option key={c} value={c}>
-                {formatCurrencyLabel(c)}
-              </option>
-            ))}
-          </select>
+          {currencyLocked ? (
+            <div
+              id="expense-currency"
+              className="w-full border border-border bg-bg/50 px-3 py-2 font-mono text-sm text-muted"
+            >
+              {formatCurrencyLabel(effectiveCurrency)}
+            </div>
+          ) : (
+            <select
+              id="expense-currency"
+              name="currency"
+              value={currency}
+              onChange={(e) => setCurrency(e.target.value as CurrencyCode)}
+              className={cn(
+                "w-full border border-border bg-surface px-3 py-2 font-mono text-sm text-text outline-none transition-colors focus:border-accent",
+              )}
+            >
+              {currencies.map((c) => (
+                <option key={c} value={c}>
+                  {formatCurrencyLabel(c)}
+                </option>
+              ))}
+            </select>
+          )}
         </div>
+      </div>
+
+      <div>
+        <label htmlFor="recurring-account" className="mb-2 block font-mono text-xs text-muted">
+          {t("accounts:labelAccountOptional")}
+        </label>
+        <select
+          id="recurring-account"
+          name="accountId"
+          value={accountId}
+          onChange={(e) => setAccountId(e.target.value)}
+          className={cn(
+            "w-full border border-border bg-surface px-3 py-2 font-mono text-sm text-text outline-none transition-colors focus:border-accent",
+          )}
+        >
+          <option value="">{t("accounts:autoByCurrency")}</option>
+          {pinnedArchived && (
+            <option value={accountId}>{t("accounts:archivedAccount")}</option>
+          )}
+          {accounts.map((account) => (
+            <option key={account.id} value={account.id}>
+              {accountLabel(account, t("accounts:unnamed"))}
+            </option>
+          ))}
+        </select>
+        {pinnedAccount && (
+          <p className="mt-1 font-mono text-[10px] text-muted">
+            {t("accounts:balance")}: {formatMoney(pinnedAccount.balance, pinnedAccount.currency)}
+          </p>
+        )}
       </div>
 
       <div>
@@ -246,7 +299,7 @@ export function RecurringExpenseForm({
                   <ExpenseAmount
                     amount={formatScheduledExpenseAmount(
                       previewAmount,
-                      currency,
+                      effectiveCurrency,
                     )}
                     className="text-xs text-danger"
                   />

@@ -92,8 +92,10 @@ export function AccountForm({ account, onCancel, onSuccess }: AccountFormProps) 
             id="account-currency"
             value={currency}
             onChange={(e) => setCurrency(e.target.value as CurrencyCode)}
+            disabled={isEditing}
             className={cn(
               "w-full border border-border bg-surface px-3 py-2 font-mono text-sm text-text outline-none transition-colors focus:border-accent focus:shadow-[0_0_8px_var(--glow-color)]",
+              isEditing && "cursor-not-allowed opacity-60",
             )}
           >
             {currencies.map((c) => (
@@ -102,6 +104,11 @@ export function AccountForm({ account, onCancel, onSuccess }: AccountFormProps) 
               </option>
             ))}
           </select>
+          {isEditing && (
+            <p className="mt-1 font-mono text-[10px] text-muted">
+              {t("accounts:currencyFixedHint")}
+            </p>
+          )}
         </div>
       </div>
 

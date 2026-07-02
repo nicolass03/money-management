@@ -87,6 +87,7 @@ export interface RecurringExpense {
   isSubscription: boolean;
   lastPaymentDate: string | null;
   cancelReminderEnabled: boolean;
+  accountId: string | null;
   createdAt: string;
   updatedAt: string;
 }

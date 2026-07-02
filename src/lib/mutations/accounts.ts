@@ -62,10 +62,11 @@ export async function updateAccountMutation(
   const result = validateAccountInput(input);
   if ("error" in result) return result;
   try {
-    const updated = await updateAccount(id, result.data);
-    if (!updated) return { error: tError("accountNotFound") };
+    await updateAccount(id, result.data);
     return { success: true };
   } catch (error) {
+    // Surface the real failure (validation, network, 5xx, a genuine 404) rather than always
+    // reporting "account not found".
     return mutationError(error, tError("failedUpdateAccount"));
   }
 }

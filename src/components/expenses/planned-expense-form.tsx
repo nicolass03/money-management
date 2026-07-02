@@ -7,6 +7,7 @@ import {
   useUpdatePlannedExpense,
 } from "@/lib/mutations/planned-expenses";
 import { AccountSelect } from "@/components/accounts/account-select";
+import { useEntryAccount } from "@/components/accounts/use-entry-account";
 import { useAccounts } from "@/hooks/use-queries";
 import { formatScheduledExpenseAmount } from "@/lib/currency/expense-display";
 import { formatCurrencyLabel } from "@/lib/currency/types";
@@ -43,7 +44,6 @@ export function PlannedExpenseForm({
     planned ? formatTagNames(planned.tags) : "",
   );
   const [date, setDate] = useState(planned?.date ?? "");
-  const [accountId, setAccountId] = useState(planned?.accountId ?? "");
   const [amount, setAmount] = useState(
     planned ? formatCentsAsDollarsInput(planned.amount) : "",
   );
@@ -53,9 +53,9 @@ export function PlannedExpenseForm({
   const createPlanned = useCreatePlannedExpense();
   const updatePlanned = useUpdatePlannedExpense();
   const pending = createPlanned.isPending || updatePlanned.isPending;
-  // Currency follows the chosen source account.
-  const selectedAccount = accounts.find((a) => a.id === accountId) ?? accounts[0];
-  const currency = selectedAccount?.currency ?? planned?.currency ?? "usd";
+  // Currency follows the chosen source account; editing keeps an existing row's account/currency.
+  const { setAccountId, currentAccountId, submitAccountId, currency } =
+    useEntryAccount(accounts, planned);
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -66,7 +66,7 @@ export function PlannedExpenseForm({
       date,
       amount,
       currency,
-      accountId: selectedAccount?.id ?? null,
+      accountId: submitAccountId,
     };
     const result = isEditing
       ? await updatePlanned.mutateAsync({ id: planned!.id, input })
@@ -150,7 +150,7 @@ export function PlannedExpenseForm({
       <AccountSelect
         id="planned-account"
         accounts={accounts}
-        value={selectedAccount?.id ?? ""}
+        value={currentAccountId}
         onChange={setAccountId}
       />
 

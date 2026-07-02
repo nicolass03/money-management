@@ -5,6 +5,7 @@ import { Input } from "@/components/ui/input";
 import { cn } from "@/lib/utils";
 import { useCreateSchedule, useUpdateSchedule } from "@/lib/mutations/income-schedules";
 import { AccountSelect } from "@/components/accounts/account-select";
+import { useEntryAccount } from "@/components/accounts/use-entry-account";
 import { useAccounts } from "@/hooks/use-queries";
 import { MoneyText } from "@/components/layout/privacy-mode";
 import { formatMoney } from "@/lib/currency/format";
@@ -43,7 +44,6 @@ export function IncomeScheduleForm({
   const [frequency, setFrequency] = useState<PayFrequency>(
     schedule?.frequency ?? "biweekly",
   );
-  const [accountId, setAccountId] = useState(schedule?.accountId ?? "");
   const [amount, setAmount] = useState(
     schedule ? formatCentsAsDollarsInput(schedule.amount) : "",
   );
@@ -52,9 +52,10 @@ export function IncomeScheduleForm({
   const createSchedule = useCreateSchedule();
   const updateSchedule = useUpdateSchedule();
   const pending = createSchedule.isPending || updateSchedule.isPending;
-  // Scheduled income lands in the chosen account; currency follows it.
-  const selectedAccount = accounts.find((a) => a.id === accountId) ?? accounts[0];
-  const currency = selectedAccount?.currency ?? schedule?.currency ?? "usd";
+  // Scheduled income lands in the chosen account; currency follows it. Editing keeps an existing
+  // schedule's account/currency instead of silently rebinding it.
+  const { setAccountId, currentAccountId, submitAccountId, currency } =
+    useEntryAccount(accounts, schedule);
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -65,7 +66,7 @@ export function IncomeScheduleForm({
       frequency,
       amount,
       currency,
-      accountId: selectedAccount?.id ?? null,
+      accountId: submitAccountId,
     };
     const result = isEditing
       ? await updateSchedule.mutateAsync({ id: schedule!.id, input })
@@ -155,7 +156,7 @@ export function IncomeScheduleForm({
       <AccountSelect
         id="schedule-account"
         accounts={accounts}
-        value={selectedAccount?.id ?? ""}
+        value={currentAccountId}
         onChange={setAccountId}
       />
 

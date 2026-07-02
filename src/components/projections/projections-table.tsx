@@ -10,7 +10,7 @@ import { maskNumericValue } from "@/lib/privacy/mask";
 import type { MoneyDisplayContext } from "@/lib/currency/display";
 import { formatProjectionExpenseAmount } from "@/lib/currency/expense-display";
 import { ExpenseAmount } from "@/components/expenses/expense-amount";
-import type { ProjectionRow } from "@/lib/projections/build-projection";
+import type { ProjectionRow } from "@/lib/types/domain";
 import { isCurrentProjectionPeriod } from "@/lib/projections/projection-display";
 import { useProjectionPeriodItems } from "@/hooks/use-queries";
 import { cn, formatDate } from "@/lib/utils";

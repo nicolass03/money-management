@@ -3,6 +3,7 @@ import { useTranslation } from "react-i18next";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { AccountSelect } from "@/components/accounts/account-select";
+import { useEntryAccount } from "@/components/accounts/use-entry-account";
 import { useAccounts } from "@/hooks/use-queries";
 import { useCreateIncome, useUpdateIncome } from "@/lib/mutations/income";
 import { formatCurrencyLabel } from "@/lib/currency/types";
@@ -30,7 +31,6 @@ export function IncomeForm({
   const [amount, setAmount] = useState(
     entry ? formatCentsAsDollarsInput(entry.amount) : "",
   );
-  const [accountId, setAccountId] = useState(entry?.accountId ?? "");
   const [date, setDate] = useState(
     entry?.date ?? defaultDate ?? localTodayIso(),
   );
@@ -39,9 +39,10 @@ export function IncomeForm({
   const createIncome = useCreateIncome();
   const updateIncome = useUpdateIncome();
   const pending = createIncome.isPending || updateIncome.isPending;
-  // Income lands in the chosen account; currency follows it.
-  const selectedAccount = accounts.find((a) => a.id === accountId) ?? accounts[0];
-  const currency = selectedAccount?.currency ?? entry?.currency ?? "usd";
+  // Income lands in the chosen account; currency follows it. Editing never silently reassigns the
+  // account/currency of an existing row (see useEntryAccount).
+  const { setAccountId, currentAccountId, submitAccountId, currency } =
+    useEntryAccount(accounts, entry);
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -51,7 +52,7 @@ export function IncomeForm({
       amount,
       currency,
       date,
-      accountId: selectedAccount?.id ?? null,
+      accountId: submitAccountId,
     };
     const result = isEditing
       ? await updateIncome.mutateAsync({ id: entry!.id, input })
@@ -125,7 +126,7 @@ export function IncomeForm({
       <AccountSelect
         id="income-account"
         accounts={accounts}
-        value={selectedAccount?.id ?? ""}
+        value={currentAccountId}
         onChange={setAccountId}
       />
 

@@ -15,6 +15,7 @@ export interface RecurringExpenseInput {
   tags: string[];
   isSubscription: boolean;
   lastPaymentDate: string | null;
+  accountId: string | null;
 }
 
 export async function getRecurringExpenses(): Promise<RecurringExpenseWithTags[]> {
