@@ -9,16 +9,12 @@ import { formatCurrencyLabel } from "@/lib/currency/types";
 import { TagInput } from "./tag-input";
 
 interface ExpenseFormProps {
-  periodStartDate: string;
-  periodEndDate: string;
   defaultDate: string;
   onCancel?: () => void;
   onSuccess?: () => void;
 }
 
 export function ExpenseForm({
-  periodStartDate,
-  periodEndDate,
   defaultDate,
   onCancel,
   onSuccess,
@@ -124,8 +120,6 @@ export function ExpenseForm({
           id="oneoff-date"
           type="date"
           value={date}
-          min={periodStartDate}
-          max={periodEndDate}
           onChange={(e) => setDate(e.target.value)}
           required
         />

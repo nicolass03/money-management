@@ -384,8 +384,6 @@ export function CurrentPeriodExpenses({
       {showAdd && canAddExpense && periodView && (
         <Card className="mb-4">
           <ExpenseForm
-            periodStartDate={periodView.period.startDate}
-            periodEndDate={periodView.period.endDate}
             defaultDate={today}
             onCancel={() => setShowAdd(false)}
             onSuccess={() => setShowAdd(false)}

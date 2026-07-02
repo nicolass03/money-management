@@ -7,6 +7,7 @@ import { CurrentPeriodExpenses } from "./current-period-expenses";
 import { ExpenseCharts } from "./expense-charts";
 import { ExpenseChartsSkeleton } from "./expense-loading-skeletons";
 import { ExpensePeriodSelector } from "./expense-period-selector";
+import { PendingPeriodButton } from "./pending-period-modal";
 import { useExpensePeriodView, useUpcomingPayable } from "@/hooks/use-queries";
 import type { MoneyDisplayContext } from "@/lib/currency/display";
 import type { ExpensePeriodKey, IncomePaySchedule } from "@/lib/types/domain";
@@ -38,6 +39,12 @@ export function ExpenseDashboard({
           className="mb-0"
         />
         <div className="flex shrink-0 items-center gap-2">
+          <PendingPeriodButton
+            cachedPeriodView={periodKey === "last-period" ? periodView : null}
+            hasPrimarySchedule={primarySchedule != null}
+            displayCurrency={displayCurrency}
+            rates={rates}
+          />
           <Link to="/expenses/recurring">
             <Button size="sm" variant="ghost">
               {t("expenses:navRecurring")}

@@ -82,7 +82,7 @@ If `cargo run` fails with `DATABASE_URL is required` while `.env` is set, the sh
 
 ## Budgets tab
 
-- Expand a budget card → `BudgetExpenseForm` adds charges. **Dated budgets** accept any expense date (no picker min/max, no budget-range validation). Open-ended budgets still require the expense date in the current pay period. Projection display unchanged — dated budgets still appear on projections from their start date.
+- Expand a budget card → `BudgetExpenseForm` adds charges. **Manual and budget expense writes** accept any valid expense date (no pay-period gate on create). No remaining-budget cap on write — tracking only. **Early pay** still requires the paid date in the current pay period. Projection display unchanged — dated budgets still appear on projections from their start date.
 
 ## Reports tab (web only)
 
