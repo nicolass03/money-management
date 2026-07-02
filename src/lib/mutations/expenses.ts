@@ -83,11 +83,6 @@ function validateExpenseInput(data: ExpenseInput):
 export async function createExpenseMutation(input: ExpenseInput): Promise<FormResult> {
   const result = validateExpenseInput(input);
   if ("error" in result) return result;
-  const period = await getCurrentPayPeriod();
-  if (!period) return { error: tError("noPrimarySchedule") };
-  if (!isDateInPeriod(result.data.date, period)) {
-    return { error: tError("dateOutsidePayPeriod") };
-  }
   try {
     await createExpense(result.data);
     return { success: true };

@@ -58,14 +58,14 @@ export function MarkEarlyPaymentPanel({
     resetForm();
   }
 
+  // Sync paid date when the parent "today" rolls over; do not depend on `selected`
+  // (a new object every render) or typing in amount will retrigger this effect.
   useEffect(() => {
-    if (!selected) {
+    if (!selectedKey) {
       return;
     }
-    setAmount(formatCentsAsDollarsInput(selected.amount));
-    setCurrency(selected.currency);
     setPaidDate(defaultPaidDate);
-  }, [selected, defaultPaidDate]);
+  }, [selectedKey, defaultPaidDate]);
 
   useEffect(() => {
     if (!markPaid.isSuccess) {
@@ -74,7 +74,7 @@ export function MarkEarlyPaymentPanel({
 
     handleClose();
     markPaid.reset();
-  }, [markPaid.isSuccess, defaultPaidDate, markPaid]);
+  }, [markPaid.isSuccess, markPaid]);
 
   function handleSelect(item: PayableFutureItem) {
     setSelectedKey(item.key);

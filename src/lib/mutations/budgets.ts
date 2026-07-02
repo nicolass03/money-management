@@ -7,34 +7,13 @@ import {
   getBudgetById,
   updateBudget,
 } from "@/lib/api/budgets";
-import { getIncomeScheduleById } from "@/lib/api/income-schedules";
-import { getUserSettingsFromApi } from "@/lib/api/settings";
 import { ApiError } from "@/lib/api/client";
-import { isDatedBudget } from "@/lib/budgets/budget-status";
 import { parseTagNames } from "@/lib/expenses/tag-utils";
-import {
-  getPeriodContaining,
-  isDateInPeriod,
-  scheduleToInput,
-} from "@/lib/income/pay-periods";
-import { localTodayIso } from "@/lib/date/local-today";
 import { invalidateAfter } from "@/lib/query/invalidation";
 import { currencies, type CurrencyCode } from "@/lib/types/constants";
 import { tError } from "@/lib/i18n/errors";
 import { parseDollarsToCents } from "@/lib/utils";
 import { mutationError, type FormResult } from "./types";
-
-function todayIso() {
-  return localTodayIso();
-}
-
-async function getCurrentPayPeriod() {
-  const settings = await getUserSettingsFromApi();
-  if (!settings.primaryScheduleId) return null;
-  const primarySchedule = await getIncomeScheduleById(settings.primaryScheduleId);
-  if (!primarySchedule) return null;
-  return getPeriodContaining(scheduleToInput(primarySchedule), todayIso());
-}
 
 function parseOptionalDate(value: string): string | null {
   const raw = value.trim();
@@ -149,16 +128,6 @@ export async function addBudgetExpenseMutation(
   if (amount === null || amount <= 0) return { error: tError("invalidAmount") };
   const date = input.date;
   if (!/^\d{4}-\d{2}-\d{2}$/.test(date)) return { error: tError("invalidDate") };
-  const remaining = budget.amount - budget.spent;
-  if (amount > remaining) return { error: tError("amountExceedsRemaining") };
-  const dated = isDatedBudget(budget);
-  if (!dated) {
-    const period = await getCurrentPayPeriod();
-    if (!period) return { error: tError("noPrimarySchedule") };
-    if (!isDateInPeriod(date, period)) {
-      return { error: tError("dateOutsidePayPeriod") };
-    }
-  }
   const name = input.name.trim() || budget.name;
   if (!name) return { error: tError("nameRequired") };
   try {

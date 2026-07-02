@@ -47,12 +47,6 @@ export function BudgetExpenseForm({ budget, onSuccess }: BudgetExpenseFormProps)
     onSuccess?.();
   }
 
-  if (remaining <= 0) {
-    return (
-      <p className="font-mono text-xs text-muted">{t("budgets:budgetFullySpent")}</p>
-    );
-  }
-
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
       {dated && (
