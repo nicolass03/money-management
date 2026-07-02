@@ -10,9 +10,11 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { MoneyText } from "@/components/layout/privacy-mode";
 import { formatMoney } from "@/lib/currency/format";
 import { toDisplayAmount, type MoneyDisplayContext } from "@/lib/currency/display";
+import { isBudgetInHistory } from "@/lib/budgets/budget-status";
 import type { BudgetWithTags, ExpenseWithTags } from "@/lib/types/domain";
 import { BudgetForm } from "./budget-form";
 import { BudgetList } from "./budget-list";
+import { BudgetTabSelector, type BudgetTab } from "./budget-tab-selector";
 
 interface BudgetsSectionProps extends MoneyDisplayContext {
   budgets: BudgetWithTags[];
@@ -31,13 +33,22 @@ export function BudgetsSection({
 }: BudgetsSectionProps) {
   const { t } = useTranslation(["budgets", "common"]);
   const [showAdd, setShowAdd] = useState(false);
+  const [tab, setTab] = useState<BudgetTab>("active");
   const ctx = { displayCurrency, rates };
   const listLoading = budgetsLoading || expensesLoading;
 
-  const activeTotal = budgets.reduce(
-    (sum, budget) => sum + toDisplayAmount(budget.amount, budget.currency, ctx),
-    0,
+  const visibleBudgets = budgets.filter((budget) =>
+    tab === "history"
+      ? isBudgetInHistory(budget)
+      : !isBudgetInHistory(budget),
   );
+
+  const activeTotal = budgets
+    .filter((budget) => !isBudgetInHistory(budget))
+    .reduce(
+      (sum, budget) => sum + toDisplayAmount(budget.amount, budget.currency, ctx),
+      0,
+    );
 
   return (
     <section>
@@ -65,7 +76,7 @@ export function BudgetsSection({
               </Badge>
             )
           )}
-          {!listLoading && (
+          {!listLoading && tab === "active" && (
             <Button
               size="sm"
               variant={showAdd ? "ghost" : "primary"}
@@ -77,7 +88,15 @@ export function BudgetsSection({
         </div>
       </div>
 
-      {showAdd && !listLoading && (
+      {!listLoading && budgets.length > 0 && (
+        <BudgetTabSelector
+          value={tab}
+          onChange={setTab}
+          className="mb-4"
+        />
+      )}
+
+      {showAdd && !listLoading && tab === "active" && (
         <Card className="mb-4">
           <p className="mb-4 font-mono text-xs text-muted">
             {t("budgets:formHint")}
@@ -92,11 +111,15 @@ export function BudgetsSection({
       )}
 
       <BudgetList
-        budgets={budgets}
+        budgets={visibleBudgets}
         budgetExpenses={budgetExpenses}
         loading={listLoading}
         displayCurrency={displayCurrency}
         rates={rates}
+        emptyMessage={
+          tab === "history" ? t("budgets:emptyHistory") : t("budgets:emptyActive")
+        }
+        onFinishSuccess={() => setTab("history")}
       />
     </section>
   );

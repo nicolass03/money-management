@@ -83,6 +83,7 @@ If `cargo run` fails with `DATABASE_URL is required` while `.env` is set, the sh
 ## Budgets tab
 
 - Expand a budget card → `BudgetExpenseForm` adds charges. **Manual and budget expense writes** accept any valid expense date (no pay-period gate on create). No remaining-budget cap on write — tracking only. **Early pay** still requires the paid date in the current pay period. Projection display unchanged — dated budgets still appear on projections from their start date.
+- **Finish budget:** `POST /api/v1/budgets/:id/complete` sets `completed_at` and closes the date range (`end_date = asOf`). Open-ended budgets become dated on finish (start = earliest expense date or `created_at`). **Active / History** tabs filter client-side: history = `completedAt != null` OR calendar-ended (`today > endDate`). Finish button on active budgets; after finish, UI switches to History. Completed budgets are read-only (no edit, no new expenses). Projections use **actual spent** immediately when `completed_at` is set (not the reserved envelope).
 
 ## Reports tab (web only)
 

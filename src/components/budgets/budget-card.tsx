@@ -5,13 +5,16 @@ import { useTranslation } from "react-i18next";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
+import { TerminalModal } from "@/components/ui/terminal-modal";
 import { MoneyText } from "@/components/layout/privacy-mode";
-import { useDeleteBudget } from "@/lib/mutations/budgets";
+import { useDeleteBudget, useFinishBudget } from "@/lib/mutations/budgets";
 import { formatMoney } from "@/lib/currency/format";
 import { toDisplayAmount, type MoneyDisplayContext } from "@/lib/currency/display";
 import type { BudgetWithTags, ExpenseWithTags } from "@/lib/types/domain";
 import {
   getBudgetStatus,
+  isBudgetFinishable,
+  isBudgetInHistory,
   isDatedBudget,
   type BudgetStatus,
 } from "@/lib/budgets/budget-status";
@@ -23,6 +26,7 @@ import { BudgetForm } from "./budget-form";
 interface BudgetCardProps extends MoneyDisplayContext {
   budget: BudgetWithTags;
   expenses: ExpenseWithTags[];
+  onFinishSuccess?: () => void;
 }
 
 const STATUS_KEYS: Record<BudgetStatus, string> = {
@@ -50,15 +54,21 @@ export function BudgetCard({
   expenses,
   displayCurrency,
   rates,
+  onFinishSuccess,
 }: BudgetCardProps) {
   const { t } = useTranslation(["budgets", "common"]);
   const [expanded, setExpanded] = useState(false);
   const [editing, setEditing] = useState(false);
+  const [finishOpen, setFinishOpen] = useState(false);
+  const [finishError, setFinishError] = useState("");
   const [pending, startTransition] = useTransition();
   const deleteBudget = useDeleteBudget();
+  const finishBudget = useFinishBudget();
   const ctx = { displayCurrency, rates };
 
   const status = getBudgetStatus(budget);
+  const inHistory = isBudgetInHistory(budget);
+  const finishable = isBudgetFinishable(budget);
   const spentDisplay = toDisplayAmount(budget.spent, budget.currency, ctx);
   const totalDisplay = toDisplayAmount(budget.amount, budget.currency, ctx);
   const progress = Math.min(100, (budget.spent / budget.amount) * 100);
@@ -69,7 +79,19 @@ export function BudgetCard({
     });
   }
 
-  if (editing) {
+  async function handleFinish() {
+    setFinishError("");
+    const result = await finishBudget.mutateAsync(budget.id);
+    if (result.error) {
+      setFinishError(result.error);
+      return;
+    }
+    setFinishOpen(false);
+    setExpanded(false);
+    onFinishSuccess?.();
+  }
+
+  if (editing && !inHistory) {
     return (
       <Card>
         <BudgetForm
@@ -90,7 +112,9 @@ export function BudgetCard({
           <div className="flex flex-wrap items-center gap-2">
             <p className="font-mono text-sm text-text">{budget.name}</p>
             <Badge variant={statusBadgeVariant(status)}>
-              {t(`budgets:${STATUS_KEYS[status]}`)}
+              {budget.completedAt != null
+                ? t("budgets:statusCompleted")
+                : t(`budgets:${STATUS_KEYS[status]}`)}
             </Badge>
           </div>
           <p className="mt-1 font-mono text-xs text-muted">
@@ -135,10 +159,24 @@ export function BudgetCard({
         </Button>
       </div>
 
-      <div className="mt-4 flex gap-2">
-        <Button size="sm" variant="ghost" onClick={() => setEditing(true)}>
-          {t("common:edit")}
-        </Button>
+      <div className="mt-4 flex flex-wrap gap-2">
+        {!inHistory && (
+          <Button size="sm" variant="ghost" onClick={() => setEditing(true)}>
+            {t("common:edit")}
+          </Button>
+        )}
+        {finishable && (
+          <Button
+            size="sm"
+            variant="ghost"
+            onClick={() => {
+              setFinishError("");
+              setFinishOpen(true);
+            }}
+          >
+            {t("budgets:finishBudget")}
+          </Button>
+        )}
         <Button
           size="sm"
           variant="danger"
@@ -148,6 +186,38 @@ export function BudgetCard({
           {pending ? t("common:deleting") : t("common:delete")}
         </Button>
       </div>
+
+      <TerminalModal
+        open={finishOpen}
+        onClose={() => setFinishOpen(false)}
+        title={t("budgets:finishConfirmTitle")}
+        subtitle={t("budgets:finishConfirmBody")}
+      >
+        <div className="space-y-4">
+          {finishError && (
+            <p className="font-mono text-sm text-danger">{finishError}</p>
+          )}
+          <div className="flex gap-2">
+            <Button
+              size="sm"
+              variant="primary"
+              loading={finishBudget.isPending}
+              onClick={handleFinish}
+            >
+              {finishBudget.isPending
+                ? t("budgets:finishing")
+                : t("budgets:finishBudget")}
+            </Button>
+            <Button
+              size="sm"
+              variant="ghost"
+              onClick={() => setFinishOpen(false)}
+            >
+              {t("common:cancel")}
+            </Button>
+          </div>
+        </div>
+      </TerminalModal>
 
       {expanded && (
         <BudgetDetail

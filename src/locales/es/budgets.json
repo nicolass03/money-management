@@ -9,7 +9,7 @@
   "datedBudgetCheckbox": "presupuesto con fechas (inicio + fin requeridos)",
   "labelStartDate": "fecha inicio:",
   "labelEndDate": "fecha fin:",
-  "datedBudgetHint": "el total completo aparece en proyecciones hasta el último día, luego el gasto real",
+  "datedBudgetHint": "el total completo aparece en proyecciones hasta el último día, luego el gasto real — finaliza antes para fijar el gasto de inmediato",
   "openEndedBudgetHint": "sin proyección hasta que gastes — los gastos aparecen en ~/gastos",
   "submitAdd": "agregar presupuesto",
   "emptyList": "> aún no hay presupuestos. agrega uno arriba.",
@@ -33,5 +33,14 @@
   "statusUpcoming": "próximo",
   "statusEnded": "terminado",
   "statusOpen": "sin fecha fin",
-  "statusDepleted": "agotado"
+  "statusDepleted": "agotado",
+  "tabActive": "activo",
+  "tabHistory": "historial",
+  "finishBudget": "finalizar",
+  "finishConfirmTitle": "finalizar presupuesto",
+  "finishConfirmBody": "esto cierra el presupuesto y lo mueve al historial. las proyecciones usarán el gasto real en lugar del total reservado. no podrás agregar más gastos.",
+  "finishing": "finalizando...",
+  "statusCompleted": "completado",
+  "emptyHistory": "> aún no hay presupuestos completados.",
+  "emptyActive": "> no hay presupuestos activos."
 }

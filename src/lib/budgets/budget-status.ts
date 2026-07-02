@@ -16,9 +16,16 @@ export function isDatedBudget(budget: {
 }
 
 export function getBudgetStatus(
-  budget: Pick<BudgetWithTags, "startDate" | "endDate" | "amount" | "spent">,
+  budget: Pick<
+    BudgetWithTags,
+    "startDate" | "endDate" | "amount" | "spent" | "completedAt"
+  >,
   today: string = localTodayIso(),
 ): BudgetStatus {
+  if (budget.completedAt != null) {
+    return "ended";
+  }
+
   if (budget.spent >= budget.amount) {
     return "depleted";
   }
@@ -52,10 +59,18 @@ export function budgetOverlapsPeriod(
 }
 
 export function getBudgetProjectionAmount(
-  budget: { amount: number; endDate: string | null },
+  budget: {
+    amount: number;
+    endDate: string | null;
+    completedAt?: string | null;
+  },
   spent: number,
   today: string,
 ): number {
+  if (budget.completedAt != null) {
+    return spent;
+  }
+
   if (!budget.endDate) {
     return 0;
   }
@@ -91,4 +106,26 @@ export function isBudgetProjectionProjected(
   }
 
   return today <= budget.endDate! && today < budget.startDate!;
+}
+
+export function isBudgetInHistory(
+  budget: Pick<BudgetWithTags, "startDate" | "endDate" | "completedAt">,
+  today: string = localTodayIso(),
+): boolean {
+  if (budget.completedAt != null) {
+    return true;
+  }
+
+  if (!isDatedBudget(budget)) {
+    return false;
+  }
+
+  return today > budget.endDate!;
+}
+
+export function isBudgetFinishable(
+  budget: Pick<BudgetWithTags, "startDate" | "endDate" | "completedAt">,
+  today: string = localTodayIso(),
+): boolean {
+  return !isBudgetInHistory(budget, today);
 }

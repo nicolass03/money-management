@@ -9,7 +9,7 @@
   "datedBudgetCheckbox": "dated budget (start + end required)",
   "labelStartDate": "start date:",
   "labelEndDate": "end date:",
-  "datedBudgetHint": "full total shows on projections until the last day, then actual spent",
+  "datedBudgetHint": "full total shows on projections until the last day, then actual spent — finish early to lock in spent immediately",
   "openEndedBudgetHint": "no projection until you spend — expenses appear on ~/expenses",
   "submitAdd": "add budget",
   "emptyList": "> no budgets yet. add one above.",
@@ -33,5 +33,14 @@
   "statusUpcoming": "upcoming",
   "statusEnded": "ended",
   "statusOpen": "open-ended",
-  "statusDepleted": "depleted"
+  "statusDepleted": "depleted",
+  "tabActive": "active",
+  "tabHistory": "history",
+  "finishBudget": "finish",
+  "finishConfirmTitle": "finish budget",
+  "finishConfirmBody": "this closes the budget and moves it to history. projections will use actual spent instead of the reserved total. you won't be able to add more expenses.",
+  "finishing": "finishing...",
+  "statusCompleted": "completed",
+  "emptyHistory": "> no completed budgets yet.",
+  "emptyActive": "> no active budgets."
 }

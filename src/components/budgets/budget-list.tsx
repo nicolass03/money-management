@@ -11,6 +11,8 @@ interface BudgetListProps extends MoneyDisplayContext {
   budgets: BudgetWithTags[];
   budgetExpenses: Record<string, ExpenseWithTags[]>;
   loading?: boolean;
+  emptyMessage?: string;
+  onFinishSuccess?: () => void;
 }
 
 const GROUP_ORDER = [
@@ -33,6 +35,8 @@ export function BudgetList({
   budgets,
   budgetExpenses,
   loading = false,
+  emptyMessage,
+  onFinishSuccess,
   displayCurrency,
   rates,
 }: BudgetListProps) {
@@ -45,7 +49,7 @@ export function BudgetList({
   if (budgets.length === 0) {
     return (
       <p className="font-mono text-sm text-muted">
-        {t("budgets:emptyList")}
+        {emptyMessage ?? t("budgets:emptyList")}
       </p>
     );
   }
@@ -79,6 +83,7 @@ export function BudgetList({
                   expenses={budgetExpenses[budget.id] ?? []}
                   displayCurrency={displayCurrency}
                   rates={rates}
+                  onFinishSuccess={onFinishSuccess}
                 />
               ))}
             </div>

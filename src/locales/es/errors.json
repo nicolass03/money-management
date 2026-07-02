@@ -50,6 +50,7 @@
   "dateOutsideBudgetPeriod": "la fecha debe estar dentro del periodo del presupuesto",
   "failedAddBudgetExpense": "no se pudo agregar el gasto",
   "failedDeleteBudgetExpense": "no se pudo eliminar el gasto",
+  "failedFinishBudget": "no se pudo finalizar el presupuesto",
   "failedCreateIncome": "no se pudo crear el ingreso",
   "incomeNotFound": "ingreso no encontrado",
   "scheduledIncomeNotEditable": "el ingreso programado no se puede editar aquí",

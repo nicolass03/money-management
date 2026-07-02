@@ -127,6 +127,7 @@ export interface Budget {
   endDate: string | null;
   createdAt: string;
   updatedAt: string;
+  completedAt: string | null;
 }
 
 export type BudgetWithTags = Budget & { tags: string[]; spent: number };

@@ -1,5 +1,6 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import {
+  completeBudget,
   createBudget,
   createBudgetExpense,
   deleteBudget,
@@ -13,6 +14,7 @@ import { invalidateAfter } from "@/lib/query/invalidation";
 import { currencies, type CurrencyCode } from "@/lib/types/constants";
 import { tError } from "@/lib/i18n/errors";
 import { parseDollarsToCents } from "@/lib/utils";
+import { localTodayIso } from "@/lib/date/local-today";
 import { mutationError, type FormResult } from "./types";
 
 function parseOptionalDate(value: string): string | null {
@@ -150,6 +152,15 @@ export async function deleteBudgetExpenseMutation(
   }
 }
 
+export async function finishBudgetMutation(id: string): Promise<FormResult> {
+  try {
+    await completeBudget(id, localTodayIso());
+    return { success: true };
+  } catch (error) {
+    return mutationError(error, tError("failedFinishBudget"));
+  }
+}
+
 function useBudgetInvalidation() {
   const queryClient = useQueryClient();
   return (result: FormResult) => {
@@ -206,6 +217,14 @@ export function useDeleteBudgetExpense() {
       budgetId: string;
       expenseId: string;
     }) => deleteBudgetExpenseMutation(budgetId, expenseId),
+    onSuccess: onDone,
+  });
+}
+
+export function useFinishBudget() {
+  const onDone = useBudgetInvalidation();
+  return useMutation({
+    mutationFn: finishBudgetMutation,
     onSuccess: onDone,
   });
 }

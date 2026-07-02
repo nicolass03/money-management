@@ -7,6 +7,7 @@ import { useDeleteBudgetExpense } from "@/lib/mutations/budgets";
 import { formatChargedExpenseAmount } from "@/lib/currency/expense-display";
 import type { MoneyDisplayContext } from "@/lib/currency/display";
 import type { BudgetWithTags, ExpenseWithTags } from "@/lib/types/domain";
+import { isBudgetInHistory } from "@/lib/budgets/budget-status";
 import { ExpenseAmount } from "@/components/expenses/expense-amount";
 import { TagList } from "@/components/expenses/tag-input";
 import { formatDate } from "@/lib/utils";
@@ -26,6 +27,7 @@ export function BudgetDetail({
   const { t } = useTranslation(["budgets", "common"]);
   const [pending, startTransition] = useTransition();
   const deleteBudgetExpense = useDeleteBudgetExpense();
+  const inHistory = isBudgetInHistory(budget);
 
   function handleDelete(expenseId: string) {
     startTransition(async () => {
@@ -38,12 +40,14 @@ export function BudgetDetail({
 
   return (
     <div className="mt-4 space-y-4 border-t border-border/60 pt-4">
-      <div>
-        <p className="mb-3 font-mono text-xs text-muted">
-          {t("budgets:addExpenseSection")}
-        </p>
-        <BudgetExpenseForm budget={budget} />
-      </div>
+      {!inHistory && (
+        <div>
+          <p className="mb-3 font-mono text-xs text-muted">
+            {t("budgets:addExpenseSection")}
+          </p>
+          <BudgetExpenseForm budget={budget} />
+        </div>
+      )}
 
       {expenses.length > 0 && (
         <div>

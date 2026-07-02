@@ -58,6 +58,16 @@ export async function deleteBudget(id: string): Promise<void> {
   await apiFetch(`/api/v1/budgets/${id}`, { method: "DELETE" });
 }
 
+export async function completeBudget(
+  id: string,
+  asOf?: string,
+): Promise<BudgetWithTags> {
+  return apiFetch<BudgetWithTags>(`/api/v1/budgets/${id}/complete`, {
+    method: "POST",
+    body: JSON.stringify(asOf ? { asOf } : {}),
+  });
+}
+
 export async function getBudgetExpenses(
   budgetId: string,
 ): Promise<ExpenseWithTags[]> {
