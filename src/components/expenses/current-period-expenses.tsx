@@ -182,7 +182,7 @@ function ExpenseRow({
 
   function rowMetaSuffix() {
     if (item.isBudgetSummary) {
-      return t("expenses:rowSuffixBudget");
+      return null;
     }
     if (item.projected) {
       return t("expenses:rowSuffixDue");
@@ -195,7 +195,7 @@ function ExpenseRow({
 
   function rowMetaPrefix() {
     if (item.isBudgetSummary) {
-      return t("expenses:rowBudgetTracking");
+      return null;
     }
     if (item.projected) {
       return t("expenses:rowDue", { date: formatDate(dueDate(item)) });
@@ -236,10 +236,19 @@ function ExpenseRow({
             <Badge variant="warning">{t("expenses:badgeExtra")}</Badge>
           )}
         </div>
-        <p className="font-mono text-xs text-muted">
-          {rowMetaPrefix()} {"//"} <TagList tags={item.tags} />
-          {rowMetaSuffix() != null && <> {rowMetaSuffix()}</>}
-        </p>
+        {(item.isBudgetSummary ? item.tags.length > 0 : true) && (
+          <p className="font-mono text-xs text-muted">
+            {!item.isBudgetSummary && (
+              <>
+                {rowMetaPrefix()} {"//"}{" "}
+              </>
+            )}
+            <TagList tags={item.tags} />
+            {!item.isBudgetSummary && rowMetaSuffix() != null && (
+              <> {rowMetaSuffix()}</>
+            )}
+          </p>
+        )}
       </div>
       <div className="text-right">
         {canEdit && editingId === item.id ? (
@@ -294,10 +303,6 @@ function dueDate(item: ProjectionExpenseItem): string {
   return item.scheduledDate ?? item.date;
 }
 
-function sortByDateDesc(items: ProjectionExpenseItem[]): ProjectionExpenseItem[] {
-  return [...items].sort((a, b) => dueDate(b).localeCompare(dueDate(a)));
-}
-
 export function CurrentPeriodExpenses({
   primarySchedule,
   periodView,
@@ -339,9 +344,7 @@ export function CurrentPeriodExpenses({
     return privacyMode ? maskNumericValue(formatted) : formatted;
   }
 
-  const listItems = sortByDateDesc(
-    (periodView?.items ?? []).filter((item) => !item.projected),
-  );
+  const listItems = (periodView?.items ?? []).filter((item) => !item.projected);
 
   const total = listItems.reduce((sum, item) => sum + item.convertedAmount, 0);
 

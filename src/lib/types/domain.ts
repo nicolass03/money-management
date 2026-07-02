@@ -161,6 +161,7 @@ export interface ProjectionExpenseItem {
   tags: string[];
   isSubscription: boolean;
   projected: boolean;
+  createdAt?: string;
 }
 
 export interface ProjectionRow {
