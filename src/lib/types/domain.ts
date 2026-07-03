@@ -15,7 +15,6 @@ export interface UserSettings {
   language: AppLanguage;
   primaryScheduleId: string | null;
   primarySchedule?: IncomePaySchedule | null;
-  projectionInitialFreeMoney: number;
   projectionStartDate: string | null;
   extraSpentLimit: number | null;
   theme: string;

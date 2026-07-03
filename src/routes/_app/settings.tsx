@@ -47,7 +47,6 @@ function SettingsPage() {
       <ProjectionSettings
         schedules={schedules.data ?? []}
         primaryScheduleId={settings.data.primaryScheduleId}
-        projectionInitialFreeMoney={settings.data.projectionInitialFreeMoney}
         projectionStartDate={settings.data.projectionStartDate}
         displayCurrency={settings.data.displayCurrency}
       />

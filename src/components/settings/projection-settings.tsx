@@ -8,12 +8,11 @@ import { SectionHeader } from "@/components/ui/section-header";
 import { useUpdateProjectionSettings } from "@/lib/mutations/settings";
 import type { CurrencyCode, IncomePaySchedule } from "@/lib/types/domain";
 import { formatFrequency } from "@/lib/income/pay-periods";
-import { cn, formatCentsAsDollarsInput } from "@/lib/utils";
+import { cn } from "@/lib/utils";
 
 interface ProjectionSettingsProps {
   schedules: IncomePaySchedule[];
   primaryScheduleId: string | null;
-  projectionInitialFreeMoney: number;
   projectionStartDate: string | null;
   displayCurrency: CurrencyCode;
 }
@@ -21,7 +20,6 @@ interface ProjectionSettingsProps {
 export function ProjectionSettings({
   schedules,
   primaryScheduleId,
-  projectionInitialFreeMoney,
   projectionStartDate,
 }: ProjectionSettingsProps) {
   const { t } = useTranslation(["settings", "common"]);
@@ -34,9 +32,6 @@ export function ProjectionSettings({
     const formData = new FormData(e.currentTarget);
     const result = await updateSettings.mutateAsync({
       primaryScheduleId: String(formData.get("primaryScheduleId") ?? ""),
-      // The projection's opening balance now comes from the sum of account initial amounts
-      // (see ~/accounts), so this control is gone; preserve the stored value untouched.
-      initialFreeMoney: formatCentsAsDollarsInput(projectionInitialFreeMoney),
       projectionStartDate: String(formData.get("projectionStartDate") ?? ""),
     });
     if (result.success) setSuccess(true);

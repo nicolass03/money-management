@@ -38,10 +38,10 @@ export function useSettings(enabled = true) {
   });
 }
 
-export function useMoneyContext(forceRefresh = false) {
+export function useMoneyContext() {
   return useQuery({
-    queryKey: queryKeys.moneyContext(forceRefresh),
-    queryFn: () => getMoneyContext({ forceRefresh }),
+    queryKey: queryKeys.moneyContext(),
+    queryFn: () => getMoneyContext(),
   });
 }
 

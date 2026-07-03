@@ -17,6 +17,23 @@ export default defineConfig({
       "@": path.resolve(__dirname, "./src"),
     },
   },
+  build: {
+    rollupOptions: {
+      output: {
+        // Split large, rarely-changing vendor libraries out of the main entry chunk so they cache
+        // independently and the initial bundle shrinks. (Charts/recharts are already split by their
+        // own route.)
+        manualChunks: {
+          tanstack: [
+            "@tanstack/react-query",
+            "@tanstack/react-router",
+          ],
+          motion: ["framer-motion"],
+          supabase: ["@supabase/supabase-js"],
+        },
+      },
+    },
+  },
   server: {
     port: 3000,
   },

@@ -2,8 +2,10 @@ import { localTodayIso } from "@/lib/date/local-today";
 
 export const queryKeys = {
   settings: () => ["settings"] as const,
-  moneyContext: (forceRefresh?: boolean) =>
-    ["moneyContext", forceRefresh ?? false] as const,
+  // The money context is a single cached resource; forced exchange-rate refreshes go through
+  // refreshExchangeRatesMutation (a direct fetch + invalidation), not a distinct query key, so the
+  // key must stay stable — baking forceRefresh in would fork the cache into two entries.
+  moneyContext: () => ["moneyContext"] as const,
   expenses: () => ["expenses"] as const,
   expensePeriodView: (period: string) =>
     ["expensePeriodView", period, true, localTodayIso()] as const,

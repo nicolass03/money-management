@@ -1,7 +1,6 @@
 {
   "invalidCurrency": "moneda inválida",
   "failedUpdateCurrency": "no se pudo actualizar la moneda",
-  "invalidInitialFreeMoneyAmount": "monto inicial de dinero libre inválido",
   "invalidProjectionStartDate": "fecha de inicio de proyección inválida",
   "invalidSchedule": "calendario inválido",
   "failedUpdateProjectionSettings": "no se pudo actualizar la configuración de proyección",

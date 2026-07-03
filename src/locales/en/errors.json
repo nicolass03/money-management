@@ -1,7 +1,6 @@
 {
   "invalidCurrency": "invalid currency",
   "failedUpdateCurrency": "failed to update currency",
-  "invalidInitialFreeMoneyAmount": "invalid initial free money amount",
   "invalidProjectionStartDate": "invalid projection start date",
   "invalidSchedule": "invalid schedule",
   "failedUpdateProjectionSettings": "failed to update projection settings",

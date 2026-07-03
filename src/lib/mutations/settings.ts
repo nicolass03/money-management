@@ -6,7 +6,7 @@ import { invalidateAfter } from "@/lib/query/invalidation";
 import { isThemeCode } from "@/lib/theme/themes";
 import { currencies, type CurrencyCode } from "@/lib/types/constants";
 import type { AppLanguage } from "@/lib/types/domain";
-import { parseDollarsToCents, parseSignedDollarsToCents } from "@/lib/utils";
+import { parseDollarsToCents } from "@/lib/utils";
 import { mutationError, type FormResult } from "./types";
 
 export async function updateDisplayCurrencyMutation(
@@ -49,7 +49,6 @@ export async function updateThemeMutation(code: string): Promise<FormResult> {
 
 export interface ProjectionSettingsInput {
   primaryScheduleId: string;
-  initialFreeMoney: string;
   projectionStartDate: string;
 }
 
@@ -57,13 +56,9 @@ export async function updateProjectionSettingsMutation(
   input: ProjectionSettingsInput,
 ): Promise<FormResult> {
   const raw = input.primaryScheduleId;
-  const initialFreeMoney = parseSignedDollarsToCents(input.initialFreeMoney);
   const startDateRaw = input.projectionStartDate.trim();
   const projectionStartDate = startDateRaw || null;
 
-  if (initialFreeMoney === null) {
-    return { error: tError("invalidInitialFreeMoneyAmount") };
-  }
   if (projectionStartDate && !/^\d{4}-\d{2}-\d{2}$/.test(projectionStartDate)) {
     return { error: tError("invalidProjectionStartDate") };
   }
@@ -72,7 +67,6 @@ export async function updateProjectionSettingsMutation(
     if (!raw) {
       await patchSettings({
         primaryScheduleId: null,
-        projectionInitialFreeMoney: initialFreeMoney,
         projectionStartDate,
       });
     } else {
@@ -80,7 +74,6 @@ export async function updateProjectionSettingsMutation(
       if (!id) return { error: tError("invalidSchedule") };
       await patchSettings({
         primaryScheduleId: id,
-        projectionInitialFreeMoney: initialFreeMoney,
         projectionStartDate,
       });
     }

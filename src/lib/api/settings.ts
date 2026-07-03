@@ -12,7 +12,6 @@ export interface PatchSettingsInput {
   displayCurrency?: CurrencyCode;
   language?: AppLanguage;
   primaryScheduleId?: string | null;
-  projectionInitialFreeMoney?: number;
   projectionStartDate?: string | null;
   extraSpentLimit?: number | null;
   theme?: string;
