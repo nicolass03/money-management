@@ -108,13 +108,10 @@ export function PlannedExpenseForm({
           type="date"
           value={date}
           onChange={(e) => setDate(e.target.value)}
-          required
         />
-        {!isEditing && (
-          <p className="mt-1 font-mono text-xs text-muted">
-            {t("expenses:futureDateHint")}
-          </p>
-        )}
+        <p className="mt-1 font-mono text-xs text-muted">
+          {t("expenses:plannedDateHint")}
+        </p>
       </div>
 
       <div className="grid gap-4 sm:grid-cols-2">

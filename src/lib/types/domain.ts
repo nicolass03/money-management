@@ -108,10 +108,13 @@ export interface SubscriptionReminder {
 export interface PlannedExpense {
   id: string;
   name: string;
-  date: string;
+  /** `null` = undated (e.g. a debt): kept out of projections until paid. */
+  date: string | null;
   amount: number;
   currency: CurrencyCode;
   accountId: string | null;
+  /** Whether an expense has been recorded for this item (paid once, in full). */
+  paid: boolean;
   createdAt: string;
   updatedAt: string;
 }

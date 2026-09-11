@@ -2,6 +2,7 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 import {
   createPlannedExpense,
   deletePlannedExpense,
+  payPlannedExpense,
   updatePlannedExpense,
 } from "@/lib/api/planned-expenses";
 import { parseTagNames } from "@/lib/expenses/tag-utils";
@@ -33,7 +34,7 @@ function validatePlannedInput(
   | {
       data: {
         name: string;
-        date: string;
+        date: string | null;
         amount: number;
         currency: CurrencyCode;
         tags: string[];
@@ -44,8 +45,10 @@ function validatePlannedInput(
   if (!name) return { error: tError("nameRequired") };
   const tags = parseTagNames(data.tags);
   if (tags.length === 0) return { error: tError("tagRequired") };
-  if (!/^\d{4}-\d{2}-\d{2}$/.test(data.date)) return { error: tError("invalidDate") };
-  if (options.requireFutureDate && data.date <= todayIso()) {
+  // An empty date means undated (e.g. a debt with no due date).
+  const date = data.date.trim() || null;
+  if (date && !/^\d{4}-\d{2}-\d{2}$/.test(date)) return { error: tError("invalidDate") };
+  if (options.requireFutureDate && date && date <= todayIso()) {
     return { error: tError("dateMustBeFuture") };
   }
   if (!currencies.includes(data.currency as CurrencyCode)) {
@@ -56,7 +59,7 @@ function validatePlannedInput(
   return {
     data: {
       name,
-      date: data.date,
+      date,
       amount,
       currency: data.currency as CurrencyCode,
       tags,
@@ -100,6 +103,31 @@ export async function deletePlannedExpenseMutation(id: string): Promise<FormResu
   } catch (error) {
     return mutationError(error, tError("failedDeletePlanned"));
   }
+}
+
+export async function payPlannedExpenseMutation(
+  id: string,
+  amountInput: string,
+): Promise<FormResult> {
+  const amount = parseDollarsToCents(amountInput);
+  if (amount === null || amount <= 0) return { error: tError("invalidAmount") };
+  try {
+    await payPlannedExpense(id, amount);
+    return { success: true };
+  } catch (error) {
+    return mutationError(error, tError("failedPayPlanned"));
+  }
+}
+
+export function usePayPlannedExpense() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: ({ id, amount }: { id: string; amount: string }) =>
+      payPlannedExpenseMutation(id, amount),
+    onSuccess: (result) => {
+      if (result.success) void invalidateAfter(queryClient, "plannedChange");
+    },
+  });
 }
 
 export function useCreatePlannedExpense() {

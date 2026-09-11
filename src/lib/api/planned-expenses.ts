@@ -1,13 +1,14 @@
 
 import type {
   CurrencyCode,
+  Expense,
   PlannedExpenseWithTags,
 } from "@/lib/types/domain";
 import { apiFetch } from "./client";
 
 export interface PlannedExpenseInput {
   name: string;
-  date: string;
+  date: string | null;
   amount: number;
   currency: CurrencyCode;
   tags: string[];
@@ -54,6 +55,14 @@ export async function updatePlannedExpense(
   } catch {
     return null;
   }
+}
+
+/** Records the one-time expense as paid today (full payment; the amount may differ). */
+export async function payPlannedExpense(id: string, amount: number): Promise<Expense> {
+  return apiFetch<Expense>(`/api/v1/planned-expenses/${id}/pay`, {
+    method: "POST",
+    body: JSON.stringify({ amount }),
+  });
 }
 
 export async function deletePlannedExpense(id: string): Promise<void> {

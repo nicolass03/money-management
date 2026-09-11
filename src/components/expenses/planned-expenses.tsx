@@ -33,7 +33,7 @@ export function PlannedExpenses({
   const today = todayIso();
 
   const upcomingTotal = plannedExpenses
-    .filter((planned) => planned.date > today)
+    .filter((planned) => !planned.paid && planned.date !== null && planned.date > today)
     .reduce(
       (sum, planned) =>
         sum + toDisplayAmount(planned.amount, planned.currency, ctx),

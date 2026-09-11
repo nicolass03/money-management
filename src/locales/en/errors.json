@@ -69,6 +69,7 @@
   "failedCreatePlanned": "failed to create planned expense",
   "failedUpdatePlanned": "failed to update planned expense",
   "failedDeletePlanned": "failed to delete planned expense",
+  "failedPayPlanned": "failed to record payment",
   "failedCancelReminder": "failed to update cancellation reminder",
   "failedDismissReminder": "failed to dismiss reminder",
   "failedCreateAccount": "failed to create account",
