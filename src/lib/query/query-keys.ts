@@ -104,6 +104,8 @@ const invalidationMap: Record<InvalidationEvent, QueryKey[]> = {
     queryKeys.expenses(),
     queryKeys.expensePeriodViews(),
     queryKeys.upcomingPayable(),
+    // Account balances only count activity from the projection start date onward.
+    queryKeys.accounts(),
   ],
   accountChange: [
     queryKeys.accounts(),
