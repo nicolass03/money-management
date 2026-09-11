@@ -27,5 +27,6 @@
   "loadingEntries": "loading income entries",
   "emptyEntries": "> no income entries yet. add one above.",
   "badgeScheduled": "scheduled",
-  "labelFrequency": "frequency:"
+  "labelFrequency": "frequency:",
+  "confirmDeleteSchedule": "delete this pay schedule? income already received stays; future pay dates stop."
 }

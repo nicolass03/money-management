@@ -27,5 +27,6 @@
   "loadingEntries": "cargando entradas de ingreso",
   "emptyEntries": "> aún no hay entradas de ingreso. agrega una arriba.",
   "badgeScheduled": "programado",
-  "labelFrequency": "frecuencia:"
+  "labelFrequency": "frecuencia:",
+  "confirmDeleteSchedule": "¿eliminar este calendario de pagos? los ingresos ya recibidos se conservan; las fechas de pago futuras se detienen."
 }

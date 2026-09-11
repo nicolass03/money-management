@@ -36,6 +36,7 @@ export function IncomeScheduleList({
   const deleteScheduleMutation = useDeleteSchedule();
 
   function handleDelete(id: string) {
+    if (!window.confirm(t("income:confirmDeleteSchedule"))) return;
     startTransition(async () => {
       await deleteScheduleMutation.mutateAsync(id);
       if (editingId === id) {
