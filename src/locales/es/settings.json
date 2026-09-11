@@ -29,7 +29,7 @@
   "primarySchedule": "calendario_principal:",
   "selectSchedule": "selecciona un calendario",
   "projectionStartDate": "fecha_inicio_proyección:",
-  "projectionStartDateHint": "> las proyecciones y los saldos de cuentas inician en esta fecha; se ignoran ingresos y gastos anteriores. para empezar de nuevo, ponla en hoy e ingresa los saldos actuales de tus cuentas",
+  "projectionStartDateHint": "> las proyecciones y los saldos de cuentas inician en esta fecha; se ignoran ingresos y gastos anteriores. hasta la próxima fecha de pago solo cuenta tu saldo inicial (sin salario). para empezar de nuevo, ponla en hoy e ingresa los saldos actuales de tus cuentas",
   "initialBalanceFromAccounts": "> el saldo inicial de la proyección es la suma de los montos iniciales de tus cuentas — gestiónalas en",
   "projectionUpdated": "> configuración de proyección actualizada",
   "saveProjectionSettings": "guardar configuración de proyección",

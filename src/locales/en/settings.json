@@ -29,7 +29,7 @@
   "primarySchedule": "primary_schedule:",
   "selectSchedule": "select a schedule",
   "projectionStartDate": "projection_start_date:",
-  "projectionStartDateHint": "> projections and account balances start on this date; earlier income and expenses are ignored. to start over, set it to today and enter your current account balances",
+  "projectionStartDateHint": "> projections and account balances start on this date; earlier income and expenses are ignored. until the next pay date only your starting balance applies (no salary). to start over, set it to today and enter your current account balances",
   "initialBalanceFromAccounts": "> the projection's opening balance is the total of your account starting amounts — manage them in",
   "projectionUpdated": "> projection settings updated",
   "saveProjectionSettings": "save projection settings",
