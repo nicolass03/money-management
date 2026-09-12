@@ -13,6 +13,8 @@ export interface PatchSettingsInput {
   language?: AppLanguage;
   primaryScheduleId?: string | null;
   projectionStartDate?: string | null;
+  projectionEndDate?: string | null;
+  asOf?: string;
   extraSpentLimit?: number | null;
   theme?: string;
 }

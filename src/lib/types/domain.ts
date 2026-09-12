@@ -16,6 +16,7 @@ export interface UserSettings {
   primaryScheduleId: string | null;
   primarySchedule?: IncomePaySchedule | null;
   projectionStartDate: string | null;
+  projectionEndDate: string | null;
   extraSpentLimit: number | null;
   theme: string;
   cacheRevision: number;

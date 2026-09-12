@@ -5,15 +5,17 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { SectionHeader } from "@/components/ui/section-header";
+import { localTodayIso } from "@/lib/date/local-today";
+import { addMonths, formatFrequency } from "@/lib/income/pay-periods";
 import { useUpdateProjectionSettings } from "@/lib/mutations/settings";
 import type { CurrencyCode, IncomePaySchedule } from "@/lib/types/domain";
-import { formatFrequency } from "@/lib/income/pay-periods";
 import { cn } from "@/lib/utils";
 
 interface ProjectionSettingsProps {
   schedules: IncomePaySchedule[];
   primaryScheduleId: string | null;
   projectionStartDate: string | null;
+  projectionEndDate: string | null;
   displayCurrency: CurrencyCode;
 }
 
@@ -21,6 +23,7 @@ export function ProjectionSettings({
   schedules,
   primaryScheduleId,
   projectionStartDate,
+  projectionEndDate,
 }: ProjectionSettingsProps) {
   const { t } = useTranslation(["settings", "common"]);
   const updateSettings = useUpdateProjectionSettings();
@@ -33,6 +36,7 @@ export function ProjectionSettings({
     const result = await updateSettings.mutateAsync({
       primaryScheduleId: String(formData.get("primaryScheduleId") ?? ""),
       projectionStartDate: String(formData.get("projectionStartDate") ?? ""),
+      projectionEndDate: String(formData.get("projectionEndDate") ?? ""),
     });
     if (result.success) setSuccess(true);
   }
@@ -94,6 +98,26 @@ export function ProjectionSettings({
               />
               <p className="mt-2 font-mono text-xs text-muted">
                 {t("settings:projectionStartDateHint")}
+              </p>
+            </div>
+
+            <div>
+              <label
+                htmlFor="projection-end-date"
+                className="mb-2 block font-mono text-xs text-muted"
+              >
+                {t("settings:projectionEndDate")}
+              </label>
+              <Input
+                id="projection-end-date"
+                name="projectionEndDate"
+                type="date"
+                min={localTodayIso()}
+                max={addMonths(localTodayIso(), 24)}
+                defaultValue={projectionEndDate ?? ""}
+              />
+              <p className="mt-2 font-mono text-xs text-muted">
+                {t("settings:projectionEndDateHint")}
               </p>
             </div>
 

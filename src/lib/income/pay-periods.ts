@@ -34,15 +34,13 @@ function addDays(iso: string, days: number): string {
   });
 }
 
-function addMonths(iso: string, months: number): string {
+export function addMonths(iso: string, months: number): string {
   const { y, m, d } = parseDate(iso);
   const totalMonths = y * 12 + (m - 1) + months;
   const newY = Math.floor(totalMonths / 12);
   const newM = (totalMonths % 12) + 1;
   return toIso({ y: newY, m: newM, d: clampDayOfMonth(newY, newM, d) });
 }
-
-export const PROJECTION_MONTHS_FORWARD = 12;
 
 function daysBetween(startIso: string, endIso: string): number {
   const start = parseDate(startIso);
@@ -319,58 +317,6 @@ export function getPeriodForPayDate(
     endDate: payDate,
   };
 }
-
-function compareIsoAsc(a: string, b: string): number {
-  return compareIso(a, b);
-}
-
-export function getProjectionPeriods(
-  schedule: PayScheduleInput,
-  referenceDate?: string,
-  projectionStartDate?: string | null,
-  monthsForward: number = PROJECTION_MONTHS_FORWARD,
-): PayPeriod[] {
-  const ref =
-    referenceDate ??
-    toIso({
-      y: new Date().getFullYear(),
-      m: new Date().getMonth() + 1,
-      d: new Date().getDate(),
-    });
-
-  const horizonEnd = addMonths(ref, monthsForward);
-  const rangeStart = projectionStartDate ?? ref;
-  const anchorDate =
-    projectionStartDate && compareIso(projectionStartDate, ref) < 0
-      ? projectionStartDate
-      : ref;
-  const anchorPeriod = getPeriodContaining(schedule, anchorDate);
-  const periodMap = new Map<string, PayPeriod>();
-
-  let payDate = anchorPeriod.payDate;
-  while (periodMap.size < 50) {
-    const period = getPeriodForPayDate(schedule, payDate);
-    if (compareIso(period.startDate, horizonEnd) > 0) {
-      break;
-    }
-
-    const overlapsHorizon =
-      compareIso(period.endDate, rangeStart) >= 0 &&
-      compareIso(period.startDate, horizonEnd) <= 0;
-
-    if (overlapsHorizon) {
-      periodMap.set(period.payDate, period);
-    }
-
-    payDate = getNextPayDate(schedule, addDays(payDate, 1));
-  }
-
-  return Array.from(periodMap.values()).sort((a, b) =>
-    compareIsoAsc(a.payDate, b.payDate),
-  );
-}
-
-import i18n from "@/lib/i18n";
 
 const frequencyKeys: Record<PayFrequency, string> = {
   weekly: "frequencyWeekly",

@@ -1,9 +1,6 @@
 import { localTodayIso } from "@/lib/date/local-today";
 import type { ProjectionRow } from "@/lib/types/domain";
 
-/** Matches iOS `ProjectionDisplayLogic.futurePeriodLimit`. */
-export const FUTURE_PERIOD_LIMIT = 10;
-
 /** Matches iOS `ProjectionDisplayLogic.pastPeriodLimit`. */
 export const PAST_PERIOD_LIMIT = 2;
 
@@ -28,10 +25,7 @@ export function visibleProjectionRows(
       currentIndex,
     );
     const current = sorted[currentIndex];
-    const following = sorted.slice(
-      currentIndex + 1,
-      currentIndex + 1 + FUTURE_PERIOD_LIMIT,
-    );
+    const following = sorted.slice(currentIndex + 1);
     return [...preceding, current, ...following];
   }
 
@@ -42,10 +36,7 @@ export function visibleProjectionRows(
       upcomingIndex,
     );
     const anchor = sorted[upcomingIndex];
-    const following = sorted.slice(
-      upcomingIndex + 1,
-      upcomingIndex + 1 + FUTURE_PERIOD_LIMIT,
-    );
+    const following = sorted.slice(upcomingIndex + 1);
     return [...preceding, anchor, ...following];
   }
 

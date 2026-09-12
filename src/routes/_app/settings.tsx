@@ -48,6 +48,7 @@ function SettingsPage() {
         schedules={schedules.data ?? []}
         primaryScheduleId={settings.data.primaryScheduleId}
         projectionStartDate={settings.data.projectionStartDate}
+        projectionEndDate={settings.data.projectionEndDate}
         displayCurrency={settings.data.displayCurrency}
       />
 

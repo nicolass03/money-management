@@ -2,6 +2,8 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { getMoneyContext } from "@/lib/api/money-context";
 import { patchSettings } from "@/lib/api/settings";
 import { tError } from "@/lib/i18n/errors";
+import { localTodayIso } from "@/lib/date/local-today";
+import { addMonths } from "@/lib/income/pay-periods";
 import { invalidateAfter } from "@/lib/query/invalidation";
 import { isThemeCode } from "@/lib/theme/themes";
 import { currencies, type CurrencyCode } from "@/lib/types/constants";
@@ -50,6 +52,7 @@ export async function updateThemeMutation(code: string): Promise<FormResult> {
 export interface ProjectionSettingsInput {
   primaryScheduleId: string;
   projectionStartDate: string;
+  projectionEndDate: string;
 }
 
 export async function updateProjectionSettingsMutation(
@@ -58,9 +61,25 @@ export async function updateProjectionSettingsMutation(
   const raw = input.primaryScheduleId;
   const startDateRaw = input.projectionStartDate.trim();
   const projectionStartDate = startDateRaw || null;
+  const endDateRaw = input.projectionEndDate.trim();
+  const projectionEndDate = endDateRaw || null;
 
   if (projectionStartDate && !/^\d{4}-\d{2}-\d{2}$/.test(projectionStartDate)) {
     return { error: tError("invalidProjectionStartDate") };
+  }
+  if (projectionEndDate && !/^\d{4}-\d{2}-\d{2}$/.test(projectionEndDate)) {
+    return { error: tError("invalidProjectionEndDate") };
+  }
+
+  const asOf = localTodayIso();
+  if (
+    projectionEndDate &&
+    (projectionEndDate < asOf || projectionEndDate > addMonths(asOf, 24))
+  ) {
+    return { error: tError("projectionEndDateOutOfRange") };
+  }
+  if (projectionStartDate && projectionEndDate && projectionEndDate < projectionStartDate) {
+    return { error: tError("projectionEndBeforeStart") };
   }
 
   try {
@@ -68,6 +87,8 @@ export async function updateProjectionSettingsMutation(
       await patchSettings({
         primaryScheduleId: null,
         projectionStartDate,
+        projectionEndDate,
+        asOf,
       });
     } else {
       const id = raw.trim();
@@ -75,6 +96,8 @@ export async function updateProjectionSettingsMutation(
       await patchSettings({
         primaryScheduleId: id,
         projectionStartDate,
+        projectionEndDate,
+        asOf,
       });
     }
     return { success: true };

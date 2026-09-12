@@ -1,8 +1,10 @@
 {
   "title": "proyecciones",
-  "subtitle": "flujo de caja por periodo de pago para los próximos 7 meses — gasto planificado y dinero libre acumulado",
+  "subtitle": "flujo de caja por periodo de pago — gasto planificado y dinero libre acumulado",
   "noSchedule": "> no hay calendario de pago principal configurado.",
   "configureInSettings": "configura en ~/configuración",
+  "projectionEndExpired": "> la fecha final de tu proyección ya pasó. los periodos históricos recientes siguen disponibles.",
+  "extendProjectionEnd": "extiende la proyección en ~/configuración",
   "scheduleMeta": "periodos basados en {{name}} // mostrando en {{currency}}",
   "colPayDate": "fecha de pago",
   "colIncome": "ingresos",

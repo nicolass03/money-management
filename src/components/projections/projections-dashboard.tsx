@@ -15,6 +15,7 @@ interface ProjectionsDashboardProps extends MoneyDisplayContext {
   hasSchedule?: boolean;
   settingsLoading?: boolean;
   projectionsLoading?: boolean;
+  projectionEndExpired?: boolean;
 }
 
 export function ProjectionsDashboard({
@@ -23,6 +24,7 @@ export function ProjectionsDashboard({
   hasSchedule = !!primarySchedule,
   settingsLoading = false,
   projectionsLoading = false,
+  projectionEndExpired = false,
   displayCurrency,
   rates,
 }: ProjectionsDashboardProps) {
@@ -67,6 +69,19 @@ export function ProjectionsDashboard({
             </p>
           ) : (
             <Skeleton className="h-3 w-72" />
+          )}
+          {projectionEndExpired && (
+            <Card>
+              <p className="font-mono text-sm text-muted">
+                {t("projectionEndExpired")}
+              </p>
+              <Link
+                to="/settings"
+                className="mt-3 inline-block font-mono text-sm text-accent hover:text-accent-glow"
+              >
+                {t("extendProjectionEnd")}
+              </Link>
+            </Card>
           )}
           {awaitingProjections ? (
             <ProjectionsTableSkeleton />

@@ -1,8 +1,10 @@
 {
   "title": "projections",
-  "subtitle": "cash flow by pay period for the next 7 months — planned spend and running free money",
+  "subtitle": "cash flow by pay period — planned spend and running free money",
   "noSchedule": "> no primary pay schedule configured.",
   "configureInSettings": "configure in ~/settings",
+  "projectionEndExpired": "> your projection end date has passed. recent historical periods remain available.",
+  "extendProjectionEnd": "extend projection in ~/settings",
   "scheduleMeta": "periods based on {{name}} // displaying in {{currency}}",
   "colPayDate": "pay date",
   "colIncome": "income",

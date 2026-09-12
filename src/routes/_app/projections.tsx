@@ -6,6 +6,7 @@ import {
   useSettings,
 } from "@/hooks/use-queries";
 import { ApiError } from "@/lib/api/client";
+import { localTodayIso } from "@/lib/date/local-today";
 import { visibleProjectionRows } from "@/lib/projections/projection-display";
 import type { ExchangeRates } from "@/lib/currency/convert";
 import type { CurrencyCode } from "@/lib/types/constants";
@@ -29,6 +30,12 @@ function ProjectionsPage() {
 
   const settingsLoading = settings.isLoading || money.isLoading;
   const projectionsLoading = hasSchedule && projections.isLoading;
+  const projectionEndExpired =
+    !!settings.data?.projectionEndDate &&
+    settings.data.projectionEndDate < localTodayIso();
+  const projectionRows = projectionEndExpired
+    ? (projections.data?.rows ?? []).filter((row) => row.isPast)
+    : projections.data?.rows ?? [];
 
   if (
     !settingsLoading &&
@@ -42,6 +49,7 @@ function ProjectionsPage() {
         primarySchedule={null}
         displayCurrency={displayCurrency}
         rates={rates}
+        projectionEndExpired={projectionEndExpired}
       />
     );
   }
@@ -52,7 +60,7 @@ function ProjectionsPage() {
 
   return (
     <ProjectionsDashboard
-      rows={visibleProjectionRows(projections.data?.rows ?? [])}
+      rows={visibleProjectionRows(projectionRows)}
       primarySchedule={
         projections.data?.primarySchedule ??
         settings.data?.primarySchedule ??
@@ -63,6 +71,7 @@ function ProjectionsPage() {
       rates={rates}
       settingsLoading={settingsLoading}
       projectionsLoading={projectionsLoading}
+      projectionEndExpired={projectionEndExpired}
     />
   );
 }
