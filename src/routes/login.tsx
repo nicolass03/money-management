@@ -14,6 +14,7 @@ import {
 import { redirectIfAuthenticated } from "@/lib/auth/route-guards";
 import { useSession } from "@/lib/auth/session-store";
 import type { AuthErrorCode } from "@/lib/auth/session-store";
+import { APP_VERSION_LABEL } from "@/lib/brand";
 import { ThemeSwitcher } from "@/components/layout/theme-switcher";
 
 type LoginSearch = {
@@ -148,7 +149,7 @@ function LoginPage() {
       >
         <div className="mb-6 flex items-center justify-between gap-4 font-mono">
           <div>
-            <p className="text-xs text-muted">incm-mgmt v0.1.0</p>
+            <p className="text-xs text-muted">{APP_VERSION_LABEL}</p>
             <p className="mt-2 text-sm text-text">
               <span className="text-accent">guest</span>
               <span className="text-muted">:</span>

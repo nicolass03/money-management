@@ -10,6 +10,7 @@ import { LoadingIndicator } from "@/components/ui/loading-indicator";
 import { ThemeSwitcher } from "@/components/layout/theme-switcher";
 import { establishAuthSessionFromUrl } from "@/lib/auth/auth-flow";
 import { useSession } from "@/lib/auth/session-store";
+import { APP_VERSION_LABEL } from "@/lib/brand";
 
 export const Route = createFileRoute("/set-password")({
   component: SetPasswordPage,
@@ -130,7 +131,7 @@ function SetPasswordPage() {
         className="w-full max-w-md"
       >
         <div className="mb-6 font-mono">
-          <p className="text-xs text-muted">incm-mgmt v0.1.0</p>
+          <p className="text-xs text-muted">{APP_VERSION_LABEL}</p>
           <p className="mt-2 text-sm text-text">
             <span className="text-accent">guest</span>
             <span className="text-muted">:</span>

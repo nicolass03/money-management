@@ -1,6 +1,6 @@
 # money-management
 
-A personal finance dashboard for tracking income, expenses, and cash-flow projections. The UI uses a terminal-inspired aesthetic (monospace type, shell-style navigation) and is built for a single user on your own Supabase project. This is the web client for **spendfly**.
+A personal finance dashboard for tracking income, expenses, and cash-flow projections. The UI uses a terminal-inspired aesthetic (monospace type, shell-style navigation) and is built for a single user on your own Supabase project. This is the web client for **cash.sh**.
 
 ## What it does
 

@@ -1,4 +1,4 @@
-# UI Design System — incm-mgmt
+# UI Design System — cash.sh
 
 A replication guide for the terminal-inspired dark UI used in this app. The aesthetic is deliberately **CLI / hacker-terminal**: monospace type, near-black surfaces, sharp borders, subtle glow, and copy that reads like shell commands.
 
@@ -68,7 +68,7 @@ Copy the token block and global rules from `src/globals.css`. This is the **sour
   --surface-elevated: #1a1a1a;
   --border: #2a2a2a;
   --text: #e8e8e8;
-  --muted: #6b6b6b;
+  --muted: #8a8a8a;
   --accent: #d4d4d4;
   --accent-glow: #ffffff;
   --success: #a3e635;
@@ -132,7 +132,7 @@ Create `Button`, `Card`, `Input`, `Badge`, `SectionHeader`, and `LoadingIndicato
 | `surface-elevated` | `#1a1a1a` | `bg-surface-elevated` | Default badges, subtle elevation |
 | `border` | `#2a2a2a` | `border-border` | All borders, dividers, chart axes |
 | `text` | `#e8e8e8` | `text-text` | Primary body text |
-| `muted` | `#6b6b6b` | `text-muted` | Labels, subtitles, axis ticks, placeholders |
+| `muted` | `#8a8a8a` | `text-muted` | Labels, subtitles, axis ticks, placeholders |
 | `accent` | `#d4d4d4` | `text-accent`, `border-accent` | Prompts, links, focus borders, chart bars |
 | `accent-glow` | `#ffffff` | `text-accent-glow` | Active nav, highlights, savings totals |
 | `success` | `#a3e635` | `text-success` | Income, positive balances |
@@ -170,7 +170,7 @@ contentStyle: {
 }
 ```
 
-Axis ticks: `fill: "#6b6b6b"`, `fontSize: 11`, `fontFamily: "monospace"`. Axis lines: `stroke: "#2a2a2a"`, `tickLine: false`.
+Axis ticks: `fill: "#8a8a8a"`, `fontSize: 11`, `fontFamily: "monospace"`. Axis lines: `stroke: "#2a2a2a"`, `tickLine: false`.
 
 ---
 
@@ -186,7 +186,7 @@ Axis ticks: `fill: "#6b6b6b"`, `fontSize: 11`, `fontFamily: "monospace"`. Axis l
 
 | Role | Classes | Example |
 |------|---------|---------|
-| App version / meta | `text-xs text-muted` | `incm-mgmt v0.1` |
+| App version / meta | `text-xs text-muted` | `cash.sh v0.1.0` (`APP_VERSION_LABEL` in `src/lib/brand.ts`) |
 | Section title | `text-lg text-text` + `.terminal-prompt` | `> expenses` (prompt added via CSS) |
 | Page heading (sidebar) | `text-sm text-accent-glow` | `$ ./dashboard` |
 | Body / list primary | `text-sm text-text` | Expense name |

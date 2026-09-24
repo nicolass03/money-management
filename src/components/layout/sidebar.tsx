@@ -6,6 +6,7 @@ import { usePrivacyMode } from "./privacy-mode";
 import { ThemeSwitcher } from "./theme-switcher";
 import { Button } from "@/components/ui/button";
 import { useSession } from "@/lib/auth/session-store";
+import { APP_VERSION_LABEL } from "@/lib/brand";
 import { cn } from "@/lib/utils";
 
 const navItems = [
@@ -38,7 +39,7 @@ export function Sidebar() {
       className="sticky top-0 flex h-screen w-56 shrink-0 flex-col border-r border-border bg-surface"
     >
       <div className="border-b border-border px-4 py-5">
-        <p className="font-mono text-xs text-muted">incm-mgmt v0.1</p>
+        <p className="font-mono text-xs text-muted">{APP_VERSION_LABEL}</p>
         <h1 className="mt-1 font-mono text-sm text-accent-glow">
           $ ./dashboard
         </h1>

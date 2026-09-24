@@ -8,7 +8,7 @@ export interface ChartTheme {
 }
 
 const DARK_CHART_THEME: ChartTheme = {
-  tick: "#6b6b6b",
+  tick: "#8a8a8a",
   axis: "#2a2a2a",
   tooltipBg: "#141414",
   tooltipBorder: "#2a2a2a",
@@ -17,7 +17,7 @@ const DARK_CHART_THEME: ChartTheme = {
 };
 
 const LIGHT_CHART_THEME: ChartTheme = {
-  tick: "#737373",
+  tick: "#6b6b6b",
   axis: "#e0e0e0",
   tooltipBg: "#ffffff",
   tooltipBorder: "#e0e0e0",
