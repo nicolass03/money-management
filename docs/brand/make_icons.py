@@ -1,4 +1,4 @@
-"""Generate cash.sh icons: a dot-matrix `$` (receipt printer / LED panel), monochrome white on black.
+"""Generate cash.sh icons: a `$_` shell prompt in the IBM PC 8×8 console font, monochrome white on black.
 
 Usage: pip install pillow resvg-py && python docs/brand/make_icons.py <out_dir>
 Copy AppIcon.png into the iOS AppIcon.appiconset and the favicon/apple-touch files into public/.
@@ -15,41 +15,44 @@ OUT.mkdir(parents=True, exist_ok=True)
 
 BG = "#0a0a0a"
 FG = "#e8e8e8"  # the app's `text` token — the brand stays monochrome
-UNLIT = "#161616"  # unlit dots, only on the large icon
 
-# 5×9 dot glyph (tall spine) for the icon and favicons ≥32px. At 16px dots can't have gaps,
-# so it becomes a 7×10 pixel `$` where every pixel is a "dot".
-DOLLAR_9 = ["..#..", ".####", "#.#..", "#.#..", ".###.", "..#.#", "..#.#", "####.", "..#.."]
-PIXEL_16 = ["...#...", ".#####.", "#..#..#", "#..#...", ".####..", "...###.", "...#..#", "#..#..#", ".#####.", "...#..."]
-
-
-def dots(size: float, pattern: list[str], pitch: float, dot: float, radius: float, lit: bool = True) -> str:
-    """Centred grid of `dot`-sized squares (corner `radius`) spaced by `pitch`: the lit dots, or the unlit ones."""
-    cols, rows = len(pattern[0]), len(pattern)
-    x0 = (size - ((cols - 1) * pitch + dot)) / 2
-    y0 = (size - ((rows - 1) * pitch + dot)) / 2
-    out = []
-    for j, row in enumerate(pattern):
-        for i, cell in enumerate(row):
-            if (cell == "#") == lit:
-                out.append(
-                    f'<rect x="{x0 + i * pitch:g}" y="{y0 + j * pitch:g}" width="{dot:g}" height="{dot:g}" '
-                    f'rx="{radius:g}"/>'
-                )
-    return "".join(out)
+# `$` and `_` from the Linux kernel's 8×8 console font (lib/fonts/font_8x8.c, IBM CGA-derived),
+# drawn in adjacent character cells as a console would, then cropped to the lit pixels (15×8).
+PROMPT = [
+    "..##...........",
+    ".#####.........",
+    "##.............",
+    ".####..........",
+    "....##.........",
+    "#####..........",
+    "..##...........",
+    ".......########",
+]
 
 
-def flat_svg(size: int, pattern: list[str], pitch: int, dot: int, radius: float) -> str:
-    """Favicon art: integer pitch/dot so every dot lands on whole pixels at its native size."""
+def pixels(size: int, fill: float) -> str:
+    """Lit pixels as squares of an integer size (≤ `fill` of the canvas), centred."""
+    cols, rows = len(PROMPT[0]), len(PROMPT)
+    px = int(size * fill / cols)
+    x0, y0 = (size - cols * px) // 2, (size - rows * px) // 2
+    return "".join(
+        f'<rect x="{x0 + x * px}" y="{y0 + y * px}" width="{px}" height="{px}"/>'
+        for y, row in enumerate(PROMPT)
+        for x, cell in enumerate(row)
+        if cell == "#"
+    )
+
+
+def flat_svg(size: int) -> str:
+    """Favicon art: 15 columns fit 16/32/48 at exactly 1/2/3 px per font pixel — no blur."""
     return (
         f'<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 {size} {size}" shape-rendering="crispEdges">'
-        f'<rect width="{size}" height="{size}" fill="{BG}"/><g fill="{FG}">{dots(size, pattern, pitch, dot, radius)}</g></svg>'
+        f'<rect width="{size}" height="{size}" fill="{BG}"/><g fill="{FG}">{pixels(size, 1)}</g></svg>'
     )
 
 
 def app_svg(size: int = 1024) -> str:
-    """App icon: round dots, faint unlit grid, glow, scanlines and vignette."""
-    pitch, dot = size * 0.086, size * 0.06
+    """App icon: the prompt with CRT glow, scanlines and vignette."""
     line = size / 256  # scanline pitch
     return f'''<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 {size} {size}">
   <defs>
@@ -66,8 +69,7 @@ def app_svg(size: int = 1024) -> str:
     </pattern>
   </defs>
   <rect width="{size}" height="{size}" fill="url(#vignette)"/>
-  <g fill="{UNLIT}">{dots(size, DOLLAR_9, pitch, dot, dot / 2, lit=False)}</g>
-  <g fill="{FG}" filter="url(#glow)">{dots(size, DOLLAR_9, pitch, dot, dot / 2)}</g>
+  <g fill="{FG}" filter="url(#glow)">{pixels(size, 0.66)}</g>
   <rect width="{size}" height="{size}" fill="url(#scan)"/>
 </svg>'''
 
@@ -77,19 +79,13 @@ def render(svg: str, px: int) -> Image.Image:
 
 
 icon = app_svg()
-# One hand-tuned grid per favicon size (pitch, dot) so dots stay pixel-aligned.
-favicons = {
-    16: flat_svg(16, PIXEL_16, 1, 1, 0),
-    32: flat_svg(32, DOLLAR_9, 3, 2, 0.5),
-    48: flat_svg(48, DOLLAR_9, 5, 4, 1),
-}
 (OUT / "app-icon.svg").write_text(icon)
-(OUT / "favicon.svg").write_text(favicons[32])
+(OUT / "favicon.svg").write_text(flat_svg(32))
 
 # iOS: 1024 opaque PNG (App Store rejects icons with an alpha channel).
 render(icon, 1024).convert("RGB").save(OUT / "AppIcon.png")
 render(icon, 180).convert("RGB").save(OUT / "apple-touch-icon.png")
-ico = {px: render(svg, px) for px, svg in favicons.items()}
+ico = {px: render(flat_svg(px), px) for px in (16, 32, 48)}
 ico[48].save(OUT / "favicon.ico", sizes=[(px, px) for px in ico], append_images=[ico[16], ico[32]])
 for px, img in ico.items():
     img.save(OUT / f"favicon-{px}.png")
