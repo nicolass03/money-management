@@ -348,7 +348,7 @@ export function CurrentPeriodExpenses({
 
   const total = listItems.reduce((sum, item) => sum + item.convertedAmount, 0);
 
-  const canAddExpense = periodKey === "last-period" && periodView?.isPayPeriod;
+  const canMarkEarlyPayment = periodKey === "last-period" && periodView?.isPayPeriod;
 
   return (
     <section className="mt-8">
@@ -372,7 +372,7 @@ export function CurrentPeriodExpenses({
               <Badge variant="accent">{formatDisplay(total)}</Badge>
             )
           )}
-          {!periodLoading && canAddExpense && primarySchedule && periodView && (
+          {!periodLoading && (
             <Button
               size="sm"
               variant={showAdd ? "ghost" : "primary"}
@@ -384,7 +384,7 @@ export function CurrentPeriodExpenses({
         </div>
       </div>
 
-      {showAdd && canAddExpense && periodView && (
+      {showAdd && (
         <Card className="mb-4">
           <ExpenseForm
             defaultDate={today}
@@ -431,7 +431,7 @@ export function CurrentPeriodExpenses({
         )}
       </Card>
 
-      {canAddExpense && primarySchedule && (periodView || periodLoading) && (
+      {canMarkEarlyPayment && primarySchedule && (periodView || periodLoading) && (
         periodLoading || upcomingLoading ? (
           <EarlyPaymentPanelSkeleton />
         ) : periodView ? (
