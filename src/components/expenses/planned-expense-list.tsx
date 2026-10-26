@@ -17,7 +17,8 @@ import { formatCurrencyLabel } from "@/lib/currency/types";
 import { ExpenseAmount } from "./expense-amount";
 import type { PlannedExpenseWithTags } from "@/lib/types/domain";
 import { TagList } from "./tag-input";
-import { formatCentsAsDollarsInput, formatDate } from "@/lib/utils";
+import { formatMinorUnitsAsInput } from "@/lib/currency/input";
+import { formatDate } from "@/lib/utils";
 import { PlannedExpenseForm } from "./planned-expense-form";
 
 interface PlannedExpenseListProps extends MoneyDisplayContext {
@@ -151,13 +152,17 @@ function PayPlannedForm({
 }) {
   const { t } = useTranslation(["expenses", "common"]);
   const payPlanned = usePayPlannedExpense();
-  const [amount, setAmount] = useState(formatCentsAsDollarsInput(planned.amount));
+  const [amount, setAmount] = useState(formatMinorUnitsAsInput(planned.amount, planned.currency));
   const [error, setError] = useState("");
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     setError("");
-    const result = await payPlanned.mutateAsync({ id: planned.id, amount });
+    const result = await payPlanned.mutateAsync({
+      id: planned.id,
+      amount,
+      currency: planned.currency,
+    });
     if (result.error) {
       setError(result.error);
       return;

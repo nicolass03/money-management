@@ -7,7 +7,7 @@ import { SectionHeader } from "@/components/ui/section-header";
 import { useUpdateExtraSpentLimit } from "@/lib/mutations/settings";
 import { CURRENCY_LABELS } from "@/lib/currency/types";
 import type { CurrencyCode } from "@/lib/types/domain";
-import { formatCentsAsDollarsInput } from "@/lib/utils";
+import { formatMinorUnitsAsInput } from "@/lib/currency/input";
 
 interface ExtraSpentSettingsProps {
   extraSpentLimit: number | null;
@@ -26,9 +26,10 @@ export function ExtraSpentSettings({
     e.preventDefault();
     setSuccess(false);
     const formData = new FormData(e.currentTarget);
-    const result = await updateLimit.mutateAsync(
-      String(formData.get("extraSpentLimit") ?? ""),
-    );
+    const result = await updateLimit.mutateAsync({
+      limit: String(formData.get("extraSpentLimit") ?? ""),
+      displayCurrency,
+    });
     if (result.success) setSuccess(true);
   }
 
@@ -55,7 +56,7 @@ export function ExtraSpentSettings({
               inputMode="decimal"
               defaultValue={
                 extraSpentLimit != null
-                  ? formatCentsAsDollarsInput(extraSpentLimit)
+                  ? formatMinorUnitsAsInput(extraSpentLimit, displayCurrency)
                   : ""
               }
               placeholder={t("settings:extraSpentPlaceholder")}

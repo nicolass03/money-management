@@ -17,11 +17,8 @@ import {
 } from "@/lib/types/constants";
 import type { IncomePaySchedule } from "@/lib/types/domain";
 import { formatFrequency, getUpcomingPayDates } from "@/lib/income/pay-periods";
-import {
-  formatCentsAsDollarsInput,
-  formatDate,
-  parseDollarsToCents,
-} from "@/lib/utils";
+import { formatMinorUnitsAsInput, parseToMinorUnits } from "@/lib/currency/input";
+import { formatDate } from "@/lib/utils";
 
 interface IncomeScheduleFormProps extends MoneyDisplayContext {
   schedule?: IncomePaySchedule;
@@ -45,7 +42,7 @@ export function IncomeScheduleForm({
     schedule?.frequency ?? "biweekly",
   );
   const [amount, setAmount] = useState(
-    schedule ? formatCentsAsDollarsInput(schedule.amount) : "",
+    schedule ? formatMinorUnitsAsInput(schedule.amount, schedule.currency) : "",
   );
   const [error, setError] = useState("");
 
@@ -82,7 +79,7 @@ export function IncomeScheduleForm({
     anchorDate && payFrequencies.includes(frequency)
       ? getUpcomingPayDates({ anchorDate, frequency }, 4)
       : [];
-  const previewAmount = parseDollarsToCents(amount);
+  const previewAmount = parseToMinorUnits(amount, currency);
 
   return (
     <form onSubmit={handleSubmit} className="space-y-4">

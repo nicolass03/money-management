@@ -8,7 +8,8 @@ import type { MoneyDisplayContext } from "@/lib/currency/display";
 import { currencies, type CurrencyCode } from "@/lib/types/constants";
 import type { BudgetWithTags } from "@/lib/types/domain";
 import { formatTagNames } from "@/lib/expenses/tag-utils";
-import { cn, formatCentsAsDollarsInput } from "@/lib/utils";
+import { formatMinorUnitsAsInput } from "@/lib/currency/input";
+import { cn } from "@/lib/utils";
 import { TagInput } from "@/components/expenses/tag-input";
 
 interface BudgetFormProps extends MoneyDisplayContext {
@@ -27,7 +28,7 @@ export function BudgetForm({
   const [name, setName] = useState(budget?.name ?? "");
   const [tags, setTags] = useState(budget ? formatTagNames(budget.tags) : "");
   const [amount, setAmount] = useState(
-    budget ? formatCentsAsDollarsInput(budget.amount) : "",
+    budget ? formatMinorUnitsAsInput(budget.amount, budget.currency) : "",
   );
   const [currency, setCurrency] = useState<CurrencyCode>(
     budget?.currency ?? "usd",

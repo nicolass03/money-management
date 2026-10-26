@@ -22,7 +22,7 @@ import { localTodayIso } from "@/lib/date/local-today";
 import { invalidateAfter } from "@/lib/query/invalidation";
 import { currencies, type CurrencyCode } from "@/lib/types/constants";
 import { tError } from "@/lib/i18n/errors";
-import { parseDollarsToCents } from "@/lib/utils";
+import { parseToMinorUnits } from "@/lib/currency/input";
 import { mutationError, type FormResult } from "./types";
 
 async function getCurrentPayPeriod() {
@@ -65,7 +65,7 @@ function validateExpenseInput(data: ExpenseInput):
   if (!currencies.includes(data.currency as CurrencyCode)) {
     return { error: tError("invalidCurrency") };
   }
-  const amount = parseDollarsToCents(data.amount);
+  const amount = parseToMinorUnits(data.amount, data.currency as CurrencyCode);
   if (amount === null || amount <= 0) return { error: tError("invalidAmount") };
   return {
     data: {
@@ -95,10 +95,10 @@ export async function updateExpenseAmountMutation(
   id: string,
   amountRaw: string,
 ): Promise<FormResult> {
-  const amount = parseDollarsToCents(amountRaw);
-  if (amount === null || amount <= 0) return { error: tError("invalidAmount") };
   const existing = await getExpenseById(id);
   if (!existing) return { error: tError("expenseNotFound") };
+  const amount = parseToMinorUnits(amountRaw, existing.currency);
+  if (amount === null || amount <= 0) return { error: tError("invalidAmount") };
   try {
     const updated = await updateExpenseAmount(id, amount);
     if (!updated) return { error: tError("expenseNotFound") };
@@ -134,7 +134,7 @@ export async function markFuturePaymentAsPaidMutation(
   if (!currencies.includes(currency as CurrencyCode)) {
     return { error: tError("invalidCurrency") };
   }
-  const amount = parseDollarsToCents(amountRaw);
+  const amount = parseToMinorUnits(amountRaw, currency as CurrencyCode);
   if (amount === null || amount <= 0) return { error: tError("invalidAmount") };
   const period = await getCurrentPayPeriod();
   if (!period) return { error: tError("noPrimarySchedule") };

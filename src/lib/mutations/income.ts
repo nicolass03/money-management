@@ -8,7 +8,7 @@ import {
 import { invalidateAfter } from "@/lib/query/invalidation";
 import { currencies, type CurrencyCode } from "@/lib/types/constants";
 import { tError } from "@/lib/i18n/errors";
-import { parseDollarsToCents } from "@/lib/utils";
+import { parseToMinorUnits } from "@/lib/currency/input";
 import { mutationError, type FormResult } from "./types";
 
 export interface IncomeInput {
@@ -36,7 +36,7 @@ function validateIncomeInput(data: IncomeInput):
   if (!currencies.includes(data.currency as CurrencyCode)) {
     return { error: tError("invalidCurrency") };
   }
-  const amount = parseDollarsToCents(data.amount);
+  const amount = parseToMinorUnits(data.amount, data.currency as CurrencyCode);
   if (amount === null || amount <= 0) return { error: tError("invalidAmount") };
   return {
     data: {

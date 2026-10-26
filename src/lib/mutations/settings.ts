@@ -8,7 +8,7 @@ import { invalidateAfter } from "@/lib/query/invalidation";
 import { isThemeCode } from "@/lib/theme/themes";
 import { currencies, type CurrencyCode } from "@/lib/types/constants";
 import type { AppLanguage } from "@/lib/types/domain";
-import { parseDollarsToCents } from "@/lib/utils";
+import { parseToMinorUnits } from "@/lib/currency/input";
 import { mutationError, type FormResult } from "./types";
 
 export async function updateDisplayCurrencyMutation(
@@ -106,8 +106,10 @@ export async function updateProjectionSettingsMutation(
   }
 }
 
+/** The limit is stored in the display currency's minor units (compared against extraSpent). */
 export async function updateExtraSpentLimitMutation(
   rawLimit: string,
+  displayCurrency: CurrencyCode,
 ): Promise<FormResult> {
   const trimmed = rawLimit.trim();
 
@@ -121,7 +123,7 @@ export async function updateExtraSpentLimitMutation(
     }
   }
 
-  const limit = parseDollarsToCents(trimmed);
+  const limit = parseToMinorUnits(trimmed, displayCurrency);
   if (limit === null || limit <= 0) {
     return { error: tError("invalidExtraSpentLimit") };
   }
@@ -186,7 +188,13 @@ export function useUpdateProjectionSettings() {
 export function useUpdateExtraSpentLimit() {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: updateExtraSpentLimitMutation,
+    mutationFn: ({
+      limit,
+      displayCurrency,
+    }: {
+      limit: string;
+      displayCurrency: CurrencyCode;
+    }) => updateExtraSpentLimitMutation(limit, displayCurrency),
     onSuccess: (result) => {
       if (result.success) void invalidateAfter(queryClient, "settingsChange");
     },

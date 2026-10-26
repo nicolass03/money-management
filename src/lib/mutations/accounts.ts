@@ -7,7 +7,7 @@ import {
 import { invalidateAfter } from "@/lib/query/invalidation";
 import { currencies, type CurrencyCode } from "@/lib/types/constants";
 import { tError } from "@/lib/i18n/errors";
-import { parseDollarsToCents } from "@/lib/utils";
+import { parseToMinorUnits } from "@/lib/currency/input";
 import { mutationError, type FormResult } from "./types";
 
 export interface AccountFormInput {
@@ -29,7 +29,10 @@ function validateAccountInput(data: AccountFormInput):
   if (!currencies.includes(data.currency as CurrencyCode)) {
     return { error: tError("invalidCurrency") };
   }
-  const initialAmount = parseDollarsToCents(data.initialAmount || "0");
+  const initialAmount = parseToMinorUnits(
+    data.initialAmount || "0",
+    data.currency as CurrencyCode,
+  );
   if (initialAmount === null || initialAmount < 0) {
     return { error: tError("invalidAmount") };
   }

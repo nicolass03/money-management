@@ -3,10 +3,11 @@ import { useTranslation } from "react-i18next";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useCreateAccount, useUpdateAccount } from "@/lib/mutations/accounts";
+import { formatMinorUnitsAsInput } from "@/lib/currency/input";
 import { formatCurrencyLabel } from "@/lib/currency/types";
 import { currencies, type CurrencyCode } from "@/lib/types/constants";
 import type { Account } from "@/lib/types/domain";
-import { cn, formatCentsAsDollarsInput } from "@/lib/utils";
+import { cn } from "@/lib/utils";
 
 interface AccountFormProps {
   account?: Account;
@@ -22,7 +23,7 @@ export function AccountForm({ account, onCancel, onSuccess }: AccountFormProps) 
     account?.currency ?? "usd",
   );
   const [initialAmount, setInitialAmount] = useState(
-    account ? formatCentsAsDollarsInput(account.initialAmount) : "",
+    account ? formatMinorUnitsAsInput(account.initialAmount, account.currency) : "",
   );
   const [error, setError] = useState("");
 

@@ -22,12 +22,8 @@ import {
 import type { RecurringExpenseWithTags } from "@/lib/types/domain";
 import { formatFrequency, getUpcomingPayDates } from "@/lib/income/pay-periods";
 import { formatTagNames } from "@/lib/expenses/tag-utils";
-import {
-  cn,
-  formatCentsAsDollarsInput,
-  formatDate,
-  parseDollarsToCents,
-} from "@/lib/utils";
+import { formatMinorUnitsAsInput, parseToMinorUnits } from "@/lib/currency/input";
+import { cn, formatDate } from "@/lib/utils";
 import { TagInput } from "./tag-input";
 
 
@@ -62,7 +58,7 @@ export function RecurringExpenseForm({
   // time. When an account is pinned, currency follows it (currency-follows-account).
   const [accountId, setAccountId] = useState(recurring?.accountId ?? "");
   const [amount, setAmount] = useState(
-    recurring ? formatCentsAsDollarsInput(recurring.amount) : "",
+    recurring ? formatMinorUnitsAsInput(recurring.amount, recurring.currency) : "",
   );
   const [isSubscription, setIsSubscription] = useState(
     recurring?.isSubscription ?? false,
@@ -118,7 +114,7 @@ export function RecurringExpenseForm({
           4,
         )
       : [];
-  const previewAmount = parseDollarsToCents(amount);
+  const previewAmount = parseToMinorUnits(amount, effectiveCurrency);
 
   return (
     <form onSubmit={handleSubmit} className="space-y-4">

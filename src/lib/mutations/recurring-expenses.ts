@@ -14,7 +14,7 @@ import {
   type PayFrequency,
 } from "@/lib/types/constants";
 import { tError } from "@/lib/i18n/errors";
-import { parseDollarsToCents } from "@/lib/utils";
+import { parseToMinorUnits } from "@/lib/currency/input";
 import { mutationError, type FormResult } from "./types";
 
 export interface RecurringInput {
@@ -62,7 +62,7 @@ function validateRecurringInput(data: RecurringInput):
   if (!currencies.includes(data.currency as CurrencyCode)) {
     return { error: tError("invalidCurrency") };
   }
-  const amount = parseDollarsToCents(data.amount);
+  const amount = parseToMinorUnits(data.amount, data.currency as CurrencyCode);
   if (amount === null || amount <= 0) return { error: tError("invalidAmount") };
   const lastPaymentDate = parseLastPaymentDate(data.lastPaymentDate);
   if (lastPaymentDate && !/^\d{4}-\d{2}-\d{2}$/.test(lastPaymentDate)) {

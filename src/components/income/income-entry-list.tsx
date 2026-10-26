@@ -14,9 +14,10 @@ import {
 } from "@/lib/mutations/income";
 import { formatMoney } from "@/lib/currency/format";
 import type { MoneyDisplayContext } from "@/lib/currency/display";
-import type { Income } from "@/lib/types/domain";
+import type { CurrencyCode, Income } from "@/lib/types/domain";
 import { isManualIncome, shouldShowScheduledBadge } from "@/lib/income/filter-income-entries";
-import { formatCentsAsDollarsInput, formatDate } from "@/lib/utils";
+import { formatMinorUnitsAsInput } from "@/lib/currency/input";
+import { formatDate } from "@/lib/utils";
 import { IncomeForm } from "./income-form";
 
 interface IncomeEntryListProps extends MoneyDisplayContext {
@@ -27,14 +28,16 @@ interface IncomeEntryListProps extends MoneyDisplayContext {
 function IncomeAmountEditor({
   incomeId,
   initialAmount,
+  currency,
   onDone,
 }: {
   incomeId: string;
   initialAmount: number;
+  currency: CurrencyCode;
   onDone: () => void;
 }) {
   const { t } = useTranslation("common");
-  const [amount, setAmount] = useState(formatCentsAsDollarsInput(initialAmount));
+  const [amount, setAmount] = useState(formatMinorUnitsAsInput(initialAmount, currency));
   const [error, setError] = useState<string | null>(null);
   const [pending, startTransition] = useTransition();
   const updateAmount = useUpdateIncomeAmount();
@@ -151,6 +154,7 @@ export function IncomeEntryList({
               <IncomeAmountEditor
                 incomeId={entry.id}
                 initialAmount={entry.amount}
+                currency={entry.currency}
                 onDone={() => setEditingId(null)}
               />
             ) : (

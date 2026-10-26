@@ -13,7 +13,7 @@ import { parseTagNames } from "@/lib/expenses/tag-utils";
 import { invalidateAfter } from "@/lib/query/invalidation";
 import { currencies, type CurrencyCode } from "@/lib/types/constants";
 import { tError } from "@/lib/i18n/errors";
-import { parseDollarsToCents } from "@/lib/utils";
+import { parseToMinorUnits } from "@/lib/currency/input";
 import { localTodayIso } from "@/lib/date/local-today";
 import { mutationError, type FormResult } from "./types";
 
@@ -52,7 +52,7 @@ function validateBudgetInput(data: BudgetInput):
   if (!currencies.includes(data.currency as CurrencyCode)) {
     return { error: tError("invalidCurrency") };
   }
-  const amount = parseDollarsToCents(data.amount);
+  const amount = parseToMinorUnits(data.amount, data.currency as CurrencyCode);
   if (amount === null || amount <= 0) return { error: tError("invalidAmount") };
   const startDate = parseOptionalDate(data.startDate);
   const endDate = parseOptionalDate(data.endDate);
@@ -126,7 +126,7 @@ export async function addBudgetExpenseMutation(
 ): Promise<FormResult> {
   const budget = await getBudgetById(budgetId);
   if (!budget) return { error: tError("budgetNotFound") };
-  const amount = parseDollarsToCents(input.amount);
+  const amount = parseToMinorUnits(input.amount, budget.currency);
   if (amount === null || amount <= 0) return { error: tError("invalidAmount") };
   const date = input.date;
   if (!/^\d{4}-\d{2}-\d{2}$/.test(date)) return { error: tError("invalidDate") };

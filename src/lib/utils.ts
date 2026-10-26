@@ -23,30 +23,3 @@ export function formatDate(date: string): string {
   }).format(new Date(date));
 }
 
-export function parseDollarsToCents(value: string): number | null {
-  const trimmed = value.trim().replace(/[$,]/g, "");
-  if (!trimmed) return null;
-
-  const parsed = Number(trimmed);
-  if (!Number.isFinite(parsed) || parsed < 0) {
-    return null;
-  }
-
-  return Math.round(parsed * 100);
-}
-
-export function parseSignedDollarsToCents(value: string): number | null {
-  const trimmed = value.trim().replace(/[$,]/g, "");
-  if (!trimmed) return 0;
-
-  const parsed = Number(trimmed);
-  if (!Number.isFinite(parsed)) {
-    return null;
-  }
-
-  return Math.round(parsed * 100);
-}
-
-export function formatCentsAsDollarsInput(cents: number): string {
-  return (cents / 100).toFixed(2);
-}

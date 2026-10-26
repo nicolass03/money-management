@@ -15,11 +15,8 @@ import { ExpenseAmount } from "./expense-amount";
 import type { MoneyDisplayContext } from "@/lib/currency/display";
 import type { PlannedExpenseWithTags } from "@/lib/types/domain";
 import { formatTagNames } from "@/lib/expenses/tag-utils";
-import {
-  formatCentsAsDollarsInput,
-  formatDate,
-  parseDollarsToCents,
-} from "@/lib/utils";
+import { formatMinorUnitsAsInput, parseToMinorUnits } from "@/lib/currency/input";
+import { formatDate } from "@/lib/utils";
 import { TagInput } from "./tag-input";
 
 
@@ -45,7 +42,7 @@ export function PlannedExpenseForm({
   );
   const [date, setDate] = useState(planned?.date ?? "");
   const [amount, setAmount] = useState(
-    planned ? formatCentsAsDollarsInput(planned.amount) : "",
+    planned ? formatMinorUnitsAsInput(planned.amount, planned.currency) : "",
   );
 
   const [error, setError] = useState("");
@@ -78,7 +75,7 @@ export function PlannedExpenseForm({
     onSuccess?.();
   }
 
-  const previewAmount = parseDollarsToCents(amount);
+  const previewAmount = parseToMinorUnits(amount, currency);
 
   return (
     <form onSubmit={handleSubmit} className="space-y-4">

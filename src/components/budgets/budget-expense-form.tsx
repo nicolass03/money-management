@@ -6,7 +6,7 @@ import { useAddBudgetExpense } from "@/lib/mutations/budgets";
 import type { BudgetWithTags } from "@/lib/types/domain";
 import { isDatedBudget } from "@/lib/budgets/budget-status";
 import { localTodayIso } from "@/lib/date/local-today";
-import { formatCentsAsDollarsInput } from "@/lib/utils";
+import { formatMinorUnitsAsInput } from "@/lib/currency/input";
 
 interface BudgetExpenseFormProps {
   budget: BudgetWithTags;
@@ -80,7 +80,7 @@ export function BudgetExpenseForm({ budget, onSuccess }: BudgetExpenseFormProps)
             inputMode="decimal"
             value={amount}
             onChange={(e) => setAmount(e.target.value)}
-            placeholder={formatCentsAsDollarsInput(remaining)}
+            placeholder={formatMinorUnitsAsInput(remaining, budget.currency)}
             required
           />
         </div>

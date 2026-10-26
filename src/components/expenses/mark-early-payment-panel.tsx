@@ -12,7 +12,8 @@ import { formatCurrencyLabel } from "@/lib/currency/types";
 import { currencies, type CurrencyCode } from "@/lib/types/constants";
 import { maskNumericValue } from "@/lib/privacy/mask";
 import type { PayableFutureItem } from "@/lib/types/domain";
-import { cn, formatCentsAsDollarsInput, formatDate } from "@/lib/utils";
+import { formatMinorUnitsAsInput } from "@/lib/currency/input";
+import { cn, formatDate } from "@/lib/utils";
 
 interface MarkEarlyPaymentPanelProps {
   upcomingItems: PayableFutureItem[];
@@ -78,7 +79,7 @@ export function MarkEarlyPaymentPanel({
 
   function handleSelect(item: PayableFutureItem) {
     setSelectedKey(item.key);
-    setAmount(formatCentsAsDollarsInput(item.amount));
+    setAmount(formatMinorUnitsAsInput(item.amount, item.currency));
     setCurrency(item.currency);
     setPaidDate(defaultPaidDate);
     setError("");

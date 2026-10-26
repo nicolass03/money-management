@@ -27,7 +27,8 @@ import type {
 } from "@/lib/types/domain";
 import { Skeleton } from "@/components/ui/skeleton";
 import { localTodayIso } from "@/lib/date/local-today";
-import { cn, formatCentsAsDollarsInput, formatDate } from "@/lib/utils";
+import { formatMinorUnitsAsInput } from "@/lib/currency/input";
+import { cn, formatDate } from "@/lib/utils";
 import { ExpenseForm } from "./expense-form";
 import {
   EarlyPaymentPanelSkeleton,
@@ -91,18 +92,20 @@ function formatPeriodRange(startDate: string, endDate: string): string {
 function ExpenseAmountEditor({
   expenseId,
   initialAmount,
+  currency,
   displayCurrency,
   rates,
   onDone,
 }: {
   expenseId: string;
   initialAmount: number;
+  currency: CurrencyCode;
   displayCurrency: CurrencyCode;
   rates: MoneyDisplayContext["rates"];
   onDone: () => void;
 }) {
   const { t } = useTranslation("common");
-  const [amount, setAmount] = useState(formatCentsAsDollarsInput(initialAmount));
+  const [amount, setAmount] = useState(formatMinorUnitsAsInput(initialAmount, currency));
   const [error, setError] = useState<string | null>(null);
   const [pending, startTransition] = useTransition();
 
@@ -255,6 +258,7 @@ function ExpenseRow({
           <ExpenseAmountEditor
             expenseId={item.id!}
             initialAmount={item.amount}
+            currency={item.currency}
             displayCurrency={displayCurrency}
             rates={rates}
             onDone={() => setEditingId(null)}

@@ -9,7 +9,7 @@ import { useCreateIncome, useUpdateIncome } from "@/lib/mutations/income";
 import { formatCurrencyLabel } from "@/lib/currency/types";
 import type { Income } from "@/lib/types/domain";
 import { localTodayIso } from "@/lib/date/local-today";
-import { formatCentsAsDollarsInput } from "@/lib/utils";
+import { formatMinorUnitsAsInput } from "@/lib/currency/input";
 
 interface IncomeFormProps {
   entry?: Income;
@@ -29,7 +29,7 @@ export function IncomeForm({
   const isEditing = Boolean(entry);
   const [name, setName] = useState(entry?.name ?? "");
   const [amount, setAmount] = useState(
-    entry ? formatCentsAsDollarsInput(entry.amount) : "",
+    entry ? formatMinorUnitsAsInput(entry.amount, entry.currency) : "",
   );
   const [date, setDate] = useState(
     entry?.date ?? defaultDate ?? localTodayIso(),

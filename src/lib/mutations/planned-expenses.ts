@@ -10,7 +10,7 @@ import { localTodayIso } from "@/lib/date/local-today";
 import { invalidateAfter } from "@/lib/query/invalidation";
 import { currencies, type CurrencyCode } from "@/lib/types/constants";
 import { tError } from "@/lib/i18n/errors";
-import { parseDollarsToCents } from "@/lib/utils";
+import { parseToMinorUnits } from "@/lib/currency/input";
 import { mutationError, type FormResult } from "./types";
 
 function todayIso() {
@@ -54,7 +54,7 @@ function validatePlannedInput(
   if (!currencies.includes(data.currency as CurrencyCode)) {
     return { error: tError("invalidCurrency") };
   }
-  const amount = parseDollarsToCents(data.amount);
+  const amount = parseToMinorUnits(data.amount, data.currency as CurrencyCode);
   if (amount === null || amount <= 0) return { error: tError("invalidAmount") };
   return {
     data: {
@@ -108,8 +108,9 @@ export async function deletePlannedExpenseMutation(id: string): Promise<FormResu
 export async function payPlannedExpenseMutation(
   id: string,
   amountInput: string,
+  currency: CurrencyCode,
 ): Promise<FormResult> {
-  const amount = parseDollarsToCents(amountInput);
+  const amount = parseToMinorUnits(amountInput, currency);
   if (amount === null || amount <= 0) return { error: tError("invalidAmount") };
   try {
     await payPlannedExpense(id, amount);
@@ -122,8 +123,15 @@ export async function payPlannedExpenseMutation(
 export function usePayPlannedExpense() {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: ({ id, amount }: { id: string; amount: string }) =>
-      payPlannedExpenseMutation(id, amount),
+    mutationFn: ({
+      id,
+      amount,
+      currency,
+    }: {
+      id: string;
+      amount: string;
+      currency: CurrencyCode;
+    }) => payPlannedExpenseMutation(id, amount, currency),
     onSuccess: (result) => {
       if (result.success) void invalidateAfter(queryClient, "plannedChange");
     },
