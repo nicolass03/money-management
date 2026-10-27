@@ -1,5 +1,11 @@
 import type { Account, CurrencyCode } from "@/lib/types/domain";
+import { localTodayIso } from "@/lib/date/local-today";
 import { apiFetch } from "./client";
+
+/** Balances are computed as of the user's local today. */
+function asOfQuery(): string {
+  return new URLSearchParams({ asOf: localTodayIso() }).toString();
+}
 
 export interface AccountInput {
   name: string | null;
@@ -8,7 +14,7 @@ export interface AccountInput {
 }
 
 export async function getAccounts(): Promise<Account[]> {
-  return apiFetch<Account[]>("/api/v1/accounts");
+  return apiFetch<Account[]>(`/api/v1/accounts?${asOfQuery()}`);
 }
 
 export async function createAccount(data: AccountInput): Promise<Account> {
@@ -22,7 +28,7 @@ export async function updateAccount(
   id: string,
   data: AccountInput,
 ): Promise<Account> {
-  return apiFetch<Account>(`/api/v1/accounts/${id}`, {
+  return apiFetch<Account>(`/api/v1/accounts/${id}?${asOfQuery()}`, {
     method: "PATCH",
     body: JSON.stringify(data),
   });

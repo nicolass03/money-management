@@ -95,6 +95,7 @@ function ExpenseAmountEditor({
   currency,
   displayCurrency,
   rates,
+  canVoid,
   onDone,
 }: {
   expenseId: string;
@@ -102,9 +103,11 @@ function ExpenseAmountEditor({
   currency: CurrencyCode;
   displayCurrency: CurrencyCode;
   rates: MoneyDisplayContext["rates"];
+  /** Recurring charges may be set to 0 when the charge didn't happen. */
+  canVoid: boolean;
   onDone: () => void;
 }) {
-  const { t } = useTranslation("common");
+  const { t } = useTranslation(["common", "expenses"]);
   const [amount, setAmount] = useState(formatMinorUnitsAsInput(initialAmount, currency));
   const [error, setError] = useState<string | null>(null);
   const [pending, startTransition] = useTransition();
@@ -138,6 +141,9 @@ function ExpenseAmountEditor({
       <Button size="sm" variant="ghost" onClick={onDone}>
         {t("cancel")}
       </Button>
+      {canVoid && !error && (
+        <span className="font-mono text-xs text-muted">{t("expenses:voidChargeHint")}</span>
+      )}
       {error && (
         <span className="font-mono text-xs text-danger">{error}</span>
       )}
@@ -182,6 +188,21 @@ function ExpenseRow({
       : `proj-${item.recurringId}-${item.date}`);
   const canEdit =
     item.id != null && !item.projected && !item.isBudgetSummary;
+  // Recurring / planned charges are system-generated: the API only allows editing their amount.
+  const isSystemGenerated = item.recurringId != null || item.plannedExpenseId != null;
+
+  if (canEdit && editingId === item.id && isExtraExpense(item)) {
+    return (
+      <div className="py-3 first:pt-0 last:pb-0">
+        <ExpenseForm
+          defaultDate={item.date}
+          expense={{ ...item, id: item.id! }}
+          onCancel={() => setEditingId(null)}
+          onSuccess={() => setEditingId(null)}
+        />
+      </div>
+    );
+  }
 
   function rowMetaSuffix() {
     if (item.isBudgetSummary) {
@@ -261,6 +282,7 @@ function ExpenseRow({
             currency={item.currency}
             displayCurrency={displayCurrency}
             rates={rates}
+            canVoid={item.recurringId != null}
             onDone={() => setEditingId(null)}
           />
         ) : (
@@ -284,15 +306,17 @@ function ExpenseRow({
                   >
                     {t("common:edit")}
                   </Button>
-                  <Button
-                    size="sm"
-                    variant="danger"
-                    className={cn("h-7 px-2 text-xs")}
-                    loading={deletePending}
-                    onClick={() => onDelete(item.id!)}
-                  >
-                    {deletePending ? t("common:deleting") : t("common:delete")}
-                  </Button>
+                  {!isSystemGenerated && (
+                    <Button
+                      size="sm"
+                      variant="danger"
+                      className={cn("h-7 px-2 text-xs")}
+                      loading={deletePending}
+                      onClick={() => onDelete(item.id!)}
+                    >
+                      {deletePending ? t("common:deleting") : t("common:delete")}
+                    </Button>
+                  )}
                 </>
               )}
             </div>

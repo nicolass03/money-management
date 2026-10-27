@@ -5,6 +5,7 @@ import {
   earlyPayExpense,
   getExpenseById,
   getExpenses,
+  updateExpense,
   updateExpenseAmount,
 } from "@/lib/api/expenses";
 import { getIncomeScheduleById } from "@/lib/api/income-schedules";
@@ -91,6 +92,22 @@ export async function createExpenseMutation(input: ExpenseInput): Promise<FormRe
   }
 }
 
+/** Full edit of a manual expense (the API rejects recurring / planned / budget expenses). */
+export async function updateExpenseMutation(
+  id: string,
+  input: ExpenseInput,
+): Promise<FormResult> {
+  const result = validateExpenseInput(input);
+  if ("error" in result) return result;
+  try {
+    await updateExpense(id, result.data);
+    return { success: true };
+  } catch (error) {
+    return mutationError(error, tError("failedUpdateExpense"));
+  }
+}
+
+/** Amount override. A recurring charge may be set to 0 to void an occurrence that didn't happen. */
 export async function updateExpenseAmountMutation(
   id: string,
   amountRaw: string,
@@ -98,7 +115,8 @@ export async function updateExpenseAmountMutation(
   const existing = await getExpenseById(id);
   if (!existing) return { error: tError("expenseNotFound") };
   const amount = parseToMinorUnits(amountRaw, existing.currency);
-  if (amount === null || amount <= 0) return { error: tError("invalidAmount") };
+  const minAmount = existing.recurringId ? 0 : 1;
+  if (amount === null || amount < minAmount) return { error: tError("invalidAmount") };
   try {
     const updated = await updateExpenseAmount(id, amount);
     if (!updated) return { error: tError("expenseNotFound") };
@@ -224,6 +242,17 @@ export function useCreateExpense() {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: createExpenseMutation,
+    onSuccess: (result) => {
+      if (result.success) void invalidateAfter(queryClient, "expenseChange");
+    },
+  });
+}
+
+export function useUpdateExpense() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: ({ id, input }: { id: string; input: ExpenseInput }) =>
+      updateExpenseMutation(id, input),
     onSuccess: (result) => {
       if (result.success) void invalidateAfter(queryClient, "expenseChange");
     },

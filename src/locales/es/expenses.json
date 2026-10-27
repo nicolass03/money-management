@@ -39,6 +39,7 @@
   "namePlaceholder": "Supermercado",
   "amountPlaceholder": "45.00",
   "subscription": "suscripción",
+  "voidChargeHint": "0 = no ocurrió",
   "submitAdd": "agregar gasto",
   "markAsPaid": "marcar como pagado",
   "pendingPeriodButton": "por pagar",

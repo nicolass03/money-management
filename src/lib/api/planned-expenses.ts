@@ -4,6 +4,7 @@ import type {
   Expense,
   PlannedExpenseWithTags,
 } from "@/lib/types/domain";
+import { localTodayIso } from "@/lib/date/local-today";
 import { apiFetch } from "./client";
 
 export interface PlannedExpenseInput {
@@ -36,7 +37,7 @@ export async function createPlannedExpense(
 ): Promise<PlannedExpenseWithTags> {
   return apiFetch<PlannedExpenseWithTags>("/api/v1/planned-expenses", {
     method: "POST",
-    body: JSON.stringify(data),
+    body: JSON.stringify({ ...data, asOf: localTodayIso() }),
   });
 }
 
@@ -61,7 +62,7 @@ export async function updatePlannedExpense(
 export async function payPlannedExpense(id: string, amount: number): Promise<Expense> {
   return apiFetch<Expense>(`/api/v1/planned-expenses/${id}/pay`, {
     method: "POST",
-    body: JSON.stringify({ amount }),
+    body: JSON.stringify({ amount, asOf: localTodayIso() }),
   });
 }
 

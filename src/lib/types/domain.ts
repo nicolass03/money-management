@@ -151,6 +151,8 @@ export interface ProjectionExpenseItem {
   recurringId?: string;
   plannedExpenseId?: string;
   budgetId?: string;
+  /** Source account of a recorded expense. */
+  accountId?: string;
   budgetTotal?: number;
   budgetSpent?: number;
   isBudgetSummary?: boolean;

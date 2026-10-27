@@ -39,6 +39,7 @@
   "namePlaceholder": "Groceries",
   "amountPlaceholder": "45.00",
   "subscription": "subscription",
+  "voidChargeHint": "0 = didn't happen",
   "submitAdd": "add expense",
   "markAsPaid": "mark as paid",
   "pendingPeriodButton": "to pay",

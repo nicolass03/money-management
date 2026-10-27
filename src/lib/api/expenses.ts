@@ -88,6 +88,17 @@ export async function createExpense(
   });
 }
 
+/** Full edit of a manual expense (no recurring / planned / budget source). */
+export async function updateExpense(
+  id: string,
+  data: CreateExpenseInput,
+): Promise<ExpenseWithTags> {
+  return apiFetch<ExpenseWithTags>(`/api/v1/expenses/${id}`, {
+    method: "PATCH",
+    body: JSON.stringify(data),
+  });
+}
+
 export async function updateExpenseAmount(
   id: string,
   amount: number,
@@ -119,6 +130,7 @@ export async function earlyPayExpense(
       currency: data.currency,
       recurringId: data.recurringId,
       plannedExpenseId: data.plannedExpenseId,
+      asOf: localTodayIso(),
     }),
   });
 }
