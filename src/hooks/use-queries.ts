@@ -1,5 +1,5 @@
 import { keepPreviousData, useQuery } from "@tanstack/react-query";
-import { getAccounts } from "@/lib/api/accounts";
+import { getAccountInterest, getAccounts } from "@/lib/api/accounts";
 import { getBudgetExpenses, getBudgets } from "@/lib/api/budgets";
 import { getExpensePeriodView, getUpcomingPayable } from "@/lib/api/expenses";
 import { getIncome } from "@/lib/api/income";
@@ -151,6 +151,14 @@ export function useAccounts() {
   return useQuery({
     queryKey: queryKeys.accounts(),
     queryFn: getAccounts,
+  });
+}
+
+export function useAccountInterest(accountId: string, enabled = true) {
+  return useQuery({
+    queryKey: queryKeys.accountInterest(accountId),
+    queryFn: () => getAccountInterest(accountId),
+    enabled,
   });
 }
 

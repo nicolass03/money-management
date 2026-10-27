@@ -22,6 +22,8 @@ export const queryKeys = {
   income: () => ["income"] as const,
   schedules: () => ["schedules"] as const,
   accounts: () => ["accounts"] as const,
+  // Under the accounts prefix, so every event that refreshes balances refreshes it too.
+  accountInterest: (accountId: string) => ["accounts", accountId, "interest"] as const,
   transfers: () => ["transfers"] as const,
   recurringTransfers: () => ["recurringTransfers"] as const,
   projections: () => ["projections", localTodayIso()] as const,

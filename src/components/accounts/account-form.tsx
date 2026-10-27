@@ -3,9 +3,15 @@ import { useTranslation } from "react-i18next";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useCreateAccount, useUpdateAccount } from "@/lib/mutations/accounts";
+import { formatBpsAsInput, interestRateTypeLabel } from "@/lib/accounts/interest";
 import { formatMinorUnitsAsInput } from "@/lib/currency/input";
 import { formatCurrencyLabel } from "@/lib/currency/types";
-import { currencies, type CurrencyCode } from "@/lib/types/constants";
+import {
+  currencies,
+  interestRateTypes,
+  type CurrencyCode,
+  type InterestRateType,
+} from "@/lib/types/constants";
 import type { Account } from "@/lib/types/domain";
 import { cn } from "@/lib/utils";
 
@@ -28,6 +34,12 @@ export function AccountForm({ account, onCancel, onSuccess }: AccountFormProps) 
   const [excludeFromProjections, setExcludeFromProjections] = useState(
     account?.excludeFromProjections ?? false,
   );
+  const [interestRate, setInterestRate] = useState(
+    account ? formatBpsAsInput(account.interestRateBps) : "",
+  );
+  const [interestRateType, setInterestRateType] = useState<InterestRateType>(
+    account?.interestRateType ?? "apy",
+  );
   const [error, setError] = useState("");
 
   const createAccount = useCreateAccount();
@@ -37,7 +49,14 @@ export function AccountForm({ account, onCancel, onSuccess }: AccountFormProps) 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     setError("");
-    const input = { name, currency, initialAmount, excludeFromProjections };
+    const input = {
+      name,
+      currency,
+      initialAmount,
+      excludeFromProjections,
+      interestRate,
+      interestRateType,
+    };
     const result = isEditing
       ? await updateAccount.mutateAsync({ id: account!.id, input })
       : await createAccount.mutateAsync(input);
@@ -50,6 +69,8 @@ export function AccountForm({ account, onCancel, onSuccess }: AccountFormProps) 
       setCurrency("usd");
       setInitialAmount("");
       setExcludeFromProjections(false);
+      setInterestRate("");
+      setInterestRateType("apy");
     }
     onSuccess?.();
   }
@@ -115,6 +136,49 @@ export function AccountForm({ account, onCancel, onSuccess }: AccountFormProps) 
             </p>
           )}
         </div>
+      </div>
+
+      <div className="grid gap-4 sm:grid-cols-2">
+        <div>
+          <label
+            htmlFor="account-interest-rate"
+            className="mb-2 block font-mono text-xs text-muted"
+          >
+            {t("accounts:labelInterestRate")}
+          </label>
+          <Input
+            id="account-interest-rate"
+            type="text"
+            inputMode="decimal"
+            value={interestRate}
+            onChange={(e) => setInterestRate(e.target.value)}
+            placeholder={t("accounts:interestRatePlaceholder")}
+          />
+        </div>
+
+        <div>
+          <label
+            htmlFor="account-interest-type"
+            className="mb-2 block font-mono text-xs text-muted"
+          >
+            {t("accounts:labelInterestRateType")}
+          </label>
+          <select
+            id="account-interest-type"
+            value={interestRateType}
+            onChange={(e) => setInterestRateType(e.target.value as InterestRateType)}
+            className="w-full border border-border bg-surface px-3 py-2 font-mono text-sm text-text outline-none transition-colors focus:border-accent focus:shadow-[0_0_8px_var(--glow-color)]"
+          >
+            {interestRateTypes.map((type) => (
+              <option key={type} value={type}>
+                {interestRateTypeLabel(type)}
+              </option>
+            ))}
+          </select>
+        </div>
+        <p className="font-mono text-[10px] text-muted sm:col-span-2">
+          {t("accounts:interestHint")}
+        </p>
       </div>
 
       <div>

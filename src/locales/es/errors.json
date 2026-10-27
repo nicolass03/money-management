@@ -18,6 +18,7 @@
   "tagRequired": "se requiere al menos una etiqueta",
   "invalidDate": "fecha inválida",
   "invalidAmount": "monto inválido",
+  "invalidInterestRate": "tasa de interés inválida — usa un porcentaje hasta 100 con máximo 2 decimales",
   "invalidAnchorDate": "fecha ancla inválida",
   "invalidFrequency": "frecuencia inválida",
   "failedCreateExpense": "no se pudo crear el gasto",

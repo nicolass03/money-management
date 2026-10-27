@@ -18,6 +18,7 @@
   "tagRequired": "at least one tag is required",
   "invalidDate": "invalid date",
   "invalidAmount": "invalid amount",
+  "invalidInterestRate": "invalid interest rate — use a percentage up to 100 with at most 2 decimals",
   "invalidAnchorDate": "invalid anchor date",
   "invalidFrequency": "invalid frequency",
   "failedCreateExpense": "failed to create expense",

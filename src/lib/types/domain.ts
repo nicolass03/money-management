@@ -1,10 +1,11 @@
 import type {
   CurrencyCode,
   IncomeSource,
+  InterestRateType,
   PayFrequency,
 } from "./constants";
 
-export type { CurrencyCode, IncomeSource, PayFrequency };
+export type { CurrencyCode, IncomeSource, InterestRateType, PayFrequency };
 export type AppLanguage = "en" | "es";
 
 export type { PayPeriod } from "@/lib/income/pay-periods";
@@ -35,6 +36,15 @@ export interface Account {
   createdAt: string;
   /** Keeps the account's balance and activity out of projections. */
   excludeFromProjections: boolean;
+  /** Interest credited daily, in basis points (825 = 8.25%); 0 = none. */
+  interestRateBps: number;
+  interestRateType: InterestRateType;
+}
+
+/** One day's interest credited to an account, in the account's currency. */
+export interface InterestCredit {
+  date: string;
+  amount: number;
 }
 
 /** A transfer between two of the user's accounts (v1: same currency, so one amount). */

@@ -5,7 +5,12 @@ import {
   updateAccount,
 } from "@/lib/api/accounts";
 import { invalidateAfter } from "@/lib/query/invalidation";
-import { currencies, type CurrencyCode } from "@/lib/types/constants";
+import { parseRateToBps } from "@/lib/accounts/interest";
+import {
+  currencies,
+  type CurrencyCode,
+  type InterestRateType,
+} from "@/lib/types/constants";
 import { tError } from "@/lib/i18n/errors";
 import { parseToMinorUnits } from "@/lib/currency/input";
 import { mutationError, type FormResult } from "./types";
@@ -15,6 +20,9 @@ export interface AccountFormInput {
   currency: string;
   initialAmount: string;
   excludeFromProjections: boolean;
+  /** Percent text, e.g. "8.25"; blank = no interest. */
+  interestRate: string;
+  interestRateType: InterestRateType;
 }
 
 function validateAccountInput(data: AccountFormInput):
@@ -25,6 +33,8 @@ function validateAccountInput(data: AccountFormInput):
         currency: CurrencyCode;
         initialAmount: number;
         excludeFromProjections: boolean;
+        interestRateBps: number;
+        interestRateType: InterestRateType;
       };
     } {
   const name = data.name.trim();
@@ -38,12 +48,18 @@ function validateAccountInput(data: AccountFormInput):
   if (initialAmount === null || initialAmount < 0) {
     return { error: tError("invalidAmount") };
   }
+  const interestRateBps = parseRateToBps(data.interestRate);
+  if (interestRateBps === null) {
+    return { error: tError("invalidInterestRate") };
+  }
   return {
     data: {
       name: name || null,
       currency: data.currency as CurrencyCode,
       initialAmount,
       excludeFromProjections: data.excludeFromProjections,
+      interestRateBps,
+      interestRateType: data.interestRateType,
     },
   };
 }

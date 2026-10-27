@@ -87,6 +87,7 @@ If `cargo run` fails with `DATABASE_URL is required` while `.env` is set, the sh
 ## Accounts → transfers
 
 - `/accounts` hosts `TransfersSection` (`src/components/accounts/transfers-section.tsx` + `transfer-form.tsx`): one-off and recurring transfers between same-currency accounts (v1; the "to" picker only offers the source currency). Writes invalidate `transferChange` (transfers, recurring transfers, accounts, projections + period items — transfers never touch spend/income, but those to/from an account excluded from projections count there). Accounts carry `excludeFromProjections` (checkbox in `account-form.tsx`); server rules: API `AGENTS.md` → *Accounts excluded from projections*. A recurring occurrence's date and accounts are locked in the form. Upcoming dates use `getUpcomingOccurrences` (anchor-clamped). Server rules: API `AGENTS.md` → *Transfers*.
+- **Account interest**: `account-form.tsx` takes a rate % (blank = none, parsed to basis points by `src/lib/accounts/interest.ts`) and a rate-type dropdown (`interestRateTypes`: APY/AER, TAE, TIN, E.A., N.A.M.V., E.M.). The daily credits are hidden from `GET /income`; an interest-bearing account card opens `AccountInterestModal` (`GET /accounts/{id}/interest`, grouped by month). Its query key sits under the `accounts` prefix, so every balance invalidation refreshes it. Server rules: API `AGENTS.md` → *Account interest*.
 
 ## Budgets tab
 
