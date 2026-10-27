@@ -63,6 +63,7 @@ const invalidationMap: Record<InvalidationEvent, QueryKey[]> = {
     queryKeys.upcomingPayableAll(),
     queryKeys.reportSummaries(),
     queryKeys.accounts(),
+    queryKeys.tags(),
   ],
   recurringChange: [
     queryKeys.recurringExpenses(),
@@ -73,6 +74,7 @@ const invalidationMap: Record<InvalidationEvent, QueryKey[]> = {
     queryKeys.upcomingPayableAll(),
     // Materialized recurring charges land on an account, so balances can change.
     queryKeys.accounts(),
+    queryKeys.tags(),
   ],
   plannedChange: [
     queryKeys.plannedExpenses(),
@@ -81,6 +83,7 @@ const invalidationMap: Record<InvalidationEvent, QueryKey[]> = {
     queryKeys.expensePeriodViews(),
     queryKeys.upcomingPayableAll(),
     queryKeys.accounts(),
+    queryKeys.tags(),
   ],
   budgetChange: [
     queryKeys.budgets(),
@@ -89,6 +92,7 @@ const invalidationMap: Record<InvalidationEvent, QueryKey[]> = {
     queryKeys.projectionsAll(),
     queryKeys.expensePeriodViews(),
     queryKeys.upcomingPayableAll(),
+    queryKeys.tags(),
   ],
   incomeChange: [
     queryKeys.income(),
