@@ -55,6 +55,9 @@ export function AccountList({ accounts, loading = false }: AccountListProps) {
                 <p className="truncate font-mono text-sm text-text">
                   {name}{" "}
                   <span className="text-muted">· {account.currency.toUpperCase()}</span>
+                  {account.excludeFromProjections && (
+                    <span className="text-muted"> · {t("accounts:excludedBadge")}</span>
+                  )}
                 </p>
               </div>
               <div className="flex shrink-0 items-center gap-3">

@@ -25,6 +25,9 @@ export function AccountForm({ account, onCancel, onSuccess }: AccountFormProps) 
   const [initialAmount, setInitialAmount] = useState(
     account ? formatMinorUnitsAsInput(account.initialAmount, account.currency) : "",
   );
+  const [excludeFromProjections, setExcludeFromProjections] = useState(
+    account?.excludeFromProjections ?? false,
+  );
   const [error, setError] = useState("");
 
   const createAccount = useCreateAccount();
@@ -34,7 +37,7 @@ export function AccountForm({ account, onCancel, onSuccess }: AccountFormProps) 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     setError("");
-    const input = { name, currency, initialAmount };
+    const input = { name, currency, initialAmount, excludeFromProjections };
     const result = isEditing
       ? await updateAccount.mutateAsync({ id: account!.id, input })
       : await createAccount.mutateAsync(input);
@@ -46,6 +49,7 @@ export function AccountForm({ account, onCancel, onSuccess }: AccountFormProps) 
       setName("");
       setCurrency("usd");
       setInitialAmount("");
+      setExcludeFromProjections(false);
     }
     onSuccess?.();
   }
@@ -111,6 +115,22 @@ export function AccountForm({ account, onCancel, onSuccess }: AccountFormProps) 
             </p>
           )}
         </div>
+      </div>
+
+      <div>
+        <label className="flex items-center gap-2 font-mono text-sm text-text">
+          <input
+            type="checkbox"
+            name="excludeFromProjections"
+            checked={excludeFromProjections}
+            onChange={(e) => setExcludeFromProjections(e.target.checked)}
+            className="accent-accent"
+          />
+          {t("accounts:excludeFromProjections")}
+        </label>
+        <p className="mt-1 font-mono text-[10px] text-muted">
+          {t("accounts:excludeFromProjectionsHint")}
+        </p>
       </div>
 
       {error && <p className="font-mono text-xs text-danger">{error}</p>}

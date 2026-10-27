@@ -122,14 +122,18 @@ const invalidationMap: Record<InvalidationEvent, QueryKey[]> = {
   accountChange: [
     queryKeys.accounts(),
     queryKeys.projectionsAll(),
+    queryKeys.projectionPeriodItemsAll(),
     queryKeys.expenses(),
     queryKeys.income(),
   ],
-  // Transfers only move money between accounts: balances change, spend/income/projections don't.
+  // Transfers move money between accounts: balances change, spend/income don't. Projections only
+  // change for transfers to or from an account excluded from them.
   transferChange: [
     queryKeys.transfers(),
     queryKeys.recurringTransfers(),
     queryKeys.accounts(),
+    queryKeys.projectionsAll(),
+    queryKeys.projectionPeriodItemsAll(),
   ],
   moneyContextRefresh: [queryKeys.moneyContext()],
   subscriptionReminderChange: [queryKeys.subscriptionReminders()],

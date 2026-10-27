@@ -11,6 +11,7 @@ export interface AccountInput {
   name: string | null;
   currency: CurrencyCode;
   initialAmount: number;
+  excludeFromProjections: boolean;
 }
 
 export async function getAccounts(): Promise<Account[]> {

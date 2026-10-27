@@ -33,6 +33,8 @@ export interface Account {
   balance: number;
   archivedAt: string | null;
   createdAt: string;
+  /** Keeps the account's balance and activity out of projections. */
+  excludeFromProjections: boolean;
 }
 
 /** A transfer between two of the user's accounts (v1: same currency, so one amount). */

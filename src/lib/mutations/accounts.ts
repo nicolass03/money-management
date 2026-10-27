@@ -14,6 +14,7 @@ export interface AccountFormInput {
   name: string;
   currency: string;
   initialAmount: string;
+  excludeFromProjections: boolean;
 }
 
 function validateAccountInput(data: AccountFormInput):
@@ -23,6 +24,7 @@ function validateAccountInput(data: AccountFormInput):
         name: string | null;
         currency: CurrencyCode;
         initialAmount: number;
+        excludeFromProjections: boolean;
       };
     } {
   const name = data.name.trim();
@@ -41,6 +43,7 @@ function validateAccountInput(data: AccountFormInput):
       name: name || null,
       currency: data.currency as CurrencyCode,
       initialAmount,
+      excludeFromProjections: data.excludeFromProjections,
     },
   };
 }
