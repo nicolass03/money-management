@@ -11,6 +11,7 @@ import { toDisplayAmount, type MoneyDisplayContext } from "@/lib/currency/displa
 import type { Account } from "@/lib/types/domain";
 import { AccountForm } from "./account-form";
 import { AccountList } from "./account-list";
+import { TransfersSection } from "./transfers-section";
 
 interface AccountsSectionProps extends MoneyDisplayContext {
   accounts: Account[];
@@ -98,6 +99,8 @@ export function AccountsSection({
       )}
 
       <AccountList accounts={accounts} loading={loading} />
+
+      {!loading && <TransfersSection accounts={accounts} />}
     </section>
   );
 }

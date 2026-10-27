@@ -84,6 +84,10 @@ If `cargo run` fails with `DATABASE_URL is required` while `.env` is set, the sh
 - Local dev is `npm run dev` (Vite, port 3000); `npm run preview` serves a production build locally. Railway serves the built `dist/` via **Caddy** in Docker (no Node server at runtime).
 - Ensure Rust API `CORS_ORIGIN` includes the deployed UI origin (browser calls API directly, same as iOS).
 
+## Accounts → transfers
+
+- `/accounts` hosts `TransfersSection` (`src/components/accounts/transfers-section.tsx` + `transfer-form.tsx`): one-off and recurring transfers between same-currency accounts (v1; the "to" picker only offers the source currency). Writes invalidate `transferChange` (transfers, recurring transfers, accounts only — transfers never touch spend/income/projections). A recurring occurrence's date and accounts are locked in the form. Upcoming dates use `getUpcomingOccurrences` (anchor-clamped). Server rules: API `AGENTS.md` → *Transfers*.
+
 ## Budgets tab
 
 - Expand a budget card → `BudgetExpenseForm` adds charges. A card's expenses load only when it is expanded (`useBudgetExpenses` in `budget-detail.tsx`), not for every budget on page load. **Manual and budget expense writes** accept any valid expense date (no pay-period gate on create). No remaining-budget cap on write — tracking only. **Early pay** still requires the paid date in the current pay period. Projection display unchanged — dated budgets still appear on projections from their start date.

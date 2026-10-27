@@ -35,6 +35,33 @@ export interface Account {
   createdAt: string;
 }
 
+/** A transfer between two of the user's accounts (v1: same currency, so one amount). */
+export interface Transfer {
+  id: string;
+  name: string | null;
+  fromAccountId: string;
+  toAccountId: string;
+  amount: number;
+  currency: CurrencyCode;
+  date: string;
+  /** Set when the daily job created this occurrence from a recurring transfer. */
+  recurringTransferId: string | null;
+  createdAt: string;
+}
+
+export interface RecurringTransfer {
+  id: string;
+  name: string | null;
+  fromAccountId: string;
+  toAccountId: string;
+  amount: number;
+  currency: CurrencyCode;
+  anchorDate: string;
+  frequency: PayFrequency;
+  createdAt: string;
+  updatedAt: string;
+}
+
 export interface IncomePaySchedule {
   id: string;
   name: string;

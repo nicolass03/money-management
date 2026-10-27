@@ -60,5 +60,9 @@
   "failedDismissReminder": "no se pudo descartar el recordatorio",
   "failedCreateAccount": "no se pudo crear la cuenta",
   "failedUpdateAccount": "no se pudo actualizar la cuenta",
-  "failedDeleteAccount": "no se pudo archivar la cuenta"
+  "failedDeleteAccount": "no se pudo archivar la cuenta",
+  "transferAccountsRequired": "elige ambas cuentas",
+  "sameTransferAccount": "elige dos cuentas distintas",
+  "failedSaveTransfer": "no se pudo guardar la transferencia",
+  "failedDeleteTransfer": "no se pudo eliminar la transferencia"
 }

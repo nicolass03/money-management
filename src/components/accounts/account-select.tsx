@@ -14,13 +14,23 @@ interface AccountSelectProps {
   accounts: Account[];
   value: string;
   onChange: (accountId: string) => void;
+  /** Defaults to "account". */
+  label?: string;
+  disabled?: boolean;
 }
 
 /**
  * Account picker for the entry forms. Currency follows the selected account, so forms derive
  * their currency from the chosen account rather than offering a separate currency picker.
  */
-export function AccountSelect({ id, accounts, value, onChange }: AccountSelectProps) {
+export function AccountSelect({
+  id,
+  accounts,
+  value,
+  onChange,
+  label,
+  disabled = false,
+}: AccountSelectProps) {
   const { t } = useTranslation(["accounts", "common"]);
   // The row may still point at an archived account (absent from the active list). Keep it as a
   // selected option so editing never silently rebinds the row to a different account.
@@ -30,7 +40,7 @@ export function AccountSelect({ id, accounts, value, onChange }: AccountSelectPr
   return (
     <div>
       <label htmlFor={id} className="mb-2 block font-mono text-xs text-muted">
-        {t("accounts:labelAccount")}
+        {label ?? t("accounts:labelAccount")}
       </label>
       <select
         id={id}
@@ -39,7 +49,7 @@ export function AccountSelect({ id, accounts, value, onChange }: AccountSelectPr
         className={cn(
           "w-full border border-border bg-surface px-3 py-2 font-mono text-sm text-text outline-none transition-colors focus:border-accent focus:shadow-[0_0_8px_var(--glow-color)]",
         )}
-        disabled={accounts.length === 0 && !referencesArchived}
+        disabled={disabled || (accounts.length === 0 && !referencesArchived)}
       >
         {accounts.length === 0 && !referencesArchived && (
           <option value="">{t("accounts:noAccounts")}</option>

@@ -1,4 +1,5 @@
 import i18n from "@/lib/i18n";
+import { localTodayIso } from "@/lib/date/local-today";
 import type { PayFrequency } from "@/lib/types/constants";
 import type { IncomePaySchedule, RecurringExpense } from "@/lib/types/domain";
 
@@ -324,6 +325,17 @@ const frequencyKeys: Record<PayFrequency, string> = {
   monthly: "frequencyMonthly",
   yearly: "frequencyYearly",
 };
+
+/**
+ * The next `count` real occurrences from today, never before the schedule's anchor (its first
+ * occurrence) — `getUpcomingPayDates` alone follows the pay-period grid, which extends before it.
+ * Mirrors the API's `get_next_occurrence`.
+ */
+export function getUpcomingOccurrences(schedule: PayScheduleInput, count: number): string[] {
+  const today = localTodayIso();
+  const from = compareIso(schedule.anchorDate, today) > 0 ? schedule.anchorDate : today;
+  return getUpcomingPayDates(schedule, count, from);
+}
 
 export function formatFrequency(frequency: PayFrequency): string {
   return i18n.t(`common:${frequencyKeys[frequency]}`);

@@ -22,6 +22,8 @@ export const queryKeys = {
   income: () => ["income"] as const,
   schedules: () => ["schedules"] as const,
   accounts: () => ["accounts"] as const,
+  transfers: () => ["transfers"] as const,
+  recurringTransfers: () => ["recurringTransfers"] as const,
   projections: () => ["projections", localTodayIso()] as const,
   projectionsAll: () => ["projections"] as const,
   projectionPeriodItems: (payDate: string) =>
@@ -44,6 +46,7 @@ export type InvalidationEvent =
   | "settingsChange"
   | "preferenceChange"
   | "accountChange"
+  | "transferChange"
   | "moneyContextRefresh"
   | "subscriptionReminderChange";
 
@@ -121,6 +124,12 @@ const invalidationMap: Record<InvalidationEvent, QueryKey[]> = {
     queryKeys.projectionsAll(),
     queryKeys.expenses(),
     queryKeys.income(),
+  ],
+  // Transfers only move money between accounts: balances change, spend/income/projections don't.
+  transferChange: [
+    queryKeys.transfers(),
+    queryKeys.recurringTransfers(),
+    queryKeys.accounts(),
   ],
   moneyContextRefresh: [queryKeys.moneyContext()],
   subscriptionReminderChange: [queryKeys.subscriptionReminders()],

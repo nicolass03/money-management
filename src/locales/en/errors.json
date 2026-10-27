@@ -60,5 +60,9 @@
   "failedDismissReminder": "failed to dismiss reminder",
   "failedCreateAccount": "failed to create account",
   "failedUpdateAccount": "failed to update account",
-  "failedDeleteAccount": "failed to archive account"
+  "failedDeleteAccount": "failed to archive account",
+  "transferAccountsRequired": "pick both accounts",
+  "sameTransferAccount": "pick two different accounts",
+  "failedSaveTransfer": "failed to save transfer",
+  "failedDeleteTransfer": "failed to delete transfer"
 }

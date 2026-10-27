@@ -14,6 +14,7 @@ import { getReportSummary } from "@/lib/api/reports";
 import { getRecurringExpenses } from "@/lib/api/recurring-expenses";
 import { getSubscriptionReminders } from "@/lib/api/subscription-reminders";
 import { getSavings } from "@/lib/api/savings";
+import { getRecurringTransfers, getTransfers } from "@/lib/api/transfers";
 import { getUserSettingsFromApi } from "@/lib/api/settings";
 import { getAllTagNames } from "@/lib/api/tags";
 import { ApiError } from "@/lib/api/client";
@@ -150,6 +151,20 @@ export function useAccounts() {
   return useQuery({
     queryKey: queryKeys.accounts(),
     queryFn: getAccounts,
+  });
+}
+
+export function useTransfers() {
+  return useQuery({
+    queryKey: queryKeys.transfers(),
+    queryFn: getTransfers,
+  });
+}
+
+export function useRecurringTransfers() {
+  return useQuery({
+    queryKey: queryKeys.recurringTransfers(),
+    queryFn: getRecurringTransfers,
   });
 }
 
