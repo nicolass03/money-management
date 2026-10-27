@@ -21,16 +21,6 @@ export async function getBudgets(): Promise<BudgetWithTags[]> {
   return apiFetch<BudgetWithTags[]>("/api/v1/budgets");
 }
 
-export async function getBudgetById(
-  id: string,
-): Promise<BudgetWithTags | null> {
-  try {
-    return await apiFetch<BudgetWithTags>(`/api/v1/budgets/${id}`);
-  } catch {
-    return null;
-  }
-}
-
 export async function createBudget(
   data: BudgetInput,
 ): Promise<BudgetWithTags> {
@@ -43,15 +33,11 @@ export async function createBudget(
 export async function updateBudget(
   id: string,
   data: BudgetInput,
-): Promise<BudgetWithTags | null> {
-  try {
-    return await apiFetch<BudgetWithTags>(`/api/v1/budgets/${id}`, {
-      method: "PATCH",
-      body: JSON.stringify(data),
-    });
-  } catch {
-    return null;
-  }
+): Promise<BudgetWithTags> {
+  return apiFetch<BudgetWithTags>(`/api/v1/budgets/${id}`, {
+    method: "PATCH",
+    body: JSON.stringify(data),
+  });
 }
 
 export async function deleteBudget(id: string): Promise<void> {

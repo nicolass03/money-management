@@ -1,5 +1,3 @@
-"use client";
-
 import { useTranslation } from "react-i18next";
 import { useSubscriptionReminders } from "@/hooks/use-queries";
 import { useDismissReminder } from "@/lib/mutations/subscription-reminders";

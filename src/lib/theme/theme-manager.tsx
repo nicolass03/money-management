@@ -1,5 +1,3 @@
-"use client";
-
 import { useTheme } from "next-themes";
 import { createContext, useContext, useEffect, useMemo, useState } from "react";
 import { useSettings } from "@/hooks/use-queries";
@@ -60,20 +58,19 @@ export function ThemeManagerProvider({ children }: { children: React.ReactNode }
     applyTheme(themeCode, mode);
   }, [themeCode, mode]);
 
-  // The server is the source of truth once the user can access the app.
+  // The server is the source of truth once the user can access the app. Sync only when the server
+  // value changes, so a just-picked theme isn't reverted to the stale value mid-save.
+  const serverTheme = canAccessApp ? settings.data?.theme : undefined;
   useEffect(() => {
-    if (!canAccessApp || !settings.data?.theme) return;
-    const fromApi = settings.data.theme;
-    if (fromApi !== themeCode) {
-      setThemeCode(fromApi);
-      storeTheme(fromApi);
-    }
-  }, [canAccessApp, themeCode, settings.data?.theme]);
+    if (!serverTheme) return;
+    setThemeCode(serverTheme);
+    storeTheme(serverTheme);
+  }, [serverTheme]);
 
+  // The effect above applies the tokens once `themeCode` changes.
   async function setTheme(code: string) {
     setThemeCode(code);
     storeTheme(code);
-    applyTheme(code, mode);
   }
 
   const value = useMemo(() => ({ themeCode, setTheme }), [themeCode]);

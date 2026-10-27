@@ -29,21 +29,6 @@ export interface EarlyPayExpenseInput {
   plannedExpenseId?: string;
 }
 
-export async function getExpenses(
-  from?: string,
-  to?: string,
-): Promise<ExpenseWithTags[]> {
-  const params = new URLSearchParams();
-  if (from && to) {
-    params.set("from", from);
-    params.set("to", to);
-  }
-  const query = params.toString();
-  return apiFetch<ExpenseWithTags[]>(
-    `/api/v1/expenses${query ? `?${query}` : ""}`,
-  );
-}
-
 export async function getExpensePeriodView(
   period: ExpensePeriodKey,
 ): Promise<ExpensePeriodView> {
@@ -69,16 +54,6 @@ export async function getUpcomingPayable(
   );
 }
 
-export async function getExpenseById(
-  id: string,
-): Promise<ExpenseWithTags | null> {
-  try {
-    return await apiFetch<ExpenseWithTags>(`/api/v1/expenses/${id}`);
-  } catch {
-    return null;
-  }
-}
-
 export async function createExpense(
   data: CreateExpenseInput,
 ): Promise<ExpenseWithTags> {
@@ -102,15 +77,11 @@ export async function updateExpense(
 export async function updateExpenseAmount(
   id: string,
   amount: number,
-): Promise<ExpenseWithTags | null> {
-  try {
-    return await apiFetch<ExpenseWithTags>(`/api/v1/expenses/${id}`, {
-      method: "PATCH",
-      body: JSON.stringify({ amount }),
-    });
-  } catch {
-    return null;
-  }
+): Promise<ExpenseWithTags> {
+  return apiFetch<ExpenseWithTags>(`/api/v1/expenses/${id}`, {
+    method: "PATCH",
+    body: JSON.stringify({ amount }),
+  });
 }
 
 export async function deleteExpense(id: string): Promise<void> {

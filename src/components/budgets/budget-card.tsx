@@ -1,16 +1,15 @@
-"use client";
-
-import { useState, useTransition } from "react";
+import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { TerminalModal } from "@/components/ui/terminal-modal";
 import { MoneyText } from "@/components/layout/privacy-mode";
+import { useRowDelete } from "@/hooks/use-row-delete";
 import { useDeleteBudget, useFinishBudget } from "@/lib/mutations/budgets";
 import { formatMoney } from "@/lib/currency/format";
 import { toDisplayAmount, type MoneyDisplayContext } from "@/lib/currency/display";
-import type { BudgetWithTags, ExpenseWithTags } from "@/lib/types/domain";
+import type { BudgetWithTags } from "@/lib/types/domain";
 import {
   getBudgetStatus,
   isBudgetFinishable,
@@ -25,7 +24,6 @@ import { BudgetForm } from "./budget-form";
 
 interface BudgetCardProps extends MoneyDisplayContext {
   budget: BudgetWithTags;
-  expenses: ExpenseWithTags[];
   onFinishSuccess?: () => void;
 }
 
@@ -51,7 +49,6 @@ function formatDateRange(start: string, end: string): string {
 
 export function BudgetCard({
   budget,
-  expenses,
   displayCurrency,
   rates,
   onFinishSuccess,
@@ -61,8 +58,13 @@ export function BudgetCard({
   const [editing, setEditing] = useState(false);
   const [finishOpen, setFinishOpen] = useState(false);
   const [finishError, setFinishError] = useState("");
-  const [pending, startTransition] = useTransition();
   const deleteBudget = useDeleteBudget();
+  const budgetDelete = useRowDelete(
+    (id) => deleteBudget.mutateAsync(id),
+    t("common:confirmDelete"),
+  );
+  const deletePending = budgetDelete.isPending(budget.id);
+  const deleteError = budgetDelete.errorFor(budget.id);
   const finishBudget = useFinishBudget();
   const ctx = { displayCurrency, rates };
 
@@ -72,12 +74,6 @@ export function BudgetCard({
   const spentDisplay = toDisplayAmount(budget.spent, budget.currency, ctx);
   const totalDisplay = toDisplayAmount(budget.amount, budget.currency, ctx);
   const progress = Math.min(100, (budget.spent / budget.amount) * 100);
-
-  function handleDelete() {
-    startTransition(async () => {
-      await deleteBudget.mutateAsync(budget.id);
-    });
-  }
 
   async function handleFinish() {
     setFinishError("");
@@ -180,12 +176,15 @@ export function BudgetCard({
         <Button
           size="sm"
           variant="danger"
-          loading={pending}
-          onClick={handleDelete}
+          loading={deletePending}
+          onClick={() => void budgetDelete.remove(budget.id)}
         >
-          {pending ? t("common:deleting") : t("common:delete")}
+          {deletePending ? t("common:deleting") : t("common:delete")}
         </Button>
       </div>
+      {deleteError && (
+        <p className="mt-2 font-mono text-xs text-danger">{deleteError}</p>
+      )}
 
       <TerminalModal
         open={finishOpen}
@@ -222,7 +221,6 @@ export function BudgetCard({
       {expanded && (
         <BudgetDetail
           budget={budget}
-          expenses={expenses}
           displayCurrency={displayCurrency}
           rates={rates}
         />

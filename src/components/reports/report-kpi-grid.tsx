@@ -1,5 +1,3 @@
-"use client";
-
 import { useTranslation } from "react-i18next";
 import { Card } from "@/components/ui/card";
 import { usePrivacyMode } from "@/components/layout/privacy-mode";

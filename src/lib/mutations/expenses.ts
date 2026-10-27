@@ -3,37 +3,16 @@ import {
   createExpense,
   deleteExpense,
   earlyPayExpense,
-  getExpenseById,
-  getExpenses,
   updateExpense,
   updateExpenseAmount,
 } from "@/lib/api/expenses";
-import { getIncomeScheduleById } from "@/lib/api/income-schedules";
-import { getPlannedExpenseById } from "@/lib/api/planned-expenses";
-import { getRecurringExpenseById } from "@/lib/api/recurring-expenses";
-import { getUserSettingsFromApi } from "@/lib/api/settings";
 import { parseTagNames } from "@/lib/expenses/tag-utils";
-import {
-  getPayDatesInRange,
-  getPeriodContaining,
-  isDateInPeriod,
-  scheduleToInput,
-} from "@/lib/income/pay-periods";
 import { localTodayIso } from "@/lib/date/local-today";
 import { invalidateAfter } from "@/lib/query/invalidation";
 import { currencies, type CurrencyCode } from "@/lib/types/constants";
 import { tError } from "@/lib/i18n/errors";
 import { parseToMinorUnits } from "@/lib/currency/input";
 import { mutationError, type FormResult } from "./types";
-
-async function getCurrentPayPeriod() {
-  const settings = await getUserSettingsFromApi();
-  if (!settings.primaryScheduleId) return null;
-  const primarySchedule = await getIncomeScheduleById(settings.primaryScheduleId);
-  if (!primarySchedule) return null;
-  const today = localTodayIso();
-  return getPeriodContaining(scheduleToInput(primarySchedule), today);
-}
 
 export interface ExpenseInput {
   name: string;
@@ -107,19 +86,27 @@ export async function updateExpenseMutation(
   }
 }
 
-/** Amount override. A recurring charge may be set to 0 to void an occurrence that didn't happen. */
-export async function updateExpenseAmountMutation(
-  id: string,
-  amountRaw: string,
-): Promise<FormResult> {
-  const existing = await getExpenseById(id);
-  if (!existing) return { error: tError("expenseNotFound") };
-  const amount = parseToMinorUnits(amountRaw, existing.currency);
-  const minAmount = existing.recurringId ? 0 : 1;
-  if (amount === null || amount < minAmount) return { error: tError("invalidAmount") };
+export interface ExpenseAmountInput {
+  id: string;
+  amount: string;
+  currency: CurrencyCode;
+  /** A recurring charge may be set to 0 to void an occurrence that didn't happen. */
+  allowZero: boolean;
+}
+
+/** Amount override (the API rejects any other edit of a system-generated expense). */
+export async function updateExpenseAmountMutation({
+  id,
+  amount: amountRaw,
+  currency,
+  allowZero,
+}: ExpenseAmountInput): Promise<FormResult> {
+  const amount = parseToMinorUnits(amountRaw, currency);
+  if (amount === null || amount < (allowZero ? 0 : 1)) {
+    return { error: tError("invalidAmount") };
+  }
   try {
-    const updated = await updateExpenseAmount(id, amount);
-    if (!updated) return { error: tError("expenseNotFound") };
+    await updateExpenseAmount(id, amount);
     return { success: true };
   } catch (error) {
     return mutationError(error, tError("failedUpdateExpense"));
@@ -154,73 +141,30 @@ export async function markFuturePaymentAsPaidMutation(
   }
   const amount = parseToMinorUnits(amountRaw, currency as CurrencyCode);
   if (amount === null || amount <= 0) return { error: tError("invalidAmount") };
-  const period = await getCurrentPayPeriod();
-  if (!period) return { error: tError("noPrimarySchedule") };
-  if (!isDateInPeriod(paidDate, period)) {
-    return { error: tError("paidDateOutsidePayPeriod") };
-  }
   const today = localTodayIso();
   if (paidDate > today) return { error: tError("paidDateInFuture") };
+  if (scheduledDate <= today) return { error: tError("scheduledDateMustBeFuture") };
+  const recurringId = input.recurringId?.trim();
+  const plannedExpenseId = input.plannedExpenseId?.trim();
+  if (sourceType === "recurring" && !recurringId) {
+    return { error: tError("invalidRecurringExpense") };
+  }
+  if (sourceType === "planned" && !plannedExpenseId) {
+    return { error: tError("invalidPlannedExpense") };
+  }
 
+  // Pay-period, schedule-match and already-recorded checks need server state; the API enforces
+  // them (`POST /expenses/early-pay`), so they are not pre-fetched here.
   try {
-    if (sourceType === "recurring") {
-      const recurringId = String(input.recurringId ?? "").trim();
-      if (!recurringId) return { error: tError("invalidRecurringExpense") };
-      const recurring = await getRecurringExpenseById(recurringId);
-      if (!recurring) return { error: tError("recurringExpenseNotFound") };
-      const dueDates = getPayDatesInRange(
-        scheduleToInput(recurring),
-        scheduledDate,
-        scheduledDate,
-      );
-      if (dueDates.length === 0) {
-        return { error: tError("scheduledDateMismatchRecurring") };
-      }
-      if (scheduledDate <= today) {
-        return { error: tError("scheduledDateMustBeFuture") };
-      }
-      const allExpenses = await getExpenses();
-      if (
-        allExpenses.some(
-          (e) =>
-            e.recurringId === recurringId &&
-            (e.scheduledDate ?? e.date) === scheduledDate,
-        )
-      ) {
-        return { error: tError("paymentAlreadyRecorded") };
-      }
-      await earlyPayExpense({
-        sourceType: "recurring",
-        scheduledDate,
-        paidDate,
-        amount,
-        currency: currency as CurrencyCode,
-        recurringId,
-      });
-    } else {
-      const plannedExpenseId = String(input.plannedExpenseId ?? "").trim();
-      if (!plannedExpenseId) return { error: tError("invalidPlannedExpense") };
-      const planned = await getPlannedExpenseById(plannedExpenseId);
-      if (!planned) return { error: tError("plannedExpenseNotFound") };
-      if (planned.date !== scheduledDate) {
-        return { error: tError("scheduledDateMismatchPlanned") };
-      }
-      if (planned.date <= today) {
-        return { error: tError("scheduledDateMustBeFuture") };
-      }
-      const allExpenses = await getExpenses();
-      if (allExpenses.some((e) => e.plannedExpenseId === plannedExpenseId)) {
-        return { error: tError("paymentAlreadyRecorded") };
-      }
-      await earlyPayExpense({
-        sourceType: "planned",
-        scheduledDate,
-        paidDate,
-        amount,
-        currency: currency as CurrencyCode,
-        plannedExpenseId,
-      });
-    }
+    await earlyPayExpense({
+      sourceType,
+      scheduledDate,
+      paidDate,
+      amount,
+      currency: currency as CurrencyCode,
+      recurringId,
+      plannedExpenseId,
+    });
     return { success: true };
   } catch (error) {
     return mutationError(error, tError("failedRecordEarlyPayment"));
@@ -228,8 +172,6 @@ export async function markFuturePaymentAsPaidMutation(
 }
 
 export async function deleteExpenseMutation(id: string): Promise<FormResult> {
-  const existing = await getExpenseById(id);
-  if (!existing) return { error: tError("expenseNotFound") };
   try {
     await deleteExpense(id);
     return { success: true };
@@ -262,8 +204,7 @@ export function useUpdateExpense() {
 export function useUpdateExpenseAmount() {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: ({ id, amount }: { id: string; amount: string }) =>
-      updateExpenseAmountMutation(id, amount),
+    mutationFn: updateExpenseAmountMutation,
     onSuccess: (result) => {
       if (result.success) void invalidateAfter(queryClient, "expenseChange");
     },

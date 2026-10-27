@@ -6,20 +6,23 @@ export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
 }
 
-/** @deprecated Use formatMoney from @/lib/currency/format */
-export function formatCurrency(cents: number): string {
-  return new Intl.NumberFormat("en-US", {
-    style: "currency",
-    currency: "USD",
-  }).format(cents / 100);
-}
+const dateFormatters = new Map<string, Intl.DateTimeFormat>();
 
+/**
+ * Formats a `YYYY-MM-DD` calendar date. `new Date("YYYY-MM-DD")` is UTC midnight, so format in UTC
+ * too — otherwise every date renders a day early west of UTC.
+ */
 export function formatDate(date: string): string {
   const locale = i18n.resolvedLanguage === "es" ? "es-ES" : "en-US";
-  return new Intl.DateTimeFormat(locale, {
-    month: "short",
-    day: "numeric",
-    year: "numeric",
-  }).format(new Date(date));
+  let formatter = dateFormatters.get(locale);
+  if (!formatter) {
+    formatter = new Intl.DateTimeFormat(locale, {
+      month: "short",
+      day: "numeric",
+      year: "numeric",
+      timeZone: "UTC",
+    });
+    dateFormatters.set(locale, formatter);
+  }
+  return formatter.format(new Date(date));
 }
-

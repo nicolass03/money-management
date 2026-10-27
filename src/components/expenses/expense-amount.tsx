@@ -1,5 +1,3 @@
-"use client";
-
 import { usePrivacyMode } from "@/components/layout/privacy-mode";
 import type { FormattedExpenseAmount } from "@/lib/currency/expense-display";
 import { maskNumericValue } from "@/lib/privacy/mask";

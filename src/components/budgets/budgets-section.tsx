@@ -1,5 +1,3 @@
-"use client";
-
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Badge } from "@/components/ui/badge";
@@ -11,23 +9,19 @@ import { MoneyText } from "@/components/layout/privacy-mode";
 import { formatMoney } from "@/lib/currency/format";
 import { toDisplayAmount, type MoneyDisplayContext } from "@/lib/currency/display";
 import { isBudgetInHistory } from "@/lib/budgets/budget-status";
-import type { BudgetWithTags, ExpenseWithTags } from "@/lib/types/domain";
+import type { BudgetWithTags } from "@/lib/types/domain";
 import { BudgetForm } from "./budget-form";
 import { BudgetList } from "./budget-list";
 import { BudgetTabSelector, type BudgetTab } from "./budget-tab-selector";
 
 interface BudgetsSectionProps extends MoneyDisplayContext {
   budgets: BudgetWithTags[];
-  budgetExpenses: Record<string, ExpenseWithTags[]>;
-  budgetsLoading?: boolean;
-  expensesLoading?: boolean;
+  loading?: boolean;
 }
 
 export function BudgetsSection({
   budgets,
-  budgetExpenses,
-  budgetsLoading = false,
-  expensesLoading = false,
+  loading: listLoading = false,
   displayCurrency,
   rates,
 }: BudgetsSectionProps) {
@@ -35,7 +29,6 @@ export function BudgetsSection({
   const [showAdd, setShowAdd] = useState(false);
   const [tab, setTab] = useState<BudgetTab>("active");
   const ctx = { displayCurrency, rates };
-  const listLoading = budgetsLoading || expensesLoading;
 
   const visibleBudgets = budgets.filter((budget) =>
     tab === "history"
@@ -112,7 +105,6 @@ export function BudgetsSection({
 
       <BudgetList
         budgets={visibleBudgets}
-        budgetExpenses={budgetExpenses}
         loading={listLoading}
         displayCurrency={displayCurrency}
         rates={rates}

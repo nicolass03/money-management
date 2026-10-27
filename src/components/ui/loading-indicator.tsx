@@ -1,6 +1,3 @@
-"use client";
-
-import { motion } from "framer-motion";
 import { useTranslation } from "react-i18next";
 import { cn } from "@/lib/utils";
 
@@ -56,38 +53,20 @@ export function LoadingIndicator({
       aria-live="polite"
       aria-label={resolvedLabel}
     >
-      <motion.div
-        initial={{ opacity: 0, y: 4 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.3 }}
-        className="font-mono text-sm"
-      >
+      <div className="animate-fade-up font-mono text-sm">
         <span className="text-accent">{"> "}</span>
         <span className="text-muted">{resolvedLabel}</span>
         <span className="animate-blink text-accent-glow">_</span>
-      </motion.div>
+      </div>
 
-      <motion.div
-        initial={{ opacity: 0, scale: 0.98 }}
-        animate={{ opacity: 1, scale: 1 }}
-        transition={{ duration: 0.3, delay: 0.1 }}
-        className="w-56 border border-border bg-surface p-3"
-      >
+      <div className="animate-scale-in w-56 border border-border bg-surface p-3 [animation-delay:100ms]">
         <div className="relative h-1 overflow-hidden bg-border/50">
-          <motion.div
-            className="absolute inset-y-0 w-1/3 bg-gradient-to-r from-transparent via-accent/80 to-transparent"
-            animate={{ left: ["-33%", "100%"] }}
-            transition={{
-              duration: 1.4,
-              repeat: Infinity,
-              ease: "easeInOut",
-            }}
-          />
+          <div className="animate-loading-bar absolute inset-y-0 w-1/3 bg-gradient-to-r from-transparent via-accent/80 to-transparent" />
         </div>
         <p className="mt-2 font-mono text-[10px] text-muted">
           {t("pleaseWait")}
         </p>
-      </motion.div>
+      </div>
     </div>
   );
 }

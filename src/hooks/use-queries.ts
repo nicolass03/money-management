@@ -1,13 +1,9 @@
-import { useQuery } from "@tanstack/react-query";
+import { keepPreviousData, useQuery } from "@tanstack/react-query";
 import { getAccounts } from "@/lib/api/accounts";
 import { getBudgetExpenses, getBudgets } from "@/lib/api/budgets";
-import {
-  getExpensePeriodView,
-  getExpenses,
-  getUpcomingPayable,
-} from "@/lib/api/expenses";
+import { getExpensePeriodView, getUpcomingPayable } from "@/lib/api/expenses";
 import { getIncome } from "@/lib/api/income";
-import { getIncomeScheduleById, getIncomeSchedules } from "@/lib/api/income-schedules";
+import { getIncomeSchedules } from "@/lib/api/income-schedules";
 import { getMoneyContext } from "@/lib/api/money-context";
 import { getPlannedExpenses } from "@/lib/api/planned-expenses";
 import {
@@ -45,20 +41,12 @@ export function useMoneyContext() {
   });
 }
 
-export function useExpenses(from?: string, to?: string) {
-  return useQuery({
-    queryKey:
-      from && to
-        ? ([...queryKeys.expenses(), from, to] as const)
-        : queryKeys.expenses(),
-    queryFn: () => getExpenses(from, to),
-  });
-}
-
 export function useExpensePeriodView(period: ExpensePeriodKey) {
   return useQuery({
     queryKey: queryKeys.expensePeriodView(period),
     queryFn: () => getExpensePeriodView(period),
+    // Keep the previous period on screen while the next one loads (no skeleton flash).
+    placeholderData: keepPreviousData,
     retry: (failureCount, error) => {
       if (error instanceof ApiError && error.status === 400) {
         return false;
@@ -111,19 +99,6 @@ export function useBudgetExpenses(budgetId: string) {
   });
 }
 
-export function useAllBudgetExpenses(budgetIds: string[]) {
-  return useQuery({
-    queryKey: [...queryKeys.budgets(), "expenses", ...budgetIds.sort()],
-    queryFn: async () => {
-      const entries = await Promise.all(
-        budgetIds.map(async (id) => [id, await getBudgetExpenses(id)] as const),
-      );
-      return Object.fromEntries(entries);
-    },
-    enabled: budgetIds.length > 0,
-  });
-}
-
 export function useIncome() {
   return useQuery({
     queryKey: queryKeys.income(),
@@ -135,14 +110,6 @@ export function useIncomeSchedules() {
   return useQuery({
     queryKey: queryKeys.schedules(),
     queryFn: getIncomeSchedules,
-  });
-}
-
-export function useIncomeSchedule(id: string | null | undefined) {
-  return useQuery({
-    queryKey: [...queryKeys.schedules(), id],
-    queryFn: () => getIncomeScheduleById(id!),
-    enabled: !!id,
   });
 }
 
@@ -204,6 +171,7 @@ export function useReportSummary(from: string, to: string, enabled = true) {
   return useQuery({
     queryKey: queryKeys.reportSummary(from, to),
     queryFn: () => getReportSummary(from, to),
+    placeholderData: keepPreviousData,
     enabled: enabled && !!from && !!to,
     retry: (failureCount, error) => {
       if (error instanceof ApiError && error.status === 400) {

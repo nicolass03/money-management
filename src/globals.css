@@ -1,7 +1,4 @@
 @import "tailwindcss";
-@import "@fontsource/jetbrains-mono/400.css";
-@import "@fontsource/jetbrains-mono/500.css";
-@import "@fontsource/jetbrains-mono/700.css";
 
 /*
  * Theme token values live in the TS registry (src/lib/theme/themes.ts) and are written onto
@@ -106,6 +103,63 @@ body::before {
   50% {
     box-shadow: 0 0 20px 2px var(--glow-pulse-color);
   }
+}
+
+@keyframes fade-in {
+  from {
+    opacity: 0;
+  }
+}
+
+@keyframes fade-up {
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+}
+
+@keyframes slide-in-left {
+  from {
+    opacity: 0;
+    transform: translateX(-20px);
+  }
+}
+
+@keyframes scale-in {
+  from {
+    opacity: 0;
+    transform: translateY(12px) scale(0.98);
+  }
+}
+
+@keyframes loading-bar {
+  from {
+    left: -33%;
+  }
+  to {
+    left: 100%;
+  }
+}
+
+/* Entrance animations (`both` keeps the element hidden during an animation-delay). */
+.animate-fade-in {
+  animation: fade-in 0.2s ease-out both;
+}
+
+.animate-fade-up {
+  animation: fade-up 0.35s ease-out both;
+}
+
+.animate-slide-in-left {
+  animation: slide-in-left 0.3s ease-out both;
+}
+
+.animate-scale-in {
+  animation: scale-in 0.2s ease-out both;
+}
+
+.animate-loading-bar {
+  animation: loading-bar 1.4s ease-in-out infinite;
 }
 
 .animate-blink {

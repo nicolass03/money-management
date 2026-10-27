@@ -5,13 +5,13 @@ import {
   createBudgetExpense,
   deleteBudget,
   deleteBudgetExpense,
-  getBudgetById,
   updateBudget,
 } from "@/lib/api/budgets";
 import { ApiError } from "@/lib/api/client";
 import { parseTagNames } from "@/lib/expenses/tag-utils";
 import { invalidateAfter } from "@/lib/query/invalidation";
 import { currencies, type CurrencyCode } from "@/lib/types/constants";
+import type { BudgetWithTags } from "@/lib/types/domain";
 import { tError } from "@/lib/i18n/errors";
 import { parseToMinorUnits } from "@/lib/currency/input";
 import { localTodayIso } from "@/lib/date/local-today";
@@ -94,8 +94,7 @@ export async function updateBudgetMutation(
   const result = validateBudgetInput(input);
   if ("error" in result) return result;
   try {
-    const updated = await updateBudget(id, result.data);
-    if (!updated) return { error: tError("budgetNotFound") };
+    await updateBudget(id, result.data);
     return { success: true };
   } catch (error) {
     return mutationError(error, tError("failedUpdateBudget"));
@@ -121,11 +120,9 @@ export interface BudgetExpenseInput {
 }
 
 export async function addBudgetExpenseMutation(
-  budgetId: string,
+  budget: Pick<BudgetWithTags, "id" | "name" | "currency">,
   input: BudgetExpenseInput,
 ): Promise<FormResult> {
-  const budget = await getBudgetById(budgetId);
-  if (!budget) return { error: tError("budgetNotFound") };
   const amount = parseToMinorUnits(input.amount, budget.currency);
   if (amount === null || amount <= 0) return { error: tError("invalidAmount") };
   const date = input.date;
@@ -133,7 +130,7 @@ export async function addBudgetExpenseMutation(
   const name = input.name.trim() || budget.name;
   if (!name) return { error: tError("nameRequired") };
   try {
-    await createBudgetExpense(budgetId, { name, amount, date });
+    await createBudgetExpense(budget.id, { name, amount, date });
     return { success: true };
   } catch (error) {
     return mutationError(error, tError("failedAddBudgetExpense"));
@@ -197,12 +194,12 @@ export function useAddBudgetExpense() {
   const onDone = useBudgetInvalidation();
   return useMutation({
     mutationFn: ({
-      budgetId,
+      budget,
       input,
     }: {
-      budgetId: string;
+      budget: Pick<BudgetWithTags, "id" | "name" | "currency">;
       input: BudgetExpenseInput;
-    }) => addBudgetExpenseMutation(budgetId, input),
+    }) => addBudgetExpenseMutation(budget, input),
     onSuccess: onDone,
   });
 }

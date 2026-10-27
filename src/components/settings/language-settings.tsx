@@ -26,7 +26,12 @@ export function LanguageSettings({ language }: LanguageSettingsProps) {
     const nextLanguage: AppLanguage = selected === "es" ? "es" : "en";
     await setLanguage(nextLanguage);
     const result = await updateLanguage.mutateAsync(nextLanguage);
-    if (result.success) setSuccess(true);
+    if (result.success) {
+      setSuccess(true);
+    } else {
+      // Not saved: go back to the server's language.
+      await setLanguage(language);
+    }
   }
 
   return (

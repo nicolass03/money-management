@@ -34,7 +34,7 @@ export function BudgetExpenseForm({ budget, onSuccess }: BudgetExpenseFormProps)
     e.preventDefault();
     setError("");
     const result = await addExpense.mutateAsync({
-      budgetId: budget.id,
+      budget,
       input: { name, amount, date },
     });
     if (result.error) {

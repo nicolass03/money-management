@@ -1,6 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { BudgetsSection } from "@/components/budgets/budgets-section";
-import { useAllBudgetExpenses, useBudgets, useMoneyContext } from "@/hooks/use-queries";
+import { useBudgets, useMoneyContext } from "@/hooks/use-queries";
 import type { ExchangeRates } from "@/lib/currency/convert";
 import type { CurrencyCode } from "@/lib/types/constants";
 
@@ -11,8 +11,6 @@ export const Route = createFileRoute("/_app/budgets")({
 function BudgetsPage() {
   const budgets = useBudgets();
   const money = useMoneyContext();
-  const budgetIds = (budgets.data ?? []).map((b) => b.id);
-  const budgetExpensesQuery = useAllBudgetExpenses(budgetIds);
 
   const displayCurrency: CurrencyCode = money.data?.displayCurrency ?? "usd";
   const rates: ExchangeRates =
@@ -21,9 +19,7 @@ function BudgetsPage() {
   return (
     <BudgetsSection
       budgets={budgets.data ?? []}
-      budgetExpenses={budgetExpensesQuery.data ?? {}}
-      budgetsLoading={budgets.isLoading || money.isLoading}
-      expensesLoading={budgetExpensesQuery.isLoading && budgetIds.length > 0}
+      loading={budgets.isLoading || money.isLoading}
       displayCurrency={displayCurrency}
       rates={rates}
     />

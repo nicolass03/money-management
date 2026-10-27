@@ -1,7 +1,4 @@
-"use client";
-
 import { useMemo, useState } from "react";
-import { motion } from "framer-motion";
 import { useTranslation } from "react-i18next";
 import {
   Bar,
@@ -88,11 +85,7 @@ export function ExpenseCharts({
   const formattedTotal = formatMinorAmount(periodView.totalSpend);
 
   return (
-    <motion.div
-      initial={{ opacity: 0, y: 12 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.4 }}
-    >
+    <div className="animate-fade-up">
       <SectionHeader
         title={t("expenses:analyticsTitle")}
         subtitle={
@@ -193,6 +186,6 @@ export function ExpenseCharts({
           </ResponsiveContainer>
         </Card>
       </div>
-    </motion.div>
+    </div>
   );
 }

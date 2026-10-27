@@ -45,69 +45,6 @@ export function getBudgetStatus(
   return "active";
 }
 
-export function budgetOverlapsPeriod(
-  budget: { startDate: string | null; endDate: string | null },
-  period: { startDate: string; endDate: string },
-): boolean {
-  if (!isDatedBudget(budget)) {
-    return false;
-  }
-
-  return (
-    period.startDate <= budget.endDate! && period.endDate >= budget.startDate!
-  );
-}
-
-export function getBudgetProjectionAmount(
-  budget: {
-    amount: number;
-    endDate: string | null;
-    completedAt?: string | null;
-  },
-  spent: number,
-  today: string,
-): number {
-  if (budget.completedAt != null) {
-    return spent;
-  }
-
-  if (!budget.endDate) {
-    return 0;
-  }
-
-  if (today <= budget.endDate) {
-    return budget.amount;
-  }
-
-  return spent;
-}
-
-export function getBudgetProjectionPeriodDate(
-  budget: { startDate: string | null; endDate: string | null },
-  today: string,
-): string | null {
-  if (!isDatedBudget(budget)) {
-    return null;
-  }
-
-  if (today <= budget.endDate!) {
-    return budget.startDate;
-  }
-
-  return budget.endDate;
-}
-
-export function isBudgetProjectionProjected(
-  budget: { startDate: string | null; endDate: string | null },
-  today: string,
-): boolean {
-  if (!isDatedBudget(budget)) {
-    return false;
-  }
-
-  return today <= budget.endDate! && today < budget.startDate!;
-}
-
 export function isBudgetInHistory(
   budget: Pick<BudgetWithTags, "startDate" | "endDate" | "completedAt">,
   today: string = localTodayIso(),

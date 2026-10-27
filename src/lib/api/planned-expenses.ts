@@ -20,18 +20,6 @@ export async function getPlannedExpenses(): Promise<PlannedExpenseWithTags[]> {
   return apiFetch<PlannedExpenseWithTags[]>("/api/v1/planned-expenses");
 }
 
-export async function getPlannedExpenseById(
-  id: string,
-): Promise<PlannedExpenseWithTags | null> {
-  try {
-    return await apiFetch<PlannedExpenseWithTags>(
-      `/api/v1/planned-expenses/${id}`,
-    );
-  } catch {
-    return null;
-  }
-}
-
 export async function createPlannedExpense(
   data: PlannedExpenseInput,
 ): Promise<PlannedExpenseWithTags> {
@@ -44,18 +32,14 @@ export async function createPlannedExpense(
 export async function updatePlannedExpense(
   id: string,
   data: PlannedExpenseInput,
-): Promise<PlannedExpenseWithTags | null> {
-  try {
-    return await apiFetch<PlannedExpenseWithTags>(
-      `/api/v1/planned-expenses/${id}`,
-      {
-        method: "PATCH",
-        body: JSON.stringify(data),
-      },
-    );
-  } catch {
-    return null;
-  }
+): Promise<PlannedExpenseWithTags> {
+  return apiFetch<PlannedExpenseWithTags>(
+    `/api/v1/planned-expenses/${id}`,
+    {
+      method: "PATCH",
+      body: JSON.stringify(data),
+    },
+  );
 }
 
 /** Records the one-time expense as paid today (full payment; the amount may differ). */

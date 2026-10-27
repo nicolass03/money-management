@@ -1,6 +1,5 @@
 import { createFileRoute, useNavigate, useSearch } from "@tanstack/react-router";
 import { useEffect, useRef, useState } from "react";
-import { motion } from "framer-motion";
 import { useTranslation } from "react-i18next";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -141,12 +140,7 @@ function LoginPage() {
   return (
     <div className="relative flex min-h-screen items-center justify-center bg-bg p-4">
       <ThemeSwitcher className="absolute top-4 right-4" />
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.4 }}
-        className="w-full max-w-md"
-      >
+      <div className="animate-fade-up w-full max-w-md">
         <div className="mb-6 flex items-center justify-between gap-4 font-mono">
           <div>
             <p className="text-xs text-muted">{APP_VERSION_LABEL}</p>
@@ -231,23 +225,15 @@ function LoginPage() {
             </label>
 
             {error && (
-              <motion.p
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                className="font-mono text-xs text-danger"
-              >
+              <p className="animate-fade-in font-mono text-xs text-danger">
                 {error}
-              </motion.p>
+              </p>
             )}
 
             {info && (
-              <motion.p
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                className="font-mono text-xs text-accent"
-              >
+              <p className="animate-fade-in font-mono text-xs text-accent">
                 {info}
-              </motion.p>
+              </p>
             )}
 
             <Button type="submit" className="w-full" loading={loading}>
@@ -255,7 +241,7 @@ function LoginPage() {
             </Button>
           </form>
         </Card>
-      </motion.div>
+      </div>
     </div>
   );
 }

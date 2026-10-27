@@ -12,15 +12,18 @@ export const queryKeys = {
   expensePeriodViews: () => ["expensePeriodView"] as const,
   upcomingPayable: (horizonDays?: number) =>
     ["upcomingPayable", horizonDays ?? 30, localTodayIso()] as const,
+  upcomingPayableAll: () => ["upcomingPayable"] as const,
   recurringExpenses: () => ["recurringExpenses"] as const,
   subscriptionReminders: () => ["subscriptionReminders"] as const,
   plannedExpenses: () => ["plannedExpenses"] as const,
   budgets: () => ["budgets"] as const,
   budgetExpenses: (budgetId: string) => ["budgetExpenses", budgetId] as const,
+  budgetExpensesAll: () => ["budgetExpenses"] as const,
   income: () => ["income"] as const,
   schedules: () => ["schedules"] as const,
   accounts: () => ["accounts"] as const,
   projections: () => ["projections", localTodayIso()] as const,
+  projectionsAll: () => ["projections"] as const,
   projectionPeriodItems: (payDate: string) =>
     ["projectionPeriodItems", payDate, localTodayIso()] as const,
   projectionPeriodItemsAll: () => ["projectionPeriodItems"] as const,
@@ -39,19 +42,22 @@ export type InvalidationEvent =
   | "incomeChange"
   | "scheduleChange"
   | "settingsChange"
+  | "preferenceChange"
   | "accountChange"
   | "moneyContextRefresh"
   | "subscriptionReminderChange";
 
 type QueryKey = readonly unknown[];
 
+// Built once at module load, so keys here must be date-agnostic prefixes (`*All`): a key that
+// embeds `localTodayIso()` would stop matching after midnight in a long-lived tab.
 const invalidationMap: Record<InvalidationEvent, QueryKey[]> = {
   expenseChange: [
     queryKeys.expenses(),
-    queryKeys.projections(),
+    queryKeys.projectionsAll(),
     queryKeys.projectionPeriodItemsAll(),
     queryKeys.expensePeriodViews(),
-    queryKeys.upcomingPayable(),
+    queryKeys.upcomingPayableAll(),
     queryKeys.reportSummaries(),
     queryKeys.accounts(),
   ],
@@ -59,37 +65,38 @@ const invalidationMap: Record<InvalidationEvent, QueryKey[]> = {
     queryKeys.recurringExpenses(),
     queryKeys.subscriptionReminders(),
     queryKeys.expenses(),
-    queryKeys.projections(),
+    queryKeys.projectionsAll(),
     queryKeys.expensePeriodViews(),
-    queryKeys.upcomingPayable(),
+    queryKeys.upcomingPayableAll(),
     // Materialized recurring charges land on an account, so balances can change.
     queryKeys.accounts(),
   ],
   plannedChange: [
     queryKeys.plannedExpenses(),
     queryKeys.expenses(),
-    queryKeys.projections(),
+    queryKeys.projectionsAll(),
     queryKeys.expensePeriodViews(),
-    queryKeys.upcomingPayable(),
+    queryKeys.upcomingPayableAll(),
     queryKeys.accounts(),
   ],
   budgetChange: [
     queryKeys.budgets(),
+    queryKeys.budgetExpensesAll(),
     queryKeys.expenses(),
-    queryKeys.projections(),
+    queryKeys.projectionsAll(),
     queryKeys.expensePeriodViews(),
-    queryKeys.upcomingPayable(),
+    queryKeys.upcomingPayableAll(),
   ],
   incomeChange: [
     queryKeys.income(),
-    queryKeys.projections(),
+    queryKeys.projectionsAll(),
     queryKeys.reportSummaries(),
     queryKeys.accounts(),
   ],
   scheduleChange: [
     queryKeys.schedules(),
     queryKeys.income(),
-    queryKeys.projections(),
+    queryKeys.projectionsAll(),
     queryKeys.projectionPeriodItemsAll(),
     queryKeys.settings(),
     queryKeys.expensePeriodViews(),
@@ -98,18 +105,20 @@ const invalidationMap: Record<InvalidationEvent, QueryKey[]> = {
   settingsChange: [
     queryKeys.settings(),
     queryKeys.moneyContext(),
-    queryKeys.projections(),
+    queryKeys.projectionsAll(),
     queryKeys.projectionPeriodItemsAll(),
     queryKeys.income(),
     queryKeys.expenses(),
     queryKeys.expensePeriodViews(),
-    queryKeys.upcomingPayable(),
+    queryKeys.upcomingPayableAll(),
     // Account balances only count activity from the projection start date onward.
     queryKeys.accounts(),
   ],
+  // Language / theme only change the settings row — no derived data.
+  preferenceChange: [queryKeys.settings()],
   accountChange: [
     queryKeys.accounts(),
-    queryKeys.projections(),
+    queryKeys.projectionsAll(),
     queryKeys.expenses(),
     queryKeys.income(),
   ],

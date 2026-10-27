@@ -88,8 +88,7 @@ export async function updatePlannedExpenseMutation(
   const result = validatePlannedInput(input, { requireFutureDate: false });
   if ("error" in result) return result;
   try {
-    const updated = await updatePlannedExpense(id, result.data);
-    if (!updated) return { error: tError("plannedExpenseNotFound") };
+    await updatePlannedExpense(id, result.data);
     return { success: true };
   } catch (error) {
     return mutationError(error, tError("failedUpdatePlanned"));

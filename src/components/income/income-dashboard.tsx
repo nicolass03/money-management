@@ -1,10 +1,6 @@
 import { useTranslation } from "react-i18next";
-import { Badge } from "@/components/ui/badge";
 import { SectionHeader } from "@/components/ui/section-header";
-import { Skeleton } from "@/components/ui/skeleton";
-import { MoneyText } from "@/components/layout/privacy-mode";
-import { formatMoney } from "@/lib/currency/format";
-import { toDisplayAmount, type MoneyDisplayContext } from "@/lib/currency/display";
+import type { MoneyDisplayContext } from "@/lib/currency/display";
 import type { Income, IncomePaySchedule } from "@/lib/types/domain";
 import { IncomeEntries } from "./income-entries";
 import { PaySchedules } from "./pay-schedules";
@@ -16,17 +12,6 @@ interface IncomeDashboardProps extends MoneyDisplayContext {
   schedulesLoading?: boolean;
 }
 
-function sumEntries(
-  entries: Income[],
-  ctx: MoneyDisplayContext,
-): number {
-  return entries.reduce(
-    (sum, entry) =>
-      sum + toDisplayAmount(entry.amount, entry.currency, ctx),
-    0,
-  );
-}
-
 export function IncomeDashboard({
   entries,
   schedules,
@@ -36,29 +21,11 @@ export function IncomeDashboard({
   rates,
 }: IncomeDashboardProps) {
   const { t } = useTranslation("income");
-  const ctx = { displayCurrency, rates };
-  const total = sumEntries(entries, ctx);
 
+  // The all-time total is shown once, on the entries section header.
   return (
     <div>
-      <div className="mb-6 flex items-center justify-between">
-        <SectionHeader
-          title={t("title")}
-          subtitle={t("subtitle")}
-          className="mb-0"
-        />
-        {entriesLoading ? (
-          <Skeleton className="h-5 w-20" />
-        ) : (
-          entries.length > 0 && (
-            <Badge variant="success">
-              <MoneyText
-                value={formatMoney(total, displayCurrency, displayCurrency, rates)}
-              />
-            </Badge>
-          )
-        )}
-      </div>
+      <SectionHeader title={t("title")} subtitle={t("subtitle")} className="mb-6" />
 
       <PaySchedules
         schedules={schedules}

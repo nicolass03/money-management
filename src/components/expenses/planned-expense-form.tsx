@@ -12,15 +12,13 @@ import { useAccounts } from "@/hooks/use-queries";
 import { formatScheduledExpenseAmount } from "@/lib/currency/expense-display";
 import { formatCurrencyLabel } from "@/lib/currency/types";
 import { ExpenseAmount } from "./expense-amount";
-import type { MoneyDisplayContext } from "@/lib/currency/display";
 import type { PlannedExpenseWithTags } from "@/lib/types/domain";
 import { formatTagNames } from "@/lib/expenses/tag-utils";
 import { formatMinorUnitsAsInput, parseToMinorUnits } from "@/lib/currency/input";
 import { formatDate } from "@/lib/utils";
 import { TagInput } from "./tag-input";
 
-
-interface PlannedExpenseFormProps extends MoneyDisplayContext {
+interface PlannedExpenseFormProps {
   planned?: PlannedExpenseWithTags;
   onCancel?: () => void;
   onSuccess?: () => void;
@@ -30,8 +28,6 @@ export function PlannedExpenseForm({
   planned,
   onCancel,
   onSuccess,
-  displayCurrency,
-  rates,
 }: PlannedExpenseFormProps) {
   const { t } = useTranslation(["expenses", "common"]);
   const { data: accounts = [] } = useAccounts();

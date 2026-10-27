@@ -33,9 +33,15 @@ export function ThemeSettings({ theme }: ThemeSettingsProps) {
   async function handleSelect(code: string) {
     if (code === active) return;
     setSuccess(false);
+    const previous = active;
     await setTheme(code);
     const result = await updateTheme.mutateAsync(code);
-    if (result.success) setSuccess(true);
+    if (result.success) {
+      setSuccess(true);
+    } else {
+      // Not saved: go back to the previous theme.
+      await setTheme(previous);
+    }
   }
 
   return (

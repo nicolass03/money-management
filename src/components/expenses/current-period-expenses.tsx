@@ -16,6 +16,7 @@ import { maskNumericValue } from "@/lib/privacy/mask";
 import type { MoneyDisplayContext } from "@/lib/currency/display";
 import type { TFunction } from "i18next";
 import { formatProjectionExpenseAmount } from "@/lib/currency/expense-display";
+import { useRowDelete } from "@/hooks/use-row-delete";
 import { ExpenseAmount } from "./expense-amount";
 import type {
   CurrencyCode,
@@ -93,16 +94,12 @@ function ExpenseAmountEditor({
   expenseId,
   initialAmount,
   currency,
-  displayCurrency,
-  rates,
   canVoid,
   onDone,
 }: {
   expenseId: string;
   initialAmount: number;
   currency: CurrencyCode;
-  displayCurrency: CurrencyCode;
-  rates: MoneyDisplayContext["rates"];
   /** Recurring charges may be set to 0 when the charge didn't happen. */
   canVoid: boolean;
   onDone: () => void;
@@ -116,7 +113,12 @@ function ExpenseAmountEditor({
 
   function handleSave() {
     startTransition(async () => {
-      const result = await updateAmount.mutateAsync({ id: expenseId, amount });
+      const result = await updateAmount.mutateAsync({
+        id: expenseId,
+        amount,
+        currency,
+        allowZero: canVoid,
+      });
       if (result.error) {
         setError(result.error);
         return;
@@ -162,6 +164,13 @@ function isExtraExpense(item: ProjectionExpenseItem): boolean {
   );
 }
 
+/** Stable list key: persisted rows have an id; budget summaries and projected rows don't. */
+function expenseRowKey(item: ProjectionExpenseItem): string {
+  if (item.id != null) return item.id;
+  if (item.budgetId != null) return `budget-${item.budgetId}-${item.date}`;
+  return `proj-${item.recurringId ?? item.plannedExpenseId}-${item.date}`;
+}
+
 function ExpenseRow({
   item,
   editingId,
@@ -170,6 +179,7 @@ function ExpenseRow({
   rates,
   onDelete,
   deletePending,
+  deleteError,
 }: {
   item: ProjectionExpenseItem;
   editingId: string | null;
@@ -178,14 +188,10 @@ function ExpenseRow({
   rates: MoneyDisplayContext["rates"];
   onDelete: (id: string) => void;
   deletePending: boolean;
+  deleteError: string | null;
 }) {
   const { t } = useTranslation(["expenses", "common"]);
 
-  const key =
-    item.id ??
-    (item.budgetId != null
-      ? `budget-${item.budgetId}`
-      : `proj-${item.recurringId}-${item.date}`);
   const canEdit =
     item.id != null && !item.projected && !item.isBudgetSummary;
   // Recurring / planned charges are system-generated: the API only allows editing their amount.
@@ -234,10 +240,7 @@ function ExpenseRow({
   }
 
   return (
-    <div
-      key={key}
-      className="flex items-center justify-between gap-4 py-3 first:pt-0 last:pb-0"
-    >
+    <div className="flex items-center justify-between gap-4 py-3 first:pt-0 last:pb-0">
       <div>
         <div className="flex items-center gap-2">
           {item.isBudgetSummary && item.budgetId != null ? (
@@ -280,8 +283,6 @@ function ExpenseRow({
             expenseId={item.id!}
             initialAmount={item.amount}
             currency={item.currency}
-            displayCurrency={displayCurrency}
-            rates={rates}
             canVoid={item.recurringId != null}
             onDone={() => setEditingId(null)}
           />
@@ -320,6 +321,9 @@ function ExpenseRow({
                 </>
               )}
             </div>
+            {deleteError && (
+              <p className="mt-1 font-mono text-xs text-danger">{deleteError}</p>
+            )}
           </>
         )}
       </div>
@@ -345,22 +349,16 @@ export function CurrentPeriodExpenses({
   const { privacyMode } = usePrivacyMode();
   const [showAdd, setShowAdd] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
-  const [deletePending, startDeleteTransition] = useTransition();
   const deleteExpense = useDeleteExpense();
+  const rowDelete = useRowDelete(
+    (id) => deleteExpense.mutateAsync(id),
+    t("common:confirmDelete"),
+  );
   const today = localTodayIso();
 
   useEffect(() => {
     setShowAdd(false);
   }, [periodKey]);
-
-  function handleDelete(id: string) {
-    startDeleteTransition(async () => {
-      await deleteExpense.mutateAsync(id);
-      if (editingId === id) {
-        setEditingId(null);
-      }
-    });
-  }
 
   function formatDisplay(amount: number) {
     const formatted = formatMoney(
@@ -445,14 +443,15 @@ export function CurrentPeriodExpenses({
           <div className="divide-y divide-border">
             {listItems.map((item) => (
               <ExpenseRow
-                key={item.id ?? `proj-${item.recurringId ?? item.plannedExpenseId}-${item.date}`}
+                key={expenseRowKey(item)}
                 item={item}
                 editingId={editingId}
                 setEditingId={setEditingId}
                 displayCurrency={displayCurrency}
                 rates={rates}
-                onDelete={handleDelete}
-                deletePending={deletePending}
+                onDelete={(id) => void rowDelete.remove(id)}
+                deletePending={item.id != null && rowDelete.isPending(item.id)}
+                deleteError={item.id != null ? rowDelete.errorFor(item.id) : null}
               />
             ))}
           </div>

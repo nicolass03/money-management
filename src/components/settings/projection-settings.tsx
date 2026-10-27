@@ -8,7 +8,7 @@ import { SectionHeader } from "@/components/ui/section-header";
 import { localTodayIso } from "@/lib/date/local-today";
 import { addMonths, formatFrequency } from "@/lib/income/pay-periods";
 import { useUpdateProjectionSettings } from "@/lib/mutations/settings";
-import type { CurrencyCode, IncomePaySchedule } from "@/lib/types/domain";
+import type { IncomePaySchedule } from "@/lib/types/domain";
 import { cn } from "@/lib/utils";
 
 interface ProjectionSettingsProps {
@@ -16,7 +16,6 @@ interface ProjectionSettingsProps {
   primaryScheduleId: string | null;
   projectionStartDate: string | null;
   projectionEndDate: string | null;
-  displayCurrency: CurrencyCode;
 }
 
 export function ProjectionSettings({

@@ -127,14 +127,13 @@ export function PendingPeriodModal({
           </section>
 
           <section className="space-y-2 border-t border-border pt-4">
-            <SummaryRow
-              label={t("expenses:pendingEur")}
-              value={formatDisplay(summary.pendingEurDisplay)}
-            />
-            <SummaryRow
-              label={t("expenses:pendingUsd")}
-              value={formatDisplay(summary.pendingUsdDisplay)}
-            />
+            {summary.byCurrency.map(({ currency, amountDisplay }) => (
+              <SummaryRow
+                key={currency}
+                label={t("expenses:pendingInCurrency", { currency })}
+                value={formatDisplay(amountDisplay)}
+              />
+            ))}
             <SummaryRow
               label={t("expenses:pendingTotal")}
               value={formatDisplay(summary.totalDisplay)}

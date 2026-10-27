@@ -1,12 +1,12 @@
 import { convertAmount, type ExchangeRates } from "@/lib/currency/convert";
-import type { CurrencyCode } from "@/lib/types/constants";
+import { currencies, type CurrencyCode } from "@/lib/types/constants";
 import type { ProjectionExpenseItem } from "@/lib/types/domain";
 
 export interface PendingPeriodSummary {
   items: ProjectionExpenseItem[];
   totalDisplay: number;
-  pendingEurDisplay: number;
-  pendingUsdDisplay: number;
+  /** Pending amount per original currency (converted to the display currency), in `currencies` order. */
+  byCurrency: { currency: CurrencyCode; amountDisplay: number }[];
   periodTotalDisplay: number;
 }
 
@@ -19,37 +19,26 @@ export function buildPendingPeriodSummary(
 ): PendingPeriodSummary {
   const pending = items
     .filter((item) => item.projected)
-    .slice()
     .sort((a, b) => a.date.localeCompare(b.date) || a.name.localeCompare(b.name));
 
   let totalDisplay = 0;
-  let pendingEurDisplay = 0;
-  let pendingUsdDisplay = 0;
+  const byCurrency = new Map<CurrencyCode, number>();
 
   for (const item of pending) {
     totalDisplay += item.convertedAmount;
-    if (item.currency === "eur") {
-      pendingEurDisplay += convertAmount(
-        item.amount,
-        item.currency,
-        displayCurrency,
-        rates,
-      );
-    } else if (item.currency === "usd") {
-      pendingUsdDisplay += convertAmount(
-        item.amount,
-        item.currency,
-        displayCurrency,
-        rates,
-      );
-    }
+    byCurrency.set(
+      item.currency,
+      (byCurrency.get(item.currency) ?? 0) +
+        convertAmount(item.amount, item.currency, displayCurrency, rates),
+    );
   }
 
   return {
     items: pending,
     totalDisplay,
-    pendingEurDisplay,
-    pendingUsdDisplay,
-    periodTotalDisplay: periodTotalDisplay,
+    byCurrency: currencies
+      .filter((currency) => byCurrency.has(currency))
+      .map((currency) => ({ currency, amountDisplay: byCurrency.get(currency)! })),
+    periodTotalDisplay,
   };
 }

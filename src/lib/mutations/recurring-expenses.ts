@@ -106,8 +106,7 @@ export async function updateRecurringExpenseMutation(
   const result = validateRecurringInput(input);
   if ("error" in result) return result;
   try {
-    const updated = await updateRecurringExpense(id, result.data);
-    if (!updated) return { error: tError("recurringExpenseNotFound") };
+    await updateRecurringExpense(id, result.data);
     return { success: true };
   } catch (error) {
     return mutationError(error, tError("failedUpdateRecurring"));

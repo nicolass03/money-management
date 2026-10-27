@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useId, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -25,6 +25,8 @@ export function IncomeForm({
   onSuccess,
 }: IncomeFormProps) {
   const { t } = useTranslation(["income", "common"]);
+  // Unique field ids: an edit form can be open next to the add form.
+  const fieldId = useId();
   const { data: accounts = [] } = useAccounts();
   const isEditing = Boolean(entry);
   const [name, setName] = useState(entry?.name ?? "");
@@ -74,13 +76,13 @@ export function IncomeForm({
     <form onSubmit={handleSubmit} className="space-y-4">
       <div>
         <label
-          htmlFor="income-name"
+          htmlFor={`${fieldId}-name`}
           className="mb-2 block font-mono text-xs text-muted"
         >
           {t("common:labelName")}
         </label>
         <Input
-          id="income-name"
+          id={`${fieldId}-name`}
           value={name}
           onChange={(e) => setName(e.target.value)}
           placeholder={t("income:incomeNamePlaceholder")}
@@ -91,13 +93,13 @@ export function IncomeForm({
       <div className="grid gap-4 sm:grid-cols-2">
         <div>
           <label
-            htmlFor="income-amount"
+            htmlFor={`${fieldId}-amount`}
             className="mb-2 block font-mono text-xs text-muted"
           >
             {t("common:labelAmount")}
           </label>
           <Input
-            id="income-amount"
+            id={`${fieldId}-amount`}
             type="text"
             inputMode="decimal"
             value={amount}
@@ -109,13 +111,13 @@ export function IncomeForm({
 
         <div>
           <label
-            htmlFor="income-currency"
+            htmlFor={`${fieldId}-currency`}
             className="mb-2 block font-mono text-xs text-muted"
           >
             {t("common:labelCurrency")}
           </label>
           <div
-            id="income-currency"
+            id={`${fieldId}-currency`}
             className="w-full border border-border bg-bg/50 px-3 py-2 font-mono text-sm text-muted"
           >
             {formatCurrencyLabel(currency)}
@@ -124,7 +126,7 @@ export function IncomeForm({
       </div>
 
       <AccountSelect
-        id="income-account"
+        id={`${fieldId}-account`}
         accounts={accounts}
         value={currentAccountId}
         onChange={setAccountId}
@@ -132,13 +134,13 @@ export function IncomeForm({
 
       <div>
         <label
-          htmlFor="income-date"
+          htmlFor={`${fieldId}-date`}
           className="mb-2 block font-mono text-xs text-muted"
         >
           {t("common:labelDate")}
         </label>
         <Input
-          id="income-date"
+          id={`${fieldId}-date`}
           type="date"
           value={date}
           onChange={(e) => setDate(e.target.value)}

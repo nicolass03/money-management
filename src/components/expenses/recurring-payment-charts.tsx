@@ -1,7 +1,4 @@
-"use client";
-
 import { useMemo, useState } from "react";
-import { motion } from "framer-motion";
 import { useTranslation } from "react-i18next";
 import {
   Bar,
@@ -193,12 +190,7 @@ export function RecurringPaymentCharts({
   const formattedTotal = formatChartValue(total / minorDivisor);
 
   return (
-    <motion.div
-      className="mb-4"
-      initial={{ opacity: 0, y: 12 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.4 }}
-    >
+    <div className="animate-fade-up mb-4">
       <SectionHeader
         title={t("expenses:monthlyDistributionTitle")}
         subtitle={
@@ -314,6 +306,6 @@ export function RecurringPaymentCharts({
           </div>
         </Card>
       </div>
-    </motion.div>
+    </div>
   );
 }

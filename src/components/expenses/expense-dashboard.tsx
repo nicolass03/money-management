@@ -11,6 +11,7 @@ import { PendingPeriodButton } from "./pending-period-modal";
 import { useExpensePeriodView, useUpcomingPayable } from "@/hooks/use-queries";
 import type { MoneyDisplayContext } from "@/lib/currency/display";
 import type { ExpensePeriodKey, IncomePaySchedule } from "@/lib/types/domain";
+import { cn } from "@/lib/utils";
 
 interface ExpenseDashboardProps extends MoneyDisplayContext {
   primarySchedule: IncomePaySchedule | null;
@@ -69,26 +70,35 @@ export function ExpenseDashboard({
         className="mb-4"
       />
 
-      {periodViewQuery.isLoading ? (
-        <ExpenseChartsSkeleton />
-      ) : periodView ? (
-        <ExpenseCharts
+      {/* While switching periods the previous one stays visible (dimmed) until the next loads. */}
+      <div
+        className={cn(
+          "transition-opacity",
+          periodViewQuery.isPlaceholderData && "pointer-events-none opacity-60",
+        )}
+        aria-busy={periodViewQuery.isPlaceholderData}
+      >
+        {periodViewQuery.isLoading ? (
+          <ExpenseChartsSkeleton />
+        ) : periodView ? (
+          <ExpenseCharts
+            periodView={periodView}
+            displayCurrency={displayCurrency}
+            rates={rates}
+          />
+        ) : null}
+
+        <CurrentPeriodExpenses
+          primarySchedule={primarySchedule}
           periodView={periodView}
+          periodKey={periodKey}
+          periodLoading={periodViewQuery.isLoading}
+          upcomingPayableItems={upcomingPayableItems}
+          upcomingLoading={upcomingQuery.isLoading}
           displayCurrency={displayCurrency}
           rates={rates}
         />
-      ) : null}
-
-      <CurrentPeriodExpenses
-        primarySchedule={primarySchedule}
-        periodView={periodView}
-        periodKey={periodKey}
-        periodLoading={periodViewQuery.isLoading}
-        upcomingPayableItems={upcomingPayableItems}
-        upcomingLoading={upcomingQuery.isLoading}
-        displayCurrency={displayCurrency}
-        rates={rates}
-      />
+      </div>
     </div>
   );
 }

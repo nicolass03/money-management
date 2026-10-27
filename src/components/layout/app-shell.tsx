@@ -1,4 +1,3 @@
-import { motion } from "framer-motion";
 import { SubscriptionReminderBanner } from "@/components/expenses/subscription-reminder-banner";
 import { PrivacyModeProvider } from "./privacy-mode";
 import { Sidebar } from "./sidebar";
@@ -12,15 +11,10 @@ export function AppShell({ children }: AppShellProps) {
     <PrivacyModeProvider>
       <div className="flex h-screen overflow-hidden bg-bg">
         <Sidebar />
-        <motion.main
-          initial={{ opacity: 0, y: 8 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.3, delay: 0.1 }}
-          className="min-h-0 flex-1 overflow-y-auto p-6 md:p-8"
-        >
+        <main className="animate-fade-up min-h-0 flex-1 overflow-y-auto p-6 [animation-delay:100ms] md:p-8">
           <SubscriptionReminderBanner />
           {children}
-        </motion.main>
+        </main>
       </div>
     </PrivacyModeProvider>
   );

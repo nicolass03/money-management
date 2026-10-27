@@ -6,6 +6,25 @@ import {
 } from "./types";
 import { convertAmount, type ExchangeRates } from "./convert";
 
+// Intl formatters are costly to construct and this runs for every rendered amount.
+const moneyFormatters = new Map<CurrencyCode, Intl.NumberFormat>();
+
+function moneyFormatter(currency: CurrencyCode): Intl.NumberFormat {
+  let formatter = moneyFormatters.get(currency);
+  if (!formatter) {
+    const fractionDigits = currency === "cop" ? 0 : 2;
+    formatter = new Intl.NumberFormat(CURRENCY_LOCALES[currency], {
+      style: "currency",
+      currency: toIsoCurrency(currency),
+      currencyDisplay: "narrowSymbol",
+      minimumFractionDigits: fractionDigits,
+      maximumFractionDigits: fractionDigits,
+    });
+    moneyFormatters.set(currency, formatter);
+  }
+  return formatter;
+}
+
 export function formatMoney(
   amountMinor: number,
   currency: CurrencyCode,
@@ -18,14 +37,7 @@ export function formatMoney(
       ? convertAmount(amountMinor, currency, target, rates)
       : amountMinor;
 
-  const divisor = getMinorDivisor(target);
-  return new Intl.NumberFormat(CURRENCY_LOCALES[target], {
-    style: "currency",
-    currency: toIsoCurrency(target),
-    currencyDisplay: "narrowSymbol",
-    minimumFractionDigits: target === "cop" ? 0 : 2,
-    maximumFractionDigits: target === "cop" ? 0 : 2,
-  }).format(converted / divisor);
+  return moneyFormatter(target).format(converted / getMinorDivisor(target));
 }
 
 /** Format in the expense's own currency without conversion. */
@@ -34,20 +46,4 @@ export function formatNativeMoney(
   currency: CurrencyCode,
 ): string {
   return formatMoney(amountMinor, currency);
-}
-
-export function formatMoneySigned(
-  amountMinor: number,
-  currency: CurrencyCode,
-  displayCurrency?: CurrencyCode,
-  rates?: ExchangeRates,
-  sign: "+" | "-" = "+",
-): string {
-  const formatted = formatMoney(
-    amountMinor,
-    currency,
-    displayCurrency,
-    rates,
-  );
-  return `${sign}${formatted}`;
 }

@@ -1,5 +1,3 @@
-"use client";
-
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Badge } from "@/components/ui/badge";
@@ -99,8 +97,6 @@ export function RecurringExpenses({
             {t("expenses:recurringFormHint")}
           </p>
           <RecurringExpenseForm
-            displayCurrency={displayCurrency}
-            rates={rates}
             onCancel={
               recurringExpenses.length > 0 ? () => setShowAdd(false) : undefined
             }
@@ -109,11 +105,7 @@ export function RecurringExpenses({
         </Card>
       )}
 
-      <RecurringExpenseList
-        recurringExpenses={recurringExpenses}
-        displayCurrency={displayCurrency}
-        rates={rates}
-      />
+      <RecurringExpenseList recurringExpenses={recurringExpenses} />
     </section>
   );
 }

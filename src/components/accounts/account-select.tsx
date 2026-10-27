@@ -1,4 +1,5 @@
 import { useTranslation } from "react-i18next";
+import { MoneyText } from "@/components/layout/privacy-mode";
 import { formatMoney } from "@/lib/currency/format";
 import { cn } from "@/lib/utils";
 import type { Account } from "@/lib/types/domain";
@@ -54,7 +55,8 @@ export function AccountSelect({ id, accounts, value, onChange }: AccountSelectPr
       </select>
       {selected && (
         <p className="mt-1 font-mono text-[10px] text-muted">
-          {t("accounts:balance")}: {formatMoney(selected.balance, selected.currency)}
+          {t("accounts:balance")}:{" "}
+          <MoneyText value={formatMoney(selected.balance, selected.currency)} />
         </p>
       )}
     </div>

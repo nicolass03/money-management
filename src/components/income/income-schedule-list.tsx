@@ -1,7 +1,6 @@
-"use client";
-
-import { useState, useTransition } from "react";
+import { useState } from "react";
 import { useTranslation } from "react-i18next";
+import { useRowDelete } from "@/hooks/use-row-delete";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
@@ -32,18 +31,11 @@ export function IncomeScheduleList({
 }: IncomeScheduleListProps) {
   const { t } = useTranslation(["income", "common"]);
   const [editingId, setEditingId] = useState<string | null>(null);
-  const [pending, startTransition] = useTransition();
   const deleteScheduleMutation = useDeleteSchedule();
-
-  function handleDelete(id: string) {
-    if (!window.confirm(t("income:confirmDeleteSchedule"))) return;
-    startTransition(async () => {
-      await deleteScheduleMutation.mutateAsync(id);
-      if (editingId === id) {
-        setEditingId(null);
-      }
-    });
-  }
+  const rowDelete = useRowDelete(
+    (id) => deleteScheduleMutation.mutateAsync(id),
+    t("income:confirmDeleteSchedule"),
+  );
 
   if (loading) {
     return <CardListSkeleton count={2} label={t("income:loadingPaySchedules")} />;
@@ -133,12 +125,17 @@ export function IncomeScheduleList({
               <Button
                 size="sm"
                 variant="danger"
-                loading={pending}
-                onClick={() => handleDelete(schedule.id)}
+                loading={rowDelete.isPending(schedule.id)}
+                onClick={() => void rowDelete.remove(schedule.id)}
               >
-                {pending ? t("common:deleting") : t("common:delete")}
+                {rowDelete.isPending(schedule.id) ? t("common:deleting") : t("common:delete")}
               </Button>
             </div>
+            {rowDelete.errorFor(schedule.id) && (
+              <p className="mt-2 font-mono text-xs text-danger">
+                {rowDelete.errorFor(schedule.id)}
+              </p>
+            )}
           </Card>
         );
       })}

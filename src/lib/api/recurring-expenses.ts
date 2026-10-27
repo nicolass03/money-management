@@ -22,18 +22,6 @@ export async function getRecurringExpenses(): Promise<RecurringExpenseWithTags[]
   return apiFetch<RecurringExpenseWithTags[]>("/api/v1/recurring-expenses");
 }
 
-export async function getRecurringExpenseById(
-  id: string,
-): Promise<RecurringExpenseWithTags | null> {
-  try {
-    return await apiFetch<RecurringExpenseWithTags>(
-      `/api/v1/recurring-expenses/${id}`,
-    );
-  } catch {
-    return null;
-  }
-}
-
 export async function createRecurringExpense(
   data: RecurringExpenseInput,
 ): Promise<RecurringExpenseWithTags> {
@@ -46,18 +34,14 @@ export async function createRecurringExpense(
 export async function updateRecurringExpense(
   id: string,
   data: RecurringExpenseInput,
-): Promise<RecurringExpenseWithTags | null> {
-  try {
-    return await apiFetch<RecurringExpenseWithTags>(
-      `/api/v1/recurring-expenses/${id}`,
-      {
-        method: "PATCH",
-        body: JSON.stringify(data),
-      },
-    );
-  } catch {
-    return null;
-  }
+): Promise<RecurringExpenseWithTags> {
+  return apiFetch<RecurringExpenseWithTags>(
+    `/api/v1/recurring-expenses/${id}`,
+    {
+      method: "PATCH",
+      body: JSON.stringify(data),
+    },
+  );
 }
 
 export async function deleteRecurringExpense(id: string): Promise<void> {

@@ -1,23 +1,25 @@
-"use client";
-
-import { useMemo, useState } from "react";
+import { useMemo } from "react";
 import { useTranslation } from "react-i18next";
 import { SectionHeader } from "@/components/ui/section-header";
 import { useReportSummary } from "@/hooks/use-queries";
 import {
-  defaultReportRange,
   presetToRange,
   validateReportRange,
   type ReportDatePreset,
+  type ReportDateRange,
 } from "@/lib/reports/date-range";
 import { ReportCharts } from "./report-charts";
 import { ReportDateRangePicker } from "./report-date-range-picker";
 import { ReportKpiGrid } from "./report-kpi-grid";
 import { ReportLoadingSkeleton } from "./report-loading-skeletons";
 
-export function ReportsDashboard() {
+interface ReportsDashboardProps {
+  range: ReportDateRange;
+  onRangeChange: (range: ReportDateRange) => void;
+}
+
+export function ReportsDashboard({ range, onRangeChange }: ReportsDashboardProps) {
   const { t } = useTranslation("reports");
-  const [range, setRange] = useState(defaultReportRange);
 
   const validationError = useMemo(
     () => validateReportRange(range.from, range.to),
@@ -31,7 +33,7 @@ export function ReportsDashboard() {
   );
 
   function applyPreset(preset: ReportDatePreset) {
-    setRange(presetToRange(preset));
+    onRangeChange(presetToRange(preset));
   }
 
   return (
@@ -41,8 +43,8 @@ export function ReportsDashboard() {
       <ReportDateRangePicker
         from={range.from}
         to={range.to}
-        onFromChange={(from) => setRange((current) => ({ ...current, from }))}
-        onToChange={(to) => setRange((current) => ({ ...current, to }))}
+        onFromChange={(from) => onRangeChange({ ...range, from })}
+        onToChange={(to) => onRangeChange({ ...range, to })}
         onPreset={applyPreset}
         validationError={validationError}
       />

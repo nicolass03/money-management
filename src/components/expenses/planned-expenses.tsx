@@ -1,5 +1,3 @@
-"use client";
-
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Badge } from "@/components/ui/badge";
@@ -78,8 +76,6 @@ export function PlannedExpenses({
             {t("expenses:plannedFormHint")}
           </p>
           <PlannedExpenseForm
-            displayCurrency={displayCurrency}
-            rates={rates}
             onCancel={
               plannedExpenses.length > 0 ? () => setShowAdd(false) : undefined
             }
@@ -88,11 +84,7 @@ export function PlannedExpenses({
         </Card>
       )}
 
-      <PlannedExpenseList
-        plannedExpenses={plannedExpenses}
-        displayCurrency={displayCurrency}
-        rates={rates}
-      />
+      <PlannedExpenseList plannedExpenses={plannedExpenses} />
     </section>
   );
 }

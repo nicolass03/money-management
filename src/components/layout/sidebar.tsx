@@ -1,5 +1,4 @@
 import { useNavigate } from "@tanstack/react-router";
-import { motion } from "framer-motion";
 import { useTranslation } from "react-i18next";
 import { NavItem } from "./nav-item";
 import { usePrivacyMode } from "./privacy-mode";
@@ -32,12 +31,7 @@ export function Sidebar() {
   }
 
   return (
-    <motion.aside
-      initial={{ x: -20, opacity: 0 }}
-      animate={{ x: 0, opacity: 1 }}
-      transition={{ duration: 0.3 }}
-      className="sticky top-0 flex h-screen w-56 shrink-0 flex-col border-r border-border bg-surface"
-    >
+    <aside className="animate-slide-in-left sticky top-0 flex h-screen w-56 shrink-0 flex-col border-r border-border bg-surface">
       <div className="border-b border-border px-4 py-5">
         <p className="font-mono text-xs text-muted">{APP_VERSION_LABEL}</p>
         <h1 className="mt-1 font-mono text-sm text-accent-glow">
@@ -74,6 +68,6 @@ export function Sidebar() {
           {t("logout")}
         </Button>
       </div>
-    </motion.aside>
+    </aside>
   );
 }

@@ -150,7 +150,7 @@ export function useUpdateLanguage() {
   return useMutation({
     mutationFn: updateLanguageMutation,
     onSuccess: (result) => {
-      if (result.success) void invalidateAfter(queryClient, "settingsChange");
+      if (result.success) void invalidateAfter(queryClient, "preferenceChange");
     },
   });
 }
@@ -160,7 +160,7 @@ export function useUpdateTheme() {
   return useMutation({
     mutationFn: updateThemeMutation,
     onSuccess: (result) => {
-      if (result.success) void invalidateAfter(queryClient, "settingsChange");
+      if (result.success) void invalidateAfter(queryClient, "preferenceChange");
     },
   });
 }

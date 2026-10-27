@@ -1,5 +1,3 @@
-"use client";
-
 import { createContext, useContext, useEffect, useMemo, useState } from "react";
 import i18n from "@/lib/i18n";
 import { useSession } from "@/lib/auth/session-store";
@@ -50,15 +48,15 @@ export function LanguageProvider({ children }: { children: React.ReactNode }) {
     applyLanguage(localLanguage);
   }, []);
 
+  // Sync only when the server value changes. Depending on the local `language` too would revert a
+  // just-picked language to the stale server value until the save round-trips (a visible flicker).
+  const serverLanguage = canAccessApp ? settings.data?.language : undefined;
   useEffect(() => {
-    if (!canAccessApp || !settings.data?.language) return;
-    const fromApi = settings.data.language;
-    if (fromApi !== language) {
-      setLanguageState(fromApi);
-      storeLanguage(fromApi);
-      applyLanguage(fromApi);
-    }
-  }, [canAccessApp, language, settings.data?.language]);
+    if (!serverLanguage) return;
+    setLanguageState(serverLanguage);
+    storeLanguage(serverLanguage);
+    applyLanguage(serverLanguage);
+  }, [serverLanguage]);
 
   async function setLanguage(nextLanguage: AppLanguage) {
     setLanguageState(nextLanguage);

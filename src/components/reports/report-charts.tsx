@@ -1,7 +1,4 @@
-"use client";
-
 import { useMemo, useState } from "react";
-import { motion } from "framer-motion";
 import { useTranslation } from "react-i18next";
 import {
   Bar,
@@ -159,12 +156,7 @@ export function ReportCharts({
   }
 
   return (
-    <motion.div
-      initial={{ opacity: 0, y: 12 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.4 }}
-      className="space-y-6"
-    >
+    <div className="animate-fade-up space-y-6">
       <div className="grid gap-4 md:grid-cols-2">
         <Card>
           <SectionHeader
@@ -459,6 +451,6 @@ export function ReportCharts({
           )}
         </Card>
       </div>
-    </motion.div>
+    </div>
   );
 }

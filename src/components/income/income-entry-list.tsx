@@ -1,5 +1,3 @@
-"use client";
-
 import { useState, useTransition } from "react";
 import { useTranslation } from "react-i18next";
 import { Badge } from "@/components/ui/badge";
@@ -8,13 +6,14 @@ import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { CardListSkeleton } from "@/components/ui/list-skeletons";
 import { MoneyText } from "@/components/layout/privacy-mode";
+import { useRowDelete } from "@/hooks/use-row-delete";
 import {
   useDeleteIncome,
   useUpdateIncomeAmount,
 } from "@/lib/mutations/income";
 import { formatMoney } from "@/lib/currency/format";
 import type { MoneyDisplayContext } from "@/lib/currency/display";
-import type { CurrencyCode, Income } from "@/lib/types/domain";
+import type { Income } from "@/lib/types/domain";
 import { isManualIncome, shouldShowScheduledBadge } from "@/lib/income/filter-income-entries";
 import { formatMinorUnitsAsInput } from "@/lib/currency/input";
 import { formatDate } from "@/lib/utils";
@@ -25,26 +24,25 @@ interface IncomeEntryListProps extends MoneyDisplayContext {
   loading?: boolean;
 }
 
+// Income history grows without bound; render it in pages.
+const PAGE_SIZE = 50;
+
 function IncomeAmountEditor({
-  incomeId,
-  initialAmount,
-  currency,
+  entry,
   onDone,
 }: {
-  incomeId: string;
-  initialAmount: number;
-  currency: CurrencyCode;
+  entry: Income;
   onDone: () => void;
 }) {
   const { t } = useTranslation("common");
-  const [amount, setAmount] = useState(formatMinorUnitsAsInput(initialAmount, currency));
+  const [amount, setAmount] = useState(formatMinorUnitsAsInput(entry.amount, entry.currency));
   const [error, setError] = useState<string | null>(null);
   const [pending, startTransition] = useTransition();
   const updateAmount = useUpdateIncomeAmount();
 
   function handleSave() {
     startTransition(async () => {
-      const result = await updateAmount.mutateAsync({ id: incomeId, amount });
+      const result = await updateAmount.mutateAsync({ entry, amount });
       if (result.error) {
         setError(result.error);
         return;
@@ -82,17 +80,12 @@ export function IncomeEntryList({
 }: IncomeEntryListProps) {
   const { t } = useTranslation(["income", "common"]);
   const [editingId, setEditingId] = useState<string | null>(null);
-  const [pending, startTransition] = useTransition();
+  const [visibleCount, setVisibleCount] = useState(PAGE_SIZE);
   const deleteIncome = useDeleteIncome();
-
-  function handleDelete(id: string) {
-    startTransition(async () => {
-      await deleteIncome.mutateAsync(id);
-      if (editingId === id) {
-        setEditingId(null);
-      }
-    });
-  }
+  const rowDelete = useRowDelete(
+    (id) => deleteIncome.mutateAsync(id),
+    t("common:confirmDelete"),
+  );
 
   if (loading) {
     return <CardListSkeleton count={3} label={t("income:loadingEntries")} />;
@@ -108,7 +101,7 @@ export function IncomeEntryList({
 
   return (
     <div className="space-y-4">
-      {entries.map((entry) => {
+      {entries.slice(0, visibleCount).map((entry) => {
         const manual = isManualIncome(entry);
 
         if (manual && editingId === entry.id) {
@@ -152,9 +145,7 @@ export function IncomeEntryList({
 
             {!manual && editingId === entry.id ? (
               <IncomeAmountEditor
-                incomeId={entry.id}
-                initialAmount={entry.amount}
-                currency={entry.currency}
+                entry={entry}
                 onDone={() => setEditingId(null)}
               />
             ) : (
@@ -169,16 +160,30 @@ export function IncomeEntryList({
                 <Button
                   size="sm"
                   variant="danger"
-                  loading={pending}
-                  onClick={() => handleDelete(entry.id)}
+                  loading={rowDelete.isPending(entry.id)}
+                  onClick={() => void rowDelete.remove(entry.id)}
                 >
-                  {pending ? t("common:deleting") : t("common:delete")}
+                  {rowDelete.isPending(entry.id) ? t("common:deleting") : t("common:delete")}
                 </Button>
               </div>
+            )}
+            {rowDelete.errorFor(entry.id) && (
+              <p className="mt-2 font-mono text-xs text-danger">
+                {rowDelete.errorFor(entry.id)}
+              </p>
             )}
           </Card>
         );
       })}
+      {entries.length > visibleCount && (
+        <Button
+          size="sm"
+          variant="ghost"
+          onClick={() => setVisibleCount((count) => count + PAGE_SIZE)}
+        >
+          {t("common:showMore")}
+        </Button>
+      )}
     </div>
   );
 }

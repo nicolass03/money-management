@@ -1,12 +1,10 @@
-"use client";
-
-import { useState, useTransition } from "react";
+import { useState } from "react";
 import { useTranslation } from "react-i18next";
+import { useRowDelete } from "@/hooks/use-row-delete";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { useDeleteRecurringExpense } from "@/lib/mutations/recurring-expenses";
-import type { MoneyDisplayContext } from "@/lib/currency/display";
 import { formatScheduledExpenseAmount } from "@/lib/currency/expense-display";
 import { formatCurrencyLabel } from "@/lib/currency/types";
 import { ExpenseAmount } from "./expense-amount";
@@ -20,28 +18,20 @@ import {
 import { formatDate } from "@/lib/utils";
 import { RecurringExpenseForm } from "./recurring-expense-form";
 
-interface RecurringExpenseListProps extends MoneyDisplayContext {
+interface RecurringExpenseListProps {
   recurringExpenses: RecurringExpenseWithTags[];
 }
 
 export function RecurringExpenseList({
   recurringExpenses,
-  displayCurrency,
-  rates,
 }: RecurringExpenseListProps) {
   const { t } = useTranslation(["expenses", "common"]);
   const [editingId, setEditingId] = useState<string | null>(null);
-  const [pending, startTransition] = useTransition();
   const deleteRecurring = useDeleteRecurringExpense();
-
-  function handleDelete(id: string) {
-    startTransition(async () => {
-      await deleteRecurring.mutateAsync(id);
-      if (editingId === id) {
-        setEditingId(null);
-      }
-    });
-  }
+  const rowDelete = useRowDelete(
+    (id) => deleteRecurring.mutateAsync(id),
+    t("common:confirmDelete"),
+  );
 
   if (recurringExpenses.length === 0) {
     return (
@@ -61,8 +51,6 @@ export function RecurringExpenseList({
             <Card key={recurring.id}>
               <RecurringExpenseForm
                 recurring={recurring}
-                displayCurrency={displayCurrency}
-                rates={rates}
                 onCancel={() => setEditingId(null)}
                 onSuccess={() => setEditingId(null)}
               />
@@ -151,12 +139,17 @@ export function RecurringExpenseList({
               <Button
                 size="sm"
                 variant="danger"
-                loading={pending}
-                onClick={() => handleDelete(recurring.id)}
+                loading={rowDelete.isPending(recurring.id)}
+                onClick={() => void rowDelete.remove(recurring.id)}
               >
-                {pending ? t("common:deleting") : t("common:delete")}
+                {rowDelete.isPending(recurring.id) ? t("common:deleting") : t("common:delete")}
               </Button>
             </div>
+            {rowDelete.errorFor(recurring.id) && (
+              <p className="mt-2 font-mono text-xs text-danger">
+                {rowDelete.errorFor(recurring.id)}
+              </p>
+            )}
           </Card>
         );
       })}

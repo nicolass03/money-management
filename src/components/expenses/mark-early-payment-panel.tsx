@@ -68,15 +68,6 @@ export function MarkEarlyPaymentPanel({
     setPaidDate(defaultPaidDate);
   }, [selectedKey, defaultPaidDate]);
 
-  useEffect(() => {
-    if (!markPaid.isSuccess) {
-      return;
-    }
-
-    handleClose();
-    markPaid.reset();
-  }, [markPaid.isSuccess, markPaid]);
-
   function handleSelect(item: PayableFutureItem) {
     setSelectedKey(item.key);
     setAmount(formatMinorUnitsAsInput(item.amount, item.currency));
@@ -136,7 +127,13 @@ export function MarkEarlyPaymentPanel({
                 recurringId: selected.recurringId ?? undefined,
                 plannedExpenseId: selected.plannedExpenseId ?? undefined,
               });
-              if (result.error) setError(result.error);
+              // The mutation resolves with `{ error }` rather than throwing, so check the result:
+              // closing on `isSuccess` would also close (and hide) every failed attempt.
+              if (result.error) {
+                setError(result.error);
+                return;
+              }
+              handleClose();
             }}
             className="space-y-4"
           >

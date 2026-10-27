@@ -24,6 +24,8 @@
   "edit": "edit",
   "delete": "delete",
   "deleting": "deleting...",
+  "confirmDelete": "delete this? it can't be undone.",
+  "showMore": "show more",
   "update": "update",
   "back": "back",
   "clear": "clear",

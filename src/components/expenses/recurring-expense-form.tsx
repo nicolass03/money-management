@@ -12,7 +12,6 @@ import { formatScheduledExpenseAmount } from "@/lib/currency/expense-display";
 import { formatMoney } from "@/lib/currency/format";
 import { formatCurrencyLabel } from "@/lib/currency/types";
 import { ExpenseAmount } from "./expense-amount";
-import type { MoneyDisplayContext } from "@/lib/currency/display";
 import {
   currencies,
   payFrequencies,
@@ -26,8 +25,7 @@ import { formatMinorUnitsAsInput, parseToMinorUnits } from "@/lib/currency/input
 import { cn, formatDate } from "@/lib/utils";
 import { TagInput } from "./tag-input";
 
-
-interface RecurringExpenseFormProps extends MoneyDisplayContext {
+interface RecurringExpenseFormProps {
   recurring?: RecurringExpenseWithTags;
   onCancel?: () => void;
   onSuccess?: () => void;
@@ -37,8 +35,6 @@ export function RecurringExpenseForm({
   recurring,
   onCancel,
   onSuccess,
-  displayCurrency,
-  rates,
 }: RecurringExpenseFormProps) {
   const { t } = useTranslation(["expenses", "accounts", "common"]);
   const { data: accounts = [] } = useAccounts();

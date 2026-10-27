@@ -81,8 +81,7 @@ export async function updateScheduleMutation(
   const result = validateScheduleInput(input);
   if ("error" in result) return result;
   try {
-    const updated = await updateIncomeSchedule(id, result.data);
-    if (!updated) return { error: tError("scheduleNotFound") };
+    await updateIncomeSchedule(id, result.data);
     return { success: true };
   } catch (error) {
     return mutationError(error, tError("failedUpdateSchedule"));

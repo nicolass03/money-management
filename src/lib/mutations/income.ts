@@ -1,12 +1,8 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import {
-  createIncome,
-  deleteIncome,
-  getIncomeById,
-  updateIncome,
-} from "@/lib/api/income";
+import { createIncome, deleteIncome, updateIncome } from "@/lib/api/income";
 import { invalidateAfter } from "@/lib/query/invalidation";
 import { currencies, type CurrencyCode } from "@/lib/types/constants";
+import type { Income } from "@/lib/types/domain";
 import { tError } from "@/lib/i18n/errors";
 import { parseToMinorUnits } from "@/lib/currency/input";
 import { mutationError, type FormResult } from "./types";
@@ -49,10 +45,6 @@ function validateIncomeInput(data: IncomeInput):
   };
 }
 
-function isManualIncome(entry: { source: string; scheduleId: string | null }) {
-  return entry.source !== "scheduled" && entry.scheduleId == null;
-}
-
 export async function createIncomeMutation(input: IncomeInput): Promise<FormResult> {
   const result = validateIncomeInput(input);
   if ("error" in result) return result;
@@ -64,20 +56,15 @@ export async function createIncomeMutation(input: IncomeInput): Promise<FormResu
   }
 }
 
+/** Full edit of a manual income row (the API only allows an amount override on scheduled rows). */
 export async function updateIncomeMutation(
   id: string,
   input: IncomeInput,
 ): Promise<FormResult> {
-  const existing = await getIncomeById(id);
-  if (!existing) return { error: tError("incomeNotFound") };
-  if (!isManualIncome(existing)) {
-    return { error: tError("scheduledIncomeNotEditable") };
-  }
   const result = validateIncomeInput(input);
   if ("error" in result) return result;
   try {
-    const updated = await updateIncome(id, result.data);
-    if (!updated) return { error: tError("incomeNotFound") };
+    await updateIncome(id, result.data);
     return { success: true };
   } catch (error) {
     return mutationError(error, tError("failedUpdateIncome"));
@@ -90,21 +77,18 @@ export async function updateIncomeMutation(
  * API applies just the amount override for scheduled rows.
  */
 export async function updateIncomeAmountMutation(
-  id: string,
+  entry: Income,
   amount: string,
 ): Promise<FormResult> {
-  const existing = await getIncomeById(id);
-  if (!existing) return { error: tError("incomeNotFound") };
   const result = validateIncomeInput({
-    name: existing.name,
+    name: entry.name,
     amount,
-    currency: existing.currency,
-    date: existing.date,
+    currency: entry.currency,
+    date: entry.date,
   });
   if ("error" in result) return result;
   try {
-    const updated = await updateIncome(id, result.data);
-    if (!updated) return { error: tError("incomeNotFound") };
+    await updateIncome(entry.id, result.data);
     return { success: true };
   } catch (error) {
     return mutationError(error, tError("failedUpdateIncome"));
@@ -146,8 +130,8 @@ export function useUpdateIncome() {
 export function useUpdateIncomeAmount() {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: ({ id, amount }: { id: string; amount: string }) =>
-      updateIncomeAmountMutation(id, amount),
+    mutationFn: ({ entry, amount }: { entry: Income; amount: string }) =>
+      updateIncomeAmountMutation(entry, amount),
     onSuccess: (result) => {
       if (result.success) void invalidateAfter(queryClient, "incomeChange");
     },

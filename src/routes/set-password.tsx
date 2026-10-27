@@ -1,7 +1,6 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useEffect, useRef, useState } from "react";
 import type { Session } from "@supabase/supabase-js";
-import { motion } from "framer-motion";
 import { useTranslation } from "react-i18next";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -124,12 +123,7 @@ function SetPasswordPage() {
   return (
     <div className="relative flex min-h-screen items-center justify-center bg-bg p-4">
       <ThemeSwitcher className="absolute top-4 right-4" />
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.4 }}
-        className="w-full max-w-md"
-      >
+      <div className="animate-fade-up w-full max-w-md">
         <div className="mb-6 font-mono">
           <p className="text-xs text-muted">{APP_VERSION_LABEL}</p>
           <p className="mt-2 text-sm text-text">
@@ -197,13 +191,9 @@ function SetPasswordPage() {
             </div>
 
             {error && (
-              <motion.p
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                className="font-mono text-xs text-danger"
-              >
+              <p className="animate-fade-in font-mono text-xs text-danger">
                 {error}
-              </motion.p>
+              </p>
             )}
 
             <Button type="submit" className="w-full" loading={loading}>
@@ -211,7 +201,7 @@ function SetPasswordPage() {
             </Button>
           </form>
         </Card>
-      </motion.div>
+      </div>
     </div>
   );
 }

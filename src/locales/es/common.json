@@ -24,6 +24,8 @@
   "edit": "editar",
   "delete": "eliminar",
   "deleting": "eliminando...",
+  "confirmDelete": "¿eliminar esto? no se puede deshacer.",
+  "showMore": "mostrar más",
   "update": "actualizar",
   "back": "atrás",
   "clear": "limpiar",

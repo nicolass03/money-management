@@ -1,7 +1,6 @@
-"use client";
-
-import { useState, useTransition } from "react";
+import { useState } from "react";
 import { useTranslation } from "react-i18next";
+import { useRowDelete } from "@/hooks/use-row-delete";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
@@ -11,7 +10,6 @@ import {
   useDeletePlannedExpense,
   usePayPlannedExpense,
 } from "@/lib/mutations/planned-expenses";
-import type { MoneyDisplayContext } from "@/lib/currency/display";
 import { formatScheduledExpenseAmount } from "@/lib/currency/expense-display";
 import { formatCurrencyLabel } from "@/lib/currency/types";
 import { ExpenseAmount } from "./expense-amount";
@@ -21,30 +19,22 @@ import { formatMinorUnitsAsInput } from "@/lib/currency/input";
 import { formatDate } from "@/lib/utils";
 import { PlannedExpenseForm } from "./planned-expense-form";
 
-interface PlannedExpenseListProps extends MoneyDisplayContext {
+interface PlannedExpenseListProps {
   plannedExpenses: PlannedExpenseWithTags[];
 }
 
 export function PlannedExpenseList({
   plannedExpenses,
-  displayCurrency,
-  rates,
 }: PlannedExpenseListProps) {
   const { t } = useTranslation(["expenses", "common"]);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [payingId, setPayingId] = useState<string | null>(null);
-  const [pending, startTransition] = useTransition();
   const deletePlanned = useDeletePlannedExpense();
+  const rowDelete = useRowDelete(
+    (id) => deletePlanned.mutateAsync(id),
+    t("common:confirmDelete"),
+  );
   const today = localTodayIso();
-
-  function handleDelete(id: string) {
-    startTransition(async () => {
-      await deletePlanned.mutateAsync(id);
-      if (editingId === id) {
-        setEditingId(null);
-      }
-    });
-  }
 
   if (plannedExpenses.length === 0) {
     return (
@@ -62,8 +52,6 @@ export function PlannedExpenseList({
             <Card key={planned.id}>
               <PlannedExpenseForm
                 planned={planned}
-                displayCurrency={displayCurrency}
-                rates={rates}
                 onCancel={() => setEditingId(null)}
                 onSuccess={() => setEditingId(null)}
               />
@@ -128,12 +116,17 @@ export function PlannedExpenseList({
                 <Button
                   size="sm"
                   variant="danger"
-                  loading={pending}
-                  onClick={() => handleDelete(planned.id)}
+                  loading={rowDelete.isPending(planned.id)}
+                  onClick={() => void rowDelete.remove(planned.id)}
                 >
-                  {pending ? t("common:deleting") : t("common:delete")}
+                  {rowDelete.isPending(planned.id) ? t("common:deleting") : t("common:delete")}
                 </Button>
               </div>
+            )}
+            {rowDelete.errorFor(planned.id) && (
+              <p className="mt-2 font-mono text-xs text-danger">
+                {rowDelete.errorFor(planned.id)}
+              </p>
             )}
           </Card>
         );

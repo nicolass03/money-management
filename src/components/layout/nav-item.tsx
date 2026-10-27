@@ -1,5 +1,4 @@
 import { Link, useRouterState } from "@tanstack/react-router";
-import { motion } from "framer-motion";
 import { cn } from "@/lib/utils";
 
 interface NavItemProps {
@@ -12,18 +11,13 @@ export function NavItem({ href, label }: NavItemProps) {
   const isActive = pathname === href || pathname.startsWith(`${href}/`);
 
   return (
-    <Link to={href} className="relative block">
-      {isActive && (
-        <motion.div
-          layoutId="sidebar-active"
-          className="absolute inset-0 border border-accent/50 bg-accent/10"
-          transition={{ type: "spring", stiffness: 350, damping: 30 }}
-        />
-      )}
+    <Link to={href} className="block">
       <span
         className={cn(
-          "relative z-10 block px-4 py-3 font-mono text-sm transition-colors",
-          isActive ? "text-accent-glow" : "text-muted hover:text-text",
+          "block border px-4 py-3 font-mono text-sm transition-colors",
+          isActive
+            ? "border-accent/50 bg-accent/10 text-accent-glow"
+            : "border-transparent text-muted hover:text-text",
         )}
       >
         {isActive ? "> " : "  "}

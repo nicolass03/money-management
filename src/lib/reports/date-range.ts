@@ -64,8 +64,9 @@ export function validateReportRange(from: string, to: string): string | null {
   }
   const fromDate = parseIso(from);
   const toDate = parseIso(to);
+  // Local dates: a DST change makes one "day" 23/25h, so round instead of floor.
   const dayCount =
-    Math.floor((toDate.getTime() - fromDate.getTime()) / 86_400_000) + 1;
+    Math.round((toDate.getTime() - fromDate.getTime()) / 86_400_000) + 1;
   if (dayCount > MAX_REPORT_RANGE_DAYS) {
     return "rangeTooLong";
   }

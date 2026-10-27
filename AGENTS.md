@@ -56,6 +56,8 @@ If `cargo run` fails with `DATABASE_URL is required` while `.env` is set, the sh
 - Recharts cannot read CSS variables — use `useChartTheme()` from `src/hooks/use-chart-theme.ts`; do not hardcode hex colors in chart components.
 - Focus/hover glows use `--glow-color` (theme-aware); scanlines use `--scanline-color`.
 - Overlay dialogs use `TerminalModal` (`src/components/ui/terminal-modal.tsx`) — portaled, `~/title` header, `esc` close, scrollable body. Example: **mark as paid** (`mark-early-payment-panel.tsx`).
+- Animations are plain CSS (`animate-fade-up`, `animate-fade-in`, `animate-scale-in`, … in `globals.css`); framer-motion was removed.
+- Fonts (`@fontsource/jetbrains-mono`) are imported from `src/main.tsx`, not `@import`ed in `globals.css` — the Tailwind PostCSS pass doesn't rebase `url()`s, so the font files would not be bundled.
 
 ## Localization
 
@@ -70,8 +72,10 @@ If `cargo run` fails with `DATABASE_URL is required` while `.env` is set, the sh
 - **JSX via esbuild** — `vite.config.ts` sets `esbuild: { jsx: 'automatic' }`. Do **not** add `@vitejs/plugin-react` unless you need React Fast Refresh; its dev path uses Babel + `react-refresh`, which broke when `@babel/types@7.29` removed `t.identifier()` (esbuild is Vite's default and avoids that toolchain).
 - **No Next.js** — no RSC, Server Actions, or middleware. Auth uses `@supabase/supabase-js` in the browser (`src/lib/supabase/client.ts`, `src/lib/auth/session-store.tsx`).
 - All data goes through `src/lib/api/*` → Rust API with `Authorization: Bearer` from the Supabase session (`src/lib/api/client.ts`).
-- **TanStack Query** hooks in `src/hooks/use-queries.ts`; mutations in `src/lib/mutations/*`. Cache invalidation mirrors iOS `InvalidationMap` in `src/lib/query/invalidation.ts` — call `invalidateAfter(queryClient, event)` after writes.
-- Tab visibility refresh: `visibilitychange` in `src/main.tsx` invalidates all queries (parity with iOS `scenePhase == .active`).
+- **TanStack Query** hooks in `src/hooks/use-queries.ts`; mutations in `src/lib/mutations/*`. Cache invalidation mirrors iOS `InvalidationMap` in `src/lib/query/invalidation.ts` — call `invalidateAfter(queryClient, event)` after writes. The map is built once at module load, so it must use date-agnostic prefix keys (`projectionsAll()`, `upcomingPayableAll()`), never keys that embed `localTodayIso()`. Language/theme saves use `preferenceChange` (settings only).
+- Mutations resolve with `{ error }` instead of throwing — check the result, never `isSuccess`. The server is the validator: don't pre-fetch rows to validate before a write. Row deletes go through `useRowDelete` (`src/hooks/use-row-delete.ts`: confirm + per-row pending/error).
+- Tab visibility refresh: TanStack Query's built-in `refetchOnWindowFocus` (stale queries only; `staleTime` 30s).
+- `npm run build` runs `tsc --noEmit` first, so type errors fail the build.
 - Do not use `number` for entity/FK IDs in domain types or API clients.
 - Login uses direct `supabase.auth.signInWithPassword` (no BFF proxy). Rate limiting relies on Supabase Auth (the old Next.js IP/email limiter was removed).
 - **Logout / user switch:** `performSignOut()` (`src/lib/auth/sign-out.ts`) clears React Query (`clearAppDataCache`), then `supabase.auth.signOut({ scope: 'local' })` per [Supabase signOut docs](https://supabase.com/docs/reference/javascript/auth-signout). If that errors, purge `sb-*-auth-token` from `localStorage`. `signIn` also clears the query cache so a new user never sees the previous user's cached API data. `onAuthStateChange` clears cache on `SIGNED_OUT` and when `SIGNED_IN` user id changes.
@@ -82,12 +86,12 @@ If `cargo run` fails with `DATABASE_URL is required` while `.env` is set, the sh
 
 ## Budgets tab
 
-- Expand a budget card → `BudgetExpenseForm` adds charges. **Manual and budget expense writes** accept any valid expense date (no pay-period gate on create). No remaining-budget cap on write — tracking only. **Early pay** still requires the paid date in the current pay period. Projection display unchanged — dated budgets still appear on projections from their start date.
+- Expand a budget card → `BudgetExpenseForm` adds charges. A card's expenses load only when it is expanded (`useBudgetExpenses` in `budget-detail.tsx`), not for every budget on page load. **Manual and budget expense writes** accept any valid expense date (no pay-period gate on create). No remaining-budget cap on write — tracking only. **Early pay** still requires the paid date in the current pay period. Projection display unchanged — dated budgets still appear on projections from their start date.
 - **Finish budget:** `POST /api/v1/budgets/:id/complete` sets `completed_at` and closes the date range (`end_date = asOf`). Open-ended budgets become dated on finish (start = earliest expense date or `created_at`). **Active / History** tabs filter client-side: history = `completedAt != null` OR calendar-ended (`today > endDate`). Finish button on active budgets; after finish, UI switches to History. Completed budgets are read-only (no edit, no new expenses). Projections use **actual spent** immediately when `completed_at` is set (not the reserved envelope).
 
 ## Reports tab (web only)
 
-- Route `/reports` — custom date range (`from`/`to` native date inputs + presets). Data from `GET /api/v1/reports/summary` via `useReportSummary(from, to)`. KPIs + charts (income vs expenses, by tag, subscription split, net trend, extra spend by pay period, extra spend by tag). Prior-period % deltas on KPIs. Max range 730 days. Not on iOS.
+- Route `/reports` — custom date range (`from`/`to` native date inputs + presets), kept in the URL search params. Data from `GET /api/v1/reports/summary` via `useReportSummary(from, to)`. KPIs + charts (income vs expenses, by tag, subscription split, net trend, extra spend by pay period, extra spend by tag). Prior-period % deltas on KPIs. Max range 730 days. Not on iOS.
 
 ## Expenses tab loading
 
@@ -107,7 +111,7 @@ Each section shows **inline skeletons** (`src/components/ui/skeleton.tsx`, `src/
 
 ## Railway deployment (UI)
 
-- Multi-stage `Dockerfile`: Node builds `dist/`, **caddy:2-alpine** serves static files with SPA fallback (`try_files {path} /index.html`). The `Caddyfile` site binds Railway’s injected `PORT` via `:{$PORT:8080}`, sets `auto_https off` (Railway terminates TLS at the edge), and applies CSP/security headers (CSP `connect-src` includes `VITE_SUPABASE_URL` + `VITE_API_URL`).
+- Multi-stage `Dockerfile`: Node builds `dist/`, **caddy:2-alpine** serves static files with SPA fallback (`try_files {path} /index.html`). `/assets/*` is immutable-cached with **no** fallback (a missing chunk must 404); everything else (index.html) is `no-cache`. After a deploy, stale tabs recover via the `vite:preloadError` reload in `main.tsx`. The `Caddyfile` site binds Railway’s injected `PORT` via `:{$PORT:8080}`, sets `auto_https off` (Railway terminates TLS at the edge), and applies CSP/security headers (CSP `connect-src` includes `VITE_SUPABASE_URL` + `VITE_API_URL`).
 - `railway.toml` sets `healthcheckPath = "/health"`.
 - Set `VITE_*` service variables **before** the first build — Dockerfile declares them as `ARG`/`ENV` in the builder stage so Vite inlines them. Changing them requires a redeploy/rebuild. A blank page after deploy usually means `VITE_*` were missing at image build time.
 - After generating the UI domain, add it to the API’s `CORS_ORIGIN`.

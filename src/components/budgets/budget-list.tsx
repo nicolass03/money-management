@@ -1,15 +1,12 @@
-"use client";
-
 import { useTranslation } from "react-i18next";
 import type { MoneyDisplayContext } from "@/lib/currency/display";
-import type { BudgetWithTags, ExpenseWithTags } from "@/lib/types/domain";
+import type { BudgetWithTags } from "@/lib/types/domain";
 import { CardListSkeleton } from "@/components/ui/list-skeletons";
 import { getBudgetStatus } from "@/lib/budgets/budget-status";
 import { BudgetCard } from "./budget-card";
 
 interface BudgetListProps extends MoneyDisplayContext {
   budgets: BudgetWithTags[];
-  budgetExpenses: Record<string, ExpenseWithTags[]>;
   loading?: boolean;
   emptyMessage?: string;
   onFinishSuccess?: () => void;
@@ -33,7 +30,6 @@ const GROUP_KEYS: Record<(typeof GROUP_ORDER)[number], string> = {
 
 export function BudgetList({
   budgets,
-  budgetExpenses,
   loading = false,
   emptyMessage,
   onFinishSuccess,
@@ -80,7 +76,6 @@ export function BudgetList({
                 <BudgetCard
                   key={budget.id}
                   budget={budget}
-                  expenses={budgetExpenses[budget.id] ?? []}
                   displayCurrency={displayCurrency}
                   rates={rates}
                   onFinishSuccess={onFinishSuccess}
